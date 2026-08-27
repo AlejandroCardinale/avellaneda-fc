@@ -1,0 +1,40 @@
+<header class="header" [class.scrolled]="scrolled">
+  <div class="header-container">
+    <!-- Logo -->
+    <a routerLink="/inicio" class="header-logo" (click)="closeMenu()">
+      <div class="logo-shield">
+        <img src="images/logo.png" alt="Avellaneda FC" class="logo-img">
+      </div>
+      <span class="logo-text">AVELLANEDA FC</span>
+    </a>
+
+    <!-- Desktop Nav -->
+    <nav class="header-nav" [class.open]="mobileMenuOpen">
+      <a *ngFor="let link of navLinks"
+         [routerLink]="link.path"
+         routerLinkActive="active"
+         class="nav-link"
+         (click)="closeMenu()">
+        {{ link.label }}
+      </a>
+      <!-- Mobile login button -->
+      <a routerLink="/login" class="btn btn-primary mobile-login" (click)="closeMenu()">
+        <i class="fa-regular fa-user"></i> Iniciar sesión
+      </a>
+    </nav>
+
+    <!-- Desktop Login + Hamburger -->
+    <div class="header-actions">
+      <a routerLink="/login" class="btn-login">
+        <i class="fa-regular fa-user"></i>
+        <span>Iniciar sesión</span>
+      </a>
+      <button class="hamburger" (click)="toggleMenu()" [class.open]="mobileMenuOpen" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile overlay -->
+  <div class="mobile-overlay" [class.open]="mobileMenuOpen" (click)="closeMenu()"></div>
+</header>

@@ -1,0 +1,97 @@
+<!-- HERO -->
+<section class="page-hero">
+  <img src="images/football_pitch.png" alt="Noticias" class="page-hero-bg">
+  <div class="container page-hero-content">
+    <h1 class="page-hero-title">Noticias</h1>
+    <p class="page-hero-subtitle">Enterate de todas las novedades del club.</p>
+  </div>
+</section>
+
+<!-- SEARCH + FILTERS -->
+<section class="section-sm" style="background: var(--light-gray); border-bottom: 1px solid var(--border-gray);">
+  <div class="container">
+    <div class="news-filters">
+      <div class="search-bar" style="max-width:380px">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" placeholder="Buscar noticias..." [(ngModel)]="searchQuery" (input)="onSearch()">
+      </div>
+      <div class="filter-bar">
+        <button class="filter-btn" *ngFor="let cat of categories"
+          [class.active]="activeCategory === cat"
+          (click)="filterBy(cat)">{{ cat }}</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTENT + SIDEBAR -->
+<section class="section" style="background: var(--light-gray);">
+  <div class="container">
+    <div class="layout-with-sidebar">
+
+      <!-- News Grid -->
+      <div>
+        <div class="news-grid" *ngIf="filteredNews.length > 0; else noResults">
+          <div class="news-card card" *ngFor="let news of filteredNews">
+            <div class="news-card-img">
+              <img [src]="news.image" [alt]="news.title">
+              <span class="badge badge-blue news-badge">{{ news.category }}</span>
+            </div>
+            <div class="news-card-body">
+              <span class="news-date"><i class="fa-regular fa-calendar"></i> {{ news.date }}</span>
+              <h3>{{ news.title }}</h3>
+              <p>{{ news.description }}</p>
+              <a routerLink="/noticias" class="btn btn-outline-blue btn-sm">Leer más <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+          </div>
+        </div>
+        <ng-template #noResults>
+          <div class="no-results">
+            <i class="fa-solid fa-newspaper"></i>
+            <p>No se encontraron noticias.</p>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <!-- Categories -->
+        <div class="sidebar-card">
+          <h3>Categorías</h3>
+          <ul class="sidebar-cat-list">
+            <li *ngFor="let cat of categories"
+              [class.active]="activeCategory === cat"
+              (click)="filterBy(cat)">
+              <span>{{ cat }}</span>
+              <span class="count">{{ categoryCounts[cat] }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Featured -->
+        <div class="sidebar-card">
+          <h3>Noticias Destacadas</h3>
+          <div class="sidebar-news-list">
+            <a routerLink="/noticias" class="sidebar-news-item" *ngFor="let n of featured">
+              <img [src]="n.image" [alt]="n.title">
+              <div>
+                <span class="sidebar-news-cat">{{ n.category }}</span>
+                <p>{{ n.title }}</p>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Newsletter -->
+        <div class="sidebar-card newsletter-card">
+          <i class="fa-solid fa-bell"></i>
+          <h3>¡No te pierdas nada!</h3>
+          <p>Suscribite para recibir las últimas noticias del club.</p>
+          <input type="email" class="form-control" placeholder="Tu email">
+          <button class="btn btn-primary" style="width:100%">Suscribirme</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>

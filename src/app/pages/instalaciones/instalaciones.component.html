@@ -1,0 +1,89 @@
+<!-- HERO -->
+<section class="page-hero install-hero">
+  <img src="images/pool.png" alt="Instalaciones" class="page-hero-bg">
+  <div class="container page-hero-content">
+    <h1 class="page-hero-title">Nuestras Instalaciones</h1>
+    <p class="page-hero-subtitle">Espacios de primer nivel para el entrenamiento, la competencia y el desarrollo integral de nuestros atletas y socios.</p>
+    <div class="hero-features">
+      <span><i class="fa-solid fa-circle-check"></i> Espacios modernos y seguros</span>
+      <span><i class="fa-solid fa-circle-check"></i> Mantenimiento constante</span>
+      <span><i class="fa-solid fa-circle-check"></i> Acceso para socios y atletas</span>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats-bar">
+  <div class="container">
+    <div class="stats-bar-inner">
+      <div class="stat-item" *ngFor="let stat of stats">
+        <i class="fa-solid" [ngClass]="stat.icon"></i>
+        <div class="stat-item-text">
+          <strong *ngIf="stat.value">{{ stat.value }}</strong>
+          <span>{{ stat.label }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FACILITIES GRID -->
+<section class="section" style="background:var(--light-gray)">
+  <div class="container">
+    <div class="section-header center mb-48">
+      <h2 class="section-title">Nuestros Espacios</h2>
+      <p class="section-subtitle">Cada instalación está pensada para brindar la mejor experiencia a nuestros socios.</p>
+    </div>
+    <div class="facilities-grid">
+      <div class="facility-card card" *ngFor="let f of facilities">
+        <div class="facility-card-img">
+          <img [src]="f.image" [alt]="f.name">
+          <span class="badge badge-blue facility-badge">{{ f.label }}</span>
+        </div>
+        <div class="facility-card-body">
+          <div class="facility-icon">
+            <i class="fa-solid" [ngClass]="f.icon"></i>
+          </div>
+          <h3>{{ f.name }}</h3>
+          <p>{{ f.description }}</p>
+          <ul class="facility-features">
+            <li *ngFor="let feat of f.features"><i class="fa-solid fa-check"></i> {{ feat }}</li>
+          </ul>
+          <button class="btn btn-outline-blue btn-sm">Ver detalles <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="section" style="background:var(--white)">
+  <div class="container">
+    <div class="section-header center mb-48">
+      <h2 class="section-title">Servicios disponibles en nuestras instalaciones</h2>
+    </div>
+    <div class="services-grid">
+      <div class="service-item" *ngFor="let svc of services">
+        <div class="service-icon">
+          <i class="fa-solid" [ngClass]="svc.icon"></i>
+        </div>
+        <span>{{ svc.label }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section-sm" style="background:var(--light-gray)">
+  <div class="container">
+    <div class="cta-section">
+      <div class="cta-text">
+        <h2>¿Querés conocer nuestras instalaciones?</h2>
+        <p>Coordiná una visita guiada y conocé todos nuestros espacios.</p>
+      </div>
+      <div class="cta-actions">
+        <a routerLink="/contacto" class="btn btn-primary btn-lg">Solicitar visita <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </div>
+</section>

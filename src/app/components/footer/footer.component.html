@@ -1,0 +1,87 @@
+<footer class="footer">
+  <div class="footer-top">
+    <div class="container">
+      <div class="footer-grid">
+
+        <!-- Col 1: Branding -->
+        <div class="footer-col footer-brand">
+          <a routerLink="/inicio" class="footer-logo">
+            <div class="footer-logo-img">
+              <img src="images/logo.png" alt="Avellaneda FC">
+            </div>
+            <span>AVELLANEDA FC</span>
+          </a>
+          <p class="footer-tagline">Más que un club, una pasión que nos une.</p>
+          <p class="footer-desc">Un club que fomenta el deporte, la integración y el crecimiento de nuestros socios y atletas.</p>
+        </div>
+
+        <!-- Col 2: Nav -->
+        <div class="footer-col">
+          <h4 class="footer-heading">NAVEGACIÓN</h4>
+          <ul class="footer-links">
+            <li *ngFor="let link of navLinks">
+              <a [routerLink]="link.path">{{ link.label }}</a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Contact -->
+        <div class="footer-col">
+          <h4 class="footer-heading">CONTACTO</h4>
+          <ul class="footer-contact-list">
+            <li>
+              <i class="fa-solid fa-envelope"></i>
+              <a href="mailto:info&#64;avellanedafc.com">info&#64;avellanedafc.com</a>
+            </li>
+            <li>
+              <i class="fa-solid fa-phone"></i>
+              <a href="tel:+541112345678">+54 11 1234 5678</a>
+            </li>
+            <li>
+              <i class="fa-solid fa-location-dot"></i>
+              <span>Av. Siempre Viva 123, Avellaneda, Buenos Aires</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Col 4: Schedule -->
+        <div class="footer-col">
+          <h4 class="footer-heading">HORARIO</h4>
+          <ul class="footer-schedule">
+            <li>
+              <strong>Lunes a Viernes</strong>
+              <span>9:00 a 18:00 hs</span>
+            </li>
+            <li>
+              <strong>Sábados</strong>
+              <span>9:00 a 13:00 hs</span>
+            </li>
+            <li>
+              <strong>Domingos</strong>
+              <span>Cerrado</span>
+            </li>
+          </ul>
+          <!-- Social -->
+          <h4 class="footer-heading" style="margin-top:24px">REDES SOCIALES</h4>
+          <div class="footer-social">
+            <a *ngFor="let s of socialLinks" [href]="s.url" [attr.aria-label]="s.label" class="social-icon">
+              <i [class]="s.icon"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="container">
+      <p>© {{ year }} Avellaneda FC — Todos los derechos reservados.</p>
+      <div class="footer-social footer-social-bottom">
+        <a *ngFor="let s of socialLinks" [href]="s.url" [attr.aria-label]="s.label" class="social-icon">
+          <i [class]="s.icon"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>

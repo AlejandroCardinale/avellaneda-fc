@@ -1,0 +1,94 @@
+<!-- HERO -->
+<section class="page-hero">
+  <img src="images/football_pitch.png" alt="Deportes" class="page-hero-bg">
+  <div class="container page-hero-content">
+    <h1 class="page-hero-title">Deportes</h1>
+    <p class="page-hero-subtitle">Descubrí todas las disciplinas que forman parte de Avellaneda FC.<br>
+    Formación, competencia y pasión en cada actividad.</p>
+  </div>
+</section>
+
+<!-- DISCIPLINES + SIDEBAR -->
+<section class="section" style="background: var(--light-gray);">
+  <div class="container">
+    <div class="layout-with-sidebar">
+
+      <!-- Main -->
+      <div>
+        <div class="section-header mb-32">
+          <h2 class="section-title">Nuestras Disciplinas</h2>
+        </div>
+        <div class="search-bar mb-32">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Buscar deportes..." [(ngModel)]="searchQuery" (input)="onSearch()">
+        </div>
+        <div class="sports-grid">
+          <div class="sport-card card" *ngFor="let sport of filteredSports">
+            <div class="sport-card-img">
+              <img [src]="sport.image" [alt]="sport.name">
+            </div>
+            <div class="sport-card-body">
+              <div class="sport-icon">
+                <i class="fa-solid" [ngClass]="sport.icon"></i>
+              </div>
+              <h3>{{ sport.name }}</h3>
+              <p>{{ sport.description }}</p>
+              <a routerLink="/deportes" class="btn btn-outline-blue btn-sm">Ver más <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <!-- Stats -->
+        <div class="sidebar-card stats-sidebar-card">
+          <h3>En números</h3>
+          <div class="stats-sidebar">
+            <div class="stat-sidebar-item" *ngFor="let s of statItems">
+              <div class="stat-sidebar-icon">
+                <i class="fa-solid" [ngClass]="s.icon"></i>
+              </div>
+              <div class="stat-sidebar-value">{{ s.value }}</div>
+              <div class="stat-sidebar-label">{{ s.label }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Events -->
+        <div class="sidebar-card">
+          <h3>Próximos Eventos Deportivos</h3>
+          <div class="sidebar-events">
+            <div class="sidebar-event-item" *ngFor="let ev of events">
+              <div class="event-date-box">
+                <span class="event-day">{{ ev.day }}</span>
+                <span class="event-month">{{ ev.month }}</span>
+              </div>
+              <div>
+                <p class="event-name">{{ ev.title }}</p>
+                <span class="event-sport"><i class="fa-solid fa-tag"></i> {{ ev.discipline }}</span>
+              </div>
+            </div>
+          </div>
+          <a routerLink="/eventos" class="btn btn-outline-blue btn-sm" style="margin-top:16px;width:100%;justify-content:center">Ver todos los eventos</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section-sm">
+  <div class="container">
+    <div class="cta-section">
+      <div class="cta-text">
+        <h2>Viví tu deporte en Avellaneda FC</h2>
+        <p>Un club, muchas pasiones. Sumate y sé parte de nuestra familia.</p>
+      </div>
+      <div class="cta-actions">
+        <a routerLink="/contacto" class="btn btn-primary btn-lg">Hacete socio <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </div>
+</section>

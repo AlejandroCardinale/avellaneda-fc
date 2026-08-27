@@ -1,0 +1,182 @@
+<!-- HERO -->
+<section class="page-hero">
+  <img src="images/football_pitch.png" alt="Contacto" class="page-hero-bg">
+  <div class="container page-hero-content">
+    <h1 class="page-hero-title">Contacto</h1>
+    <p class="page-hero-subtitle">Estamos acá para ayudarte. Comunicate con nosotros y te responderemos a la brevedad.</p>
+  </div>
+</section>
+
+<!-- INFO CARDS ROW -->
+<section class="section-sm" style="background: var(--light-gray); border-bottom: 1px solid var(--border-gray);">
+  <div class="container">
+    <div class="contact-info-row">
+
+      <div class="contact-info-card">
+        <div class="contact-info-icon">
+          <i class="fa-solid fa-location-dot"></i>
+        </div>
+        <h3>Dirección</h3>
+        <p>Av. Siempre Viva 123<br>Avellaneda, Buenos Aires</p>
+      </div>
+
+      <div class="contact-info-card">
+        <div class="contact-info-icon">
+          <i class="fa-solid fa-phone"></i>
+        </div>
+        <h3>Teléfono</h3>
+        <p>+54 11 1234 5678<br>Lun–Vie: 9:00 a 18:00 hs</p>
+      </div>
+
+      <div class="contact-info-card">
+        <div class="contact-info-icon">
+          <i class="fa-solid fa-envelope"></i>
+        </div>
+        <h3>Email</h3>
+        <p>info&#64;avellanedafc.com<br>secretaria&#64;avellanedafc.com</p>
+      </div>
+
+      <div class="contact-info-card">
+        <div class="contact-info-icon">
+          <i class="fa-solid fa-clock"></i>
+        </div>
+        <h3>Horario de Atención</h3>
+        <p>Lun–Vie: 9:00 a 18:00 hs<br>Sáb: 9:00 a 13:00 hs</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FORM + SIDEBAR -->
+<section class="section" style="background: var(--light-gray);">
+  <div class="container">
+    <div class="layout-with-sidebar">
+
+      <!-- FORM -->
+      <div>
+        <div class="contact-form-card card">
+          <div class="contact-form-header">
+            <h2 class="section-title mb-8">Envianos un mensaje</h2>
+            <p class="section-subtitle">Completá el formulario y nos comunicaremos en menos de 24 horas.</p>
+          </div>
+
+          <!-- Success message -->
+          <div class="form-success" *ngIf="success">
+            <i class="fa-solid fa-circle-check"></i>
+            <div>
+              <strong>¡Mensaje enviado!</strong>
+              <p>Nos comunicaremos contigo a la brevedad. ¡Gracias!</p>
+            </div>
+          </div>
+
+          <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="contact-form" *ngIf="!success">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="nombre">Nombre completo *</label>
+                <input id="nombre" type="text" class="form-control" placeholder="Ej: Juan Pérez"
+                  formControlName="nombre"
+                  [class.ng-invalid]="submitted && f['nombre'].errors"
+                  [class.ng-touched]="submitted">
+                <span class="form-error" *ngIf="submitted && f['nombre'].errors?.['required']">El nombre es requerido.</span>
+                <span class="form-error" *ngIf="submitted && f['nombre'].errors?.['minlength']">Mínimo 2 caracteres.</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="email">Email *</label>
+                <input id="email" type="email" class="form-control" placeholder="tu@email.com"
+                  formControlName="email"
+                  [class.ng-invalid]="submitted && f['email'].errors"
+                  [class.ng-touched]="submitted">
+                <span class="form-error" *ngIf="submitted && f['email'].errors?.['required']">El email es requerido.</span>
+                <span class="form-error" *ngIf="submitted && f['email'].errors?.['email']">El email no es válido.</span>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="telefono">Teléfono <span class="optional">(opcional)</span></label>
+                <input id="telefono" type="tel" class="form-control" placeholder="+54 11 1234 5678"
+                  formControlName="telefono">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="asunto">Asunto *</label>
+                <select id="asunto" class="form-control" formControlName="asunto"
+                  [class.ng-invalid]="submitted && f['asunto'].errors"
+                  [class.ng-touched]="submitted">
+                  <option value="" disabled selected>Seleccioná una opción</option>
+                  <option value="Información general">Información general</option>
+                  <option value="Hacerse socio">Hacerse socio</option>
+                  <option value="Instalaciones">Instalaciones</option>
+                  <option value="Eventos">Eventos</option>
+                  <option value="Deportes">Deportes</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <span class="form-error" *ngIf="submitted && f['asunto'].errors?.['required']">El asunto es requerido.</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="mensaje">Mensaje *</label>
+              <textarea id="mensaje" class="form-control" rows="5"
+                placeholder="Contanos en qué podemos ayudarte..."
+                formControlName="mensaje"
+                [class.ng-invalid]="submitted && f['mensaje'].errors"
+                [class.ng-touched]="submitted"></textarea>
+              <span class="form-error" *ngIf="submitted && f['mensaje'].errors?.['required']">El mensaje es requerido.</span>
+              <span class="form-error" *ngIf="submitted && f['mensaje'].errors?.['minlength']">Mínimo 10 caracteres.</span>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg contact-submit-btn">
+              Enviar mensaje <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+
+        <!-- Social -->
+        <div class="sidebar-card">
+          <h3>Redes Sociales</h3>
+          <p class="sidebar-desc">Seguinos para estar al tanto de todas las novedades del club.</p>
+          <div class="social-links-list">
+            <a *ngFor="let s of socialLinks" [href]="s.url" class="social-link-item" target="_blank" rel="noopener">
+              <div class="social-link-icon" [style.background]="s.color + '18'" [style.color]="s.color">
+                <i [class]="s.icon"></i>
+              </div>
+              <span>{{ s.label }}</span>
+              <i class="fa-solid fa-arrow-right social-arrow"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Benefits -->
+        <div class="sidebar-card benefits-card">
+          <h3>¿Por qué contactarnos?</h3>
+          <div class="benefits-list">
+            <div class="benefit-item" *ngFor="let b of benefits">
+              <div class="benefit-icon">
+                <i class="fa-solid" [ngClass]="b.icon"></i>
+              </div>
+              <span>{{ b.label }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Map placeholder -->
+        <div class="sidebar-card map-card">
+          <h3>Cómo llegar</h3>
+          <div class="map-placeholder">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <p>Av. Siempre Viva 123, Avellaneda</p>
+            <a href="https://maps.google.com" target="_blank" class="btn btn-outline-blue btn-sm" style="margin-top:12px">
+              Ver en Google Maps <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>

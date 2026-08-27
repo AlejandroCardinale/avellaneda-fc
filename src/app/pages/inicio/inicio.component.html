@@ -1,0 +1,140 @@
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <img src="images/hero_stadium.png" alt="Complejo Avellaneda FC" class="hero-bg">
+  <div class="hero-overlay"></div>
+  <div class="container hero-content">
+    <div class="hero-text fade-in-up">
+      <h1 class="hero-title">Bienvenido a<br><span>Avellaneda FC</span></h1>
+      <p class="hero-subtitle">Un club que fomenta el deporte, la integración y el crecimiento de nuestros socios y atletas.</p>
+      <div class="hero-actions">
+        <a routerLink="/deportes" class="btn btn-primary btn-lg">Conocé más <i class="fa-solid fa-arrow-right"></i></a>
+        <a routerLink="/instalaciones" class="btn btn-outline btn-lg">Ver instalaciones <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== STATS BAR ===== -->
+<section class="stats-bar">
+  <div class="container">
+    <div class="stats-bar-inner">
+      <div class="stat-item" *ngFor="let stat of stats">
+        <i class="fa-solid" [ngClass]="stat.icon"></i>
+        <div class="stat-item-text">
+          <strong *ngIf="stat.value">{{ stat.value }}</strong>
+          <span>{{ stat.label }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MAIN CONTENT GRID ===== -->
+<section class="section content-section">
+  <div class="container">
+    <div class="content-grid">
+
+      <!-- Noticias Card (dark) -->
+      <div class="content-card dark-card">
+        <span class="badge badge-blue">Última noticia</span>
+        <h2 class="card-title-lg">{{ latestNews?.title }}</h2>
+        <p class="card-desc">{{ latestNews?.description }}</p>
+        <a routerLink="/noticias" class="btn btn-outline">Leer más <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+
+      <!-- Deportes Card -->
+      <div class="content-card light-card sport-card-home">
+        <div class="card-inner">
+          <div class="card-info">
+            <div class="card-icon-wrap">
+              <i class="fa-solid fa-medal"></i>
+            </div>
+            <h3 class="card-title">Deportes</h3>
+            <p>Contamos con diversas disciplinas deportivas para todas las edades y niveles.</p>
+            <ul class="feature-list">
+              <li><i class="fa-solid fa-circle-check"></i> Fútbol</li>
+              <li><i class="fa-solid fa-circle-check"></i> Natación</li>
+              <li><i class="fa-solid fa-circle-check"></i> Gimnasio</li>
+              <li><i class="fa-solid fa-circle-check"></i> Tenis y más</li>
+            </ul>
+            <a routerLink="/deportes" class="btn btn-outline-blue">Ver deportes <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+        </div>
+        <img src="images/football_pitch.png" alt="Deportes" class="card-img-side">
+      </div>
+
+      <!-- Instalaciones Card -->
+      <div class="content-card light-card install-card-home">
+        <div class="card-inner">
+          <div class="card-info">
+            <div class="card-icon-wrap">
+              <i class="fa-solid fa-building"></i>
+            </div>
+            <h3 class="card-title">Instalaciones</h3>
+            <p>Espacios modernos y equipados para el entrenamiento, el aprendizaje y el disfrute.</p>
+            <ul class="feature-list">
+              <li><i class="fa-solid fa-circle-check"></i> Canchas de fútbol</li>
+              <li><i class="fa-solid fa-circle-check"></i> Piscina olímpica</li>
+              <li><i class="fa-solid fa-circle-check"></i> Gimnasio</li>
+              <li><i class="fa-solid fa-circle-check"></i> Canchas de tenis</li>
+            </ul>
+            <a routerLink="/instalaciones" class="btn btn-outline-blue">Ver instalaciones <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+        </div>
+        <img src="images/pool.png" alt="Instalaciones" class="card-img-side">
+      </div>
+
+      <!-- Contacto Card (dark) -->
+      <div class="content-card dark-card contact-card-home">
+        <div class="contact-icon-wrap">
+          <i class="fa-solid fa-envelope"></i>
+        </div>
+        <h3 class="card-title">Contacto</h3>
+        <p>Estamos para ayudarte. Comunicate con nosotros por cualquiera de nuestros canales.</p>
+        <ul class="contact-info-list">
+          <li><i class="fa-solid fa-phone"></i> 11 1234 5678</li>
+          <li><i class="fa-solid fa-envelope"></i> info&#64;avellanedafc.com</li>
+          <li><i class="fa-solid fa-location-dot"></i> Av. Siempreviva 1234, Avellaneda, Bs. As.</li>
+        </ul>
+        <a routerLink="/contacto" class="btn btn-outline" style="margin-top:auto">Escribinos <i class="fa-solid fa-arrow-right"></i></a>
+        <div class="contact-logo-bg">
+          <img src="images/logo.png" alt="">
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== SERVICIOS ===== -->
+<section class="section section-services">
+  <div class="container">
+    <h2 class="section-title mb-32">Servicios disponibles en Avellaneda FC</h2>
+    <div class="services-grid">
+      <div class="service-item" *ngFor="let svc of services">
+        <div class="service-icon">
+          <i class="fa-solid" [ngClass]="svc.icon"></i>
+        </div>
+        <span>{{ svc.label }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="section-sm">
+  <div class="container">
+    <div class="cta-section">
+      <div class="cta-icon">
+        <i class="fa-regular fa-calendar-check"></i>
+      </div>
+      <div class="cta-text">
+        <h2>¿Querés conocer nuestras instalaciones?</h2>
+        <p>Coordiná una visita guiada y conocé todos nuestros espacios.</p>
+      </div>
+      <div class="cta-actions">
+        <a routerLink="/contacto" class="btn btn-primary btn-lg">Solicitar visita <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </div>
+</section>
