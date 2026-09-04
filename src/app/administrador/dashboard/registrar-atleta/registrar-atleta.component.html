@@ -1,0 +1,211 @@
+<section class="register-page">
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Panel de administración</p>
+      <h1>Registro y Gestión de Atletas</h1>
+    </div>
+    <button type="button" class="btn btn-secondary" (click)="cancel()">
+      ← Volver
+    </button>
+  </div>
+
+  <div class="alert alert-error" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div class="alert alert-success" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <div class="content-grid">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-shell" novalidate>
+      <div class="section-card">
+        <div class="section-title">
+          <div>
+            <h2>Información Personal</h2>
+            <small>Datos básicos del atleta</small>
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
+            <label for="nombre">Nombre</label>
+            <input id="nombre" type="text" formControlName="nombre" placeholder="Ej: Mateo" />
+            <small class="error-text" *ngIf="f['nombre'].touched && f['nombre'].hasError('required')">El nombre es obligatorio.</small>
+          </div>
+
+          <div class="field">
+            <label for="apellido">Apellido</label>
+            <input id="apellido" type="text" formControlName="apellido" placeholder="Ej: López" />
+            <small class="error-text" *ngIf="f['apellido'].touched && f['apellido'].hasError('required')">El apellido es obligatorio.</small>
+          </div>
+
+          <div class="field">
+            <label for="dni">DNI / Documento</label>
+            <input id="dni" type="text" formControlName="dni" placeholder="Ej: 40.123.456" />
+            <small class="error-text" *ngIf="f['dni'].touched && f['dni'].hasError('required')">El documento es obligatorio.</small>
+          </div>
+
+          <div class="field">
+            <label for="fecha_nacimiento">Fecha de nacimiento</label>
+            <input id="fecha_nacimiento" type="date" formControlName="fecha_nacimiento" />
+            <small class="error-text" *ngIf="f['fecha_nacimiento'].touched && f['fecha_nacimiento'].hasError('required')">La fecha es obligatoria.</small>
+          </div>
+
+          <div class="field">
+            <label for="genero">Género</label>
+            <select id="genero" formControlName="genero">
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+              <option value="No binario">No binario</option>
+              <option value="Prefiero no decirlo">Prefiero no decirlo</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card compact-card">
+        <div class="section-title">
+          <div>
+            <h2>Datos de Contacto</h2>
+            <small>Comunicación y localización</small>
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
+            <label for="email">Correo electrónico</label>
+            <input id="email" type="email" formControlName="email" placeholder="usuario@correo.com" />
+            <small class="error-text" *ngIf="f['email'].touched && f['email'].hasError('required')">El correo es obligatorio.</small>
+            <small class="error-text" *ngIf="f['email'].touched && f['email'].hasError('email')">Ingresá un correo válido.</small>
+          </div>
+
+          <div class="field">
+            <label for="telefono">Teléfono</label>
+            <input id="telefono" type="tel" formControlName="telefono" placeholder="Ej: 1122334455" />
+            <small class="error-text" *ngIf="f['telefono'].touched && f['telefono'].hasError('required')">El teléfono es obligatorio.</small>
+          </div>
+
+          <div class="field field-full">
+            <label for="direccion">Dirección</label>
+            <input id="direccion" type="text" formControlName="direccion" placeholder="Ej: Av. Mitre 2450, Avellaneda" />
+            <small class="error-text" *ngIf="f['direccion'].touched && f['direccion'].hasError('required')">La dirección es obligatoria.</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card compact-card">
+        <div class="section-title">
+          <div>
+            <h2>Información Deportiva</h2>
+            <small>Disciplina, categoría y estado</small>
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
+            <label for="deporte_id">Deporte</label>
+            <select id="deporte_id" formControlName="deporte_id">
+              <option [ngValue]="1">Fútbol</option>
+              <option [ngValue]="2">Natación</option>
+              <option [ngValue]="3">Tenis</option>
+              <option [ngValue]="4">Gimnasio</option>
+              <option [ngValue]="5">Básquet</option>
+              <option [ngValue]="6">Vóley</option>
+              <option [ngValue]="7">Atletismo</option>
+              <option [ngValue]="8">Artes Marciales</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="categoria_id">Categoría</label>
+            <select id="categoria_id" formControlName="categoria_id">
+              <option [ngValue]="1">Infantil</option>
+              <option [ngValue]="2">Sub-15</option>
+              <option [ngValue]="3">Sub-17</option>
+              <option [ngValue]="4">Primera División</option>
+              <option [ngValue]="5">Juvenil</option>
+              <option [ngValue]="6">Adultos</option>
+              <option [ngValue]="7">Mujeres</option>
+              <option [ngValue]="8">Varones</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="fecha_inscripcion">Fecha de inscripción</label>
+            <input id="fecha_inscripcion" type="date" formControlName="fecha_inscripcion" />
+          </div>
+
+          <div class="field">
+            <label for="estado_inicial">Estado inicial</label>
+            <select id="estado_inicial" formControlName="estado_inicial">
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+              <option value="pendiente">Pendiente</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <button type="button" class="btn btn-secondary" (click)="cancel()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="loading">
+          {{ loading ? 'Registrando...' : 'Guardar / Registrar Atleta' }}
+        </button>
+      </div>
+    </form>
+
+    <aside class="table-panel">
+      <div class="table-header">
+        <div>
+          <p class="eyebrow tiny">Listado</p>
+          <h2>Atletas registrados</h2>
+        </div>
+        <span class="chip">{{ atletas.length }}</span>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Correo</th>
+              <th>Categoría</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody *ngIf="!athletesLoading; else loadingRow">
+            <tr *ngFor="let atleta of atletas">
+              <td>{{ atleta.nombre }} {{ atleta.apellido }}</td>
+              <td>{{ atleta.email }}</td>
+              <td>{{ atleta.categoria || 'Sin categoría' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="{ active: atleta.estado === 'apto' || atleta.estado === 'activo', pending: atleta.estado === 'pendiente', inactive: atleta.estado === 'inactivo' || atleta.estado === 'no_apto' }">
+                  {{ atleta.estado || 'Activo' }}
+                </span>
+              </td>
+              <td class="actions-cell">
+                <button type="button" class="mini-btn view">Ver</button>
+                <button type="button" class="mini-btn edit">Editar</button>
+                <button type="button" class="mini-btn delete" (click)="eliminarAtleta(atleta.id)">Eliminar</button>
+              </td>
+            </tr>
+            <tr *ngIf="!atletas.length">
+              <td colspan="5" class="empty-state">No hay atletas registrados.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <ng-template #loadingRow>
+          <tbody>
+            <tr>
+              <td colspan="5" class="empty-state">Cargando atletas...</td>
+            </tr>
+          </tbody>
+        </ng-template>
+      </div>
+    </aside>
+  </div>
+</section>

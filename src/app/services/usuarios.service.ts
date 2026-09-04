@@ -57,12 +57,30 @@ export class UsuariosService {
     return this.http.get<Usuario[]>(this.API, { params: p });
   }
 
+  getUsuariosPage(params?: {
+    rol?: string;
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  }): Observable<{ data: Usuario[]; total: number; page: number; pageSize: number; totalPages: number }> {
+    let p = new HttpParams();
+    if (params?.rol) p = p.set('rol', params.rol);
+    if (params?.search) p = p.set('search', params.search);
+    if (params?.page) p = p.set('page', String(params.page));
+    if (params?.pageSize) p = p.set('pageSize', String(params.pageSize));
+    return this.http.get<{ data: Usuario[]; total: number; page: number; pageSize: number; totalPages: number }>(this.API, { params: p });
+  }
+
   getById(id: number): Observable<Usuario> {
     return this.http.get<Usuario>(`${this.API}/${id}`);
   }
 
   update(id: number, data: Partial<Usuario>): Observable<Usuario> {
     return this.http.put<Usuario>(`${this.API}/${id}`, data);
+  }
+
+  delete(id: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.API}/${id}`);
   }
 
   toggleActivo(id: number, activo: boolean): Observable<Usuario> {
