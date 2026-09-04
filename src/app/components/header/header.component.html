@@ -17,18 +17,37 @@
          (click)="closeMenu()">
         {{ link.label }}
       </a>
-      <!-- Mobile login button -->
-      <a routerLink="/login" class="btn btn-primary mobile-login" (click)="closeMenu()">
-        <i class="fa-regular fa-user"></i> Iniciar sesión
-      </a>
+      <!-- Mobile: login o logout -->
+      <ng-container *ngIf="!isLoggedIn; else mobileLogout">
+        <a routerLink="/login" class="btn btn-primary mobile-login" (click)="closeMenu()">
+          <i class="fa-regular fa-user"></i> Iniciar sesión
+        </a>
+      </ng-container>
+      <ng-template #mobileLogout>
+        <button class="btn btn-primary mobile-login" (click)="logout(); closeMenu()">
+          <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+        </button>
+      </ng-template>
     </nav>
 
-    <!-- Desktop Login + Hamburger -->
+    <!-- Desktop: Login/Logout + Hamburger -->
     <div class="header-actions">
-      <a routerLink="/login" class="btn-login">
-        <i class="fa-regular fa-user"></i>
-        <span>Iniciar sesión</span>
-      </a>
+      <ng-container *ngIf="!isLoggedIn; else desktopLogout">
+        <a routerLink="/login" class="btn-login">
+          <i class="fa-regular fa-user"></i>
+          <span>Iniciar sesión</span>
+        </a>
+      </ng-container>
+      <ng-template #desktopLogout>
+        <div class="user-info">
+          <span class="user-name"><i class="fa-solid fa-circle-user"></i> {{ usuarioNombre }}</span>
+          <button class="btn-login btn-logout" (click)="logout()">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Cerrar sesión</span>
+          </button>
+        </div>
+      </ng-template>
+
       <button class="hamburger" (click)="toggleMenu()" [class.open]="mobileMenuOpen" aria-label="Menú">
         <span></span><span></span><span></span>
       </button>

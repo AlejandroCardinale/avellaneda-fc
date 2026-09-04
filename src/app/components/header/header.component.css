@@ -136,6 +136,33 @@
   border-color: var(--accent-blue);
 }
 
+/* Usuario logueado */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-name {
+  color: rgba(255,255,255,0.85);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-logout {
+  cursor: pointer;
+  border-color: rgba(239, 68, 68, 0.6);
+}
+
+.btn-logout:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+}
+
 /* Hamburger */
 .hamburger {
   display: none;

@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -12,20 +13,25 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 })
 export class LoginComponent {
   loginForm: FormGroup;
-  submitted = false;
+  submitted  = false;
   showPassword = false;
   errorMessage = '';
+  loading = false;
 
   loginBenefits = [
-    { icon: 'fa-id-card', label: 'Gestioná tu membresía en línea' },
+    { icon: 'fa-id-card',        label: 'Gestioná tu membresía en línea' },
     { icon: 'fa-calendar-check', label: 'Reservá instalaciones fácilmente' },
-    { icon: 'fa-bell', label: 'Recibí notificaciones de eventos' },
-    { icon: 'fa-trophy', label: 'Accedé a resultados y estadísticas' }
+    { icon: 'fa-bell',           label: 'Recibí notificaciones de eventos' },
+    { icon: 'fa-trophy',         label: 'Accedé a resultados y estadísticas' }
   ];
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router
+  ) {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      email:    ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       remember: [false]
     });
@@ -36,9 +42,22 @@ export class LoginComponent {
   onSubmit() {
     this.submitted = true;
     this.errorMessage = '';
-    if (this.loginForm.valid) {
-      this.errorMessage = 'Credenciales incorrectas. Por favor intente nuevamente.';
-    }
+    if (this.loginForm.invalid) return;
+
+    this.loading = true;
+    const { email, password } = this.loginForm.value;
+
+    this.authService.login({ email, password }).subscribe({
+      next: () => {
+        this.loading = false;
+        // Redirige al inicio; el header recalculará los links por rol
+        this.router.navigate(['/inicio']);
+      },
+      error: (err) => {
+        this.loading = false;
+        this.errorMessage = err?.error?.message ?? 'Credenciales incorrectas. Por favor intente nuevamente.';
+      }
+    });
   }
 
   togglePassword() { this.showPassword = !this.showPassword; }
