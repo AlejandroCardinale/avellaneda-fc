@@ -1,0 +1,132 @@
+<section class="coaches-page">
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Panel de administración</p>
+      <h1>Registro y Gestión de Entrenadores</h1>
+    </div>
+    <button type="button" class="btn btn-secondary" (click)="volver()">← Volver</button>
+  </div>
+
+  <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+
+  <div class="content-grid">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-shell" novalidate>
+      <div class="section-card">
+        <div class="section-title">
+          <div>
+            <h2>{{ editingId ? 'Editar entrenador' : 'Registrar entrenador' }}</h2>
+            <small>Datos personales y profesionales</small>
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
+            <label for="nombre">Nombre</label>
+            <input id="nombre" type="text" formControlName="nombre" placeholder="Ej: Laura" />
+            <small class="error-text" *ngIf="f['nombre'].touched && f['nombre'].hasError('required')">El nombre es obligatorio.</small>
+          </div>
+
+          <div class="field">
+            <label for="apellido">Apellido</label>
+            <input id="apellido" type="text" formControlName="apellido" placeholder="Ej: Gómez" />
+            <small class="error-text" *ngIf="f['apellido'].touched && f['apellido'].hasError('required')">El apellido es obligatorio.</small>
+          </div>
+
+          <div class="field">
+            <label for="email">Correo electrónico</label>
+            <input id="email" type="email" formControlName="email" placeholder="entrenador@club.com" />
+            <small class="error-text" *ngIf="f['email'].touched && f['email'].hasError('required')">El correo es obligatorio.</small>
+            <small class="error-text" *ngIf="f['email'].touched && f['email'].hasError('email')">Ingresá un correo válido.</small>
+          </div>
+
+          <div class="field">
+            <label for="telefono">Teléfono</label>
+            <input id="telefono" type="tel" formControlName="telefono" placeholder="Ej: 1122334455" />
+            <small class="error-text" *ngIf="f['telefono'].touched && f['telefono'].hasError('required')">El teléfono es obligatorio.</small>
+          </div>
+
+          <div class="field">
+            <label for="deporte_id">Disciplina deportiva</label>
+            <select id="deporte_id" formControlName="deporte_id">
+              <option *ngFor="let deporte of deportes" [ngValue]="deporte.id">{{ deporte.nombre }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="estado_inicial">Estado inicial</label>
+            <select id="estado_inicial" formControlName="estado_inicial">
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+            </select>
+          </div>
+
+          <div class="field field-full">
+            <label for="especialidad">Especialidad</label>
+            <input id="especialidad" type="text" formControlName="especialidad" placeholder="Ej: Fútbol infantil y juvenil" />
+            <small class="error-text" *ngIf="f['especialidad'].touched && f['especialidad'].hasError('required')">La especialidad es obligatoria.</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <button *ngIf="editingId" type="button" class="btn btn-secondary" (click)="cancelarEdicion()">Cancelar edición</button>
+        <button type="submit" class="btn btn-primary" [disabled]="loading">
+          {{ loading ? 'Guardando...' : (editingId ? 'Guardar cambios' : 'Registrar entrenador') }}
+        </button>
+      </div>
+    </form>
+
+    <aside class="table-panel">
+      <div class="table-header">
+        <div>
+          <p class="eyebrow tiny">Listado</p>
+          <h2>Entrenadores registrados</h2>
+        </div>
+        <span class="chip">{{ entrenadores.length }}</span>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Apellido</th>
+              <th>Correo</th>
+              <th>Especialidad</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody *ngIf="!listLoading; else loadingRow">
+            <tr *ngFor="let entrenador of entrenadores">
+              <td>{{ entrenador.nombre }}</td>
+              <td>{{ entrenador.apellido }}</td>
+              <td>{{ entrenador.email }}</td>
+              <td>{{ entrenador.especialidad || 'Sin especialidad' }}</td>
+              <td>
+                <span class="status-badge" [class.active]="entrenador.estado === 'activo'" [class.inactive]="entrenador.estado === 'inactivo'">
+                  {{ entrenador.estado }}
+                </span>
+              </td>
+              <td class="actions-cell">
+                <button type="button" class="mini-btn view" (click)="ver(entrenador)">Ver</button>
+                <button type="button" class="mini-btn edit" (click)="editar(entrenador)">Editar</button>
+                <button type="button" class="mini-btn delete" (click)="eliminar(entrenador)">Eliminar</button>
+              </td>
+            </tr>
+            <tr *ngIf="!entrenadores.length">
+              <td colspan="6" class="empty-state">No hay entrenadores registrados.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <ng-template #loadingRow>
+          <tbody>
+            <tr><td colspan="6" class="empty-state">Cargando entrenadores...</td></tr>
+          </tbody>
+        </ng-template>
+      </div>
+    </aside>
+  </div>
+</section>

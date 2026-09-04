@@ -26,9 +26,9 @@
  * ============================================================
  */
 import { Routes } from '@angular/router';
+import { adminRoutes } from './administrador/administrador.routes';
 
 export const routes: Routes = [
-  // Ruta raíz: redirige automáticamente a /inicio
   { path: '', redirectTo: '/inicio', pathMatch: 'full' },
 
   {
@@ -60,21 +60,22 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent)
   },
   {
-    // Módulo de solicitudes: entrenadores piden indumentaria, equipamiento o transporte
     path: 'solicitud',
     loadComponent: () => import('./pages/solicitud/solicitud.component').then(m => m.SolicitudComponent)
   },
   {
-    // Módulo de reportes: vista para administradores (gestión de solicitudes, etc.)
     path: 'reportes',
     loadComponent: () => import('./pages/reportes/reportes.component').then(m => m.ReportesComponent)
   },
   {
-    // Registro de nuevos usuarios: crea cuenta con rol 'atleta' por defecto
+    path: 'administrador',
+    loadComponent: () => import('./administrador/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    children: adminRoutes
+  },
+  {
     path: 'registro',
     loadComponent: () => import('./pages/registro/registro.component').then(m => m.RegistroComponent)
   },
 
-  // Wildcard: cualquier URL no definida redirige al inicio
   { path: '**', redirectTo: '/inicio' }
 ];

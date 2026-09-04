@@ -1,0 +1,93 @@
+<section class="gestion-usuarios">
+  <div class="topbar">
+    <div>
+      <h1>Gestión de Usuarios</h1>
+      <p>Administra todos los usuarios registrados en el sistema.</p>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <span class="search-icon">⌕</span>
+      <input
+        type="text"
+        [(ngModel)]="search"
+        placeholder="Buscar por nombre o correo..."
+        (ngModelChange)="onSearch()"
+      />
+    </div>
+
+    <div class="filters">
+      <button
+        *ngFor="let role of roles"
+        type="button"
+        [class.active]="selectedRole === role"
+        (click)="selectedRole = role; onRoleChange()"
+      >
+        {{ role }}
+      </button>
+    </div>
+
+    <div class="results-count">Mostrando {{ usuarios.length }} de {{ total }} usuarios</div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Apellido</th>
+          <th>Correo Electrónico</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody *ngIf="!loading; else loadingTpl">
+        <tr *ngFor="let user of usuarios">
+          <td>
+            <div class="user-cell">
+              <div class="avatar">{{ getInitials(user) }}</div>
+              <span>{{ user.nombre }}</span>
+            </div>
+          </td>
+          <td>{{ user.apellido }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <span [class]="getRoleClass(user.rol)">{{ user.rol }}</span>
+          </td>
+          <td>
+            <span [class]="getEstadoClass(user.activo)">{{ user.activo ? 'Activo' : 'Inactivo' }}</span>
+          </td>
+          <td>
+            <div class="actions">
+              <button type="button" class="btn-action btn-view">Ver</button>
+              <button type="button" class="btn-action btn-edit">Editar</button>
+              <button type="button" class="btn-action btn-delete" (click)="eliminarUsuario(user.id)">Eliminar</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <ng-template #loadingTpl>
+      <tbody>
+        <tr>
+          <td colspan="6" class="loading-cell">Cargando usuarios...</td>
+        </tr>
+      </tbody>
+    </ng-template>
+  </div>
+
+  <div class="pagination">
+    <span>Página {{ page }} de {{ totalPages }}</span>
+    <div class="pagination-buttons">
+      <button type="button" [disabled]="page === 1" (click)="prevPage()">‹</button>
+      <button type="button" *ngFor="let pageNum of [].constructor(totalPages); let i = index" [class.active]="page === i + 1" (click)="goToPage(i + 1)">
+        {{ i + 1 }}
+      </button>
+      <button type="button" [disabled]="page === totalPages" (click)="nextPage()">›</button>
+    </div>
+  </div>
+</section>

@@ -32,8 +32,21 @@ const PORT = process.env.PORT || 3000;
  * Permite que el frontend en localhost:4200 pueda hacer peticiones a esta API.
  * Sin esto, el navegador bloquea las peticiones por seguridad.
  */
+const allowedOrigins = [
+  'http://localhost:4200',
+  'http://localhost:4201',
+  'http://127.0.0.1:4200',
+  'http://127.0.0.1:4201'
+];
+
 app.use(cors({
-  origin: 'http://localhost:4200',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`Origen no permitido por CORS: ${origin}`));
+  },
   credentials: true
 }));
 
@@ -50,6 +63,10 @@ app.use(express.json());
  * Express delega las peticiones al router correspondiente según el prefijo de URL.
  */
 app.use('/api/auth',        require('./routes/auth'));        // Login, registro, logout, refresh
+app.use('/api/admin',       require('./routes/admin'));       // Dashboard administrativo y métricas
+app.use('/api/usuarios',    require('./routes/usuarios'));    // Gestión de usuarios del panel administrativo
+app.use('/api/atletas',     require('./routes/atletas'));     // Alta y gestión de atletas
+app.use('/api/entrenadores', require('./routes/entrenadores')); // Alta y gestión de entrenadores
 app.use('/api/catalogo',    require('./routes/catalogo'));    // Lista de ítems disponibles
 app.use('/api/solicitudes', require('./routes/solicitudes')); // CRUD de solicitudes
 
