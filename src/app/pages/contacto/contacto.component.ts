@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-contacto',
@@ -12,8 +14,10 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 })
 export class ContactoComponent {
   contactForm: FormGroup;
-  submitted = false;
-  success = false;
+  submitted    = false;
+  success      = false;
+  loading      = false;
+  errorMessage = '';
 
   socialLinks = [
     { icon: 'fa-brands fa-instagram', label: 'Instagram', url: '#', color: '#e1306c' },
@@ -29,25 +33,40 @@ export class ContactoComponent {
     { icon: 'fa-star', label: 'Tu opinión importa' }
   ];
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private http: HttpClient) {
     this.contactForm = this.fb.group({
-      nombre: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      telefono: [''],
-      asunto: ['', Validators.required],
+      nombre:  ['', [Validators.required, Validators.minLength(2)]],
+      email:   ['', [Validators.required, Validators.email]],
+      telefono:[''],
+      asunto:  ['', Validators.required],
       mensaje: ['', [Validators.required, Validators.minLength(10)]]
     });
   }
 
   get f() { return this.contactForm.controls; }
 
-  onSubmit() {
-    this.submitted = true;
-    if (this.contactForm.valid) {
-      this.success = true;
-      this.contactForm.reset();
-      this.submitted = false;
-      setTimeout(() => this.success = false, 4000);
-    }
+  onSubmit(): void {
+    this.submitted    = true;
+    this.errorMessage = '';
+    if (this.contactForm.invalid) return;
+
+    this.loading = true;
+
+    this.http.post<{ message: string }>(
+      `${environment.apiUrl}/contacto`,
+      this.contactForm.value
+    ).subscribe({
+      next: () => {
+        this.loading = false;
+        this.success = true;
+        this.contactForm.reset();
+        this.submitted = false;
+      },
+      error: (err) => {
+        this.loading      = false;
+        this.errorMessage = err.error?.message ?? 'Error al enviar el mensaje. Intentá más tarde.';
+      }
+    });
   }
 }
+

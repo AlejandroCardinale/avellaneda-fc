@@ -1,0 +1,87 @@
+<section class="admin-page">
+
+  <!-- Header -->
+  <div class="admin-header">
+    <div>
+      <p class="eyebrow">Panel de administración</p>
+      <h1>Solicitudes de Acceso</h1>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-success" *ngIf="successMsg">
+    <i class="fa-solid fa-circle-check"></i> {{ successMsg }}
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros-row">
+    <button
+      *ngFor="let f of filtros"
+      class="filtro-btn"
+      [class.active]="estadoFiltro === f"
+      (click)="cambiarFiltro(f)">
+      {{ f | titlecase }}
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-box" *ngIf="loading">Cargando solicitudes...</div>
+
+  <!-- Empty -->
+  <div class="empty-state" *ngIf="!loading && solicitudes.length === 0">
+    <div class="empty-icon">✅</div>
+    <h3>Sin solicitudes {{ estadoFiltro === 'pendiente' ? 'pendientes' : estadoFiltro === 'aprobado' ? 'aprobadas' : 'rechazadas' }}</h3>
+    <p *ngIf="estadoFiltro === 'pendiente'">No hay cuentas esperando aprobación.</p>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-wrapper" *ngIf="!loading && solicitudes.length > 0">
+    <table class="solicitudes-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Email</th>
+          <th>Teléfono</th>
+          <th>Fecha registro</th>
+          <th>Estado</th>
+          <th *ngIf="estadoFiltro === 'pendiente'">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let s of solicitudes">
+          <td>
+            <div class="user-cell">
+              <div class="avatar">{{ getInitials(s) }}</div>
+              <div>
+                <strong>{{ s.nombre }} {{ s.apellido }}</strong>
+                <small>{{ s.rol }}</small>
+              </div>
+            </div>
+          </td>
+          <td><a [href]="'mailto:' + s.email" class="email-link">{{ s.email }}</a></td>
+          <td>{{ s.telefono || '—' }}</td>
+          <td>{{ s.creado_en | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>
+            <span class="badge"
+              [class.badge-pending]="s.estado_registro === 'pendiente'"
+              [class.badge-ok]="s.estado_registro === 'aprobado'"
+              [class.badge-danger]="s.estado_registro === 'rechazado'">
+              {{ s.estado_registro | titlecase }}
+            </span>
+          </td>
+          <td *ngIf="estadoFiltro === 'pendiente'" class="actions-cell">
+            <button class="btn-approve" (click)="aprobar(s.id)" [disabled]="esProcesando(s.id)">
+              <i class="fa-solid" [class.fa-check]="!esProcesando(s.id)" [class.fa-spinner]="esProcesando(s.id)" [class.fa-spin]="esProcesando(s.id)"></i>
+              Aprobar
+            </button>
+            <button class="btn-reject" (click)="rechazar(s.id)" [disabled]="esProcesando(s.id)">
+              <i class="fa-solid fa-xmark"></i>
+              Rechazar
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</section>

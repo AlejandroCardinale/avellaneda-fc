@@ -69,6 +69,9 @@ app.use('/api/atletas',     require('./routes/atletas'));     // Alta y gestión
 app.use('/api/entrenadores', require('./routes/entrenadores')); // Alta y gestión de entrenadores
 app.use('/api/catalogo',    require('./routes/catalogo'));    // Lista de ítems disponibles
 app.use('/api/solicitudes', require('./routes/solicitudes')); // CRUD de solicitudes
+app.use('/api/contacto',    require('./routes/contacto'));    // Formulario de contacto
+app.use('/api/solicitudes-acceso', require('./routes/solicitudes-acceso')); // Aprobación de cuentas
+
 
 // ── Health check ───────────────────────────────────────────────────────────
 /**

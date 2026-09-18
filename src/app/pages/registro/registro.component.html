@@ -52,7 +52,22 @@
         <span>{{ errorMessage }}</span>
       </div>
 
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="registro-form" novalidate>
+      <!-- ✅ Solicitud enviada -->
+      <div class="registro-success" *ngIf="registroExitoso">
+        <div class="success-icon-wrap">
+          <i class="fa-solid fa-envelope-circle-check"></i>
+        </div>
+        <h2>¡Solicitud enviada!</h2>
+        <p>
+          Tu cuenta fue creada y está <strong>pendiente de aprobación</strong>.
+          El administrador revisará tu solicitud y recibirás acceso cuando sea aprobada.
+        </p>
+        <a routerLink="/login" class="btn btn-primary registro-btn" style="margin-top: 20px; display: flex; justify-content: center;">
+          <i class="fa-solid fa-arrow-left"></i> Volver al login
+        </a>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="registro-form" novalidate *ngIf="!registroExitoso">
 
         <!-- Nombre y Apellido -->
         <div class="form-row">
@@ -105,6 +120,32 @@
               placeholder="11 1234 5678"
               formControlName="telefono">
           </div>
+        </div>
+
+        <!-- Rol -->
+        <div class="form-group">
+          <label class="form-label">Soy...</label>
+          <div class="rol-selector">
+            <label class="rol-option" [class.selected]="f['rol'].value === 'atleta'">
+              <input type="radio" formControlName="rol" value="atleta" hidden>
+              <div class="rol-icon">🏃</div>
+              <strong>Atleta</strong>
+              <small>Soy deportista del club</small>
+            </label>
+            <label class="rol-option" [class.selected]="f['rol'].value === 'entrenador'">
+              <input type="radio" formControlName="rol" value="entrenador" hidden>
+              <div class="rol-icon">🧑‍🏫</div>
+              <strong>Entrenador</strong>
+              <small>Entreno equipos del club</small>
+            </label>
+            <label class="rol-option" [class.selected]="f['rol'].value === 'administrador'">
+              <input type="radio" formControlName="rol" value="administrador" hidden>
+              <div class="rol-icon">⚙️</div>
+              <strong>Administrador</strong>
+              <small>Gestiono el club</small>
+            </label>
+          </div>
+          <span class="form-error" *ngIf="submitted && f['rol'].errors?.['required']">Seleccioná un rol.</span>
         </div>
 
         <!-- Contraseña -->

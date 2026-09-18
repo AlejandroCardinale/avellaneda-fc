@@ -70,6 +70,12 @@
             </div>
           </div>
 
+          <!-- Error message -->
+          <div class="login-error" *ngIf="errorMessage" style="margin-bottom: 16px;">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>{{ errorMessage }}</span>
+          </div>
+
           <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="contact-form" *ngIf="!success">
             <div class="form-row">
               <div class="form-group">
@@ -126,8 +132,9 @@
               <span class="form-error" *ngIf="submitted && f['mensaje'].errors?.['minlength']">Mínimo 10 caracteres.</span>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-lg contact-submit-btn">
-              Enviar mensaje <i class="fa-solid fa-paper-plane"></i>
+            <button type="submit" class="btn btn-primary btn-lg contact-submit-btn" [disabled]="loading">
+              <span *ngIf="!loading">Enviar mensaje <i class="fa-solid fa-paper-plane"></i></span>
+              <span *ngIf="loading"><i class="fa-solid fa-spinner fa-spin"></i> Enviando...</span>
             </button>
           </form>
         </div>

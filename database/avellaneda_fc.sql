@@ -40,8 +40,13 @@ CREATE TABLE usuarios (
   creado_en      DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
   actualizado_en DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   ultimo_login   DATETIME,
+  -- 'pendiente': esperando aprobacion | 'aprobado': puede iniciar sesion | 'rechazado': acceso denegado
+  estado_registro ENUM('pendiente','aprobado','rechazado') NOT NULL DEFAULT 'aprobado',
   CONSTRAINT fk_usuario_rol FOREIGN KEY (rol_id) REFERENCES roles(id)
 );
+
+-- Si ya tens la tabla creada, ejecuta esto para agregar la columna:
+-- ALTER TABLE usuarios ADD COLUMN estado_registro ENUM('pendiente','aprobado','rechazado') NOT NULL DEFAULT 'aprobado';
 
 CREATE INDEX idx_usuario_email ON usuarios(email);
 CREATE INDEX idx_usuario_rol   ON usuarios(rol_id);
@@ -52,13 +57,13 @@ CREATE INDEX idx_usuario_rol   ON usuarios(rol_id);
 --   entrenador1@avellanedafc.com → Entrenador1!
 --   entrenador2@avellanedafc.com → Entrenador2!
 --   atleta1/2/3@avellanedafc.com → Atleta1234!
-INSERT INTO usuarios (rol_id, nombre, apellido, email, password_hash, telefono) VALUES
-  (1, 'Carlos',  'Gomez',     'admin@avellanedafc.com',       '$2b$12$gcsQuOePQSO/6qbB3rpeYuP.NyBc1WWN3j4HWeXV.Omr6edpnuWOS', '1122334455'),
-  (2, 'Martin',  'Rodriguez', 'entrenador1@avellanedafc.com', '$2b$12$MIJ22SZbaiaBzBIZDC0BFOo4vSajZBUrR32HqqUTlBZeBADgXL4X.', '1133445566'),
-  (2, 'Lucia',   'Fernandez', 'entrenador2@avellanedafc.com', '$2b$12$rEcfrRPMKwHwnqrXoTA1EOJn6rZV9psKrRsEmc7A3Ni7vXFwwocNi', '1144556677'),
-  (3, 'Juan',    'Perez',     'atleta1@avellanedafc.com',     '$2b$12$a6kziXiNfPDl.HmPsrfipOk5K7qnktLSx3rt6s7.pXpraveJ6cKe2', '1155667788'),
-  (3, 'Sofia',   'Lopez',     'atleta2@avellanedafc.com',     '$2b$12$sYEEGzXZuqG0azmFBGry2..c/XvZjWbpGJZzAVESXIu5Ohu52yfU.', '1166778899'),
-  (3, 'Tomas',   'Garcia',    'atleta3@avellanedafc.com',     '$2b$12$nOLx.wLQgsc2bYD3wf/PD.lrQpZOTTlpobdGIIPzw8KK79V.DFLky', '1177889900');
+INSERT INTO usuarios (rol_id, nombre, apellido, email, password_hash, telefono, activo, estado_registro) VALUES
+  (1, 'Carlos',  'Gomez',     'admin@avellanedafc.com',       '$2b$12$gcsQuOePQSO/6qbB3rpeYuP.NyBc1WWN3j4HWeXV.Omr6edpnuWOS', '1122334455', TRUE, 'aprobado'),
+  (2, 'Martin',  'Rodriguez', 'entrenador1@avellanedafc.com', '$2b$12$MIJ22SZbaiaBzBIZDC0BFOo4vSajZBUrR32HqqUTlBZeBADgXL4X.', '1133445566', TRUE, 'aprobado'),
+  (2, 'Lucia',   'Fernandez', 'entrenador2@avellanedafc.com', '$2b$12$rEcfrRPMKwHwnqrXoTA1EOJn6rZV9psKrRsEmc7A3Ni7vXFwwocNi', '1144556677', TRUE, 'aprobado'),
+  (3, 'Juan',    'Perez',     'atleta1@avellanedafc.com',     '$2b$12$a6kziXiNfPDl.HmPsrfipOk5K7qnktLSx3rt6s7.pXpraveJ6cKe2', '1155667788', TRUE, 'aprobado'),
+  (3, 'Sofia',   'Lopez',     'atleta2@avellanedafc.com',     '$2b$12$sYEEGzXZuqG0azmFBGry2..c/XvZjWbpGJZzAVESXIu5Ohu52yfU.', '1166778899', TRUE, 'aprobado'),
+  (3, 'Tomas',   'Garcia',    'atleta3@avellanedafc.com',     '$2b$12$nOLx.wLQgsc2bYD3wf/PD.lrQpZOTTlpobdGIIPzw8KK79V.DFLky', '1177889900', TRUE, 'aprobado');
 
 -- =============================================================
 -- 3. DEPORTES
@@ -293,6 +298,23 @@ CREATE TABLE refresh_tokens (
   creado_en  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_token_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
+
+-- =============================================================
+-- 14. TOKENS DE RECUPERACION DE CONTRASENA
+-- =============================================================
+CREATE TABLE password_reset_tokens (
+  id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  usuario_id INT UNSIGNED NOT NULL,
+  token      VARCHAR(64)  NOT NULL UNIQUE,   -- crypto.randomBytes(32).toString('hex')
+  expira_en  DATETIME     NOT NULL,          -- NOW() + 1 hora
+  usado      BOOLEAN      NOT NULL DEFAULT FALSE,
+  creado_en  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_prt_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_prt_token    ON password_reset_tokens(token);
+CREATE INDEX idx_prt_usuario  ON password_reset_tokens(usuario_id);
+
 
 -- =============================================================
 -- VISTAS UTILES
