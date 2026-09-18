@@ -14,12 +14,17 @@ router.get('/', async (_req, res) => {
     const [rows] = await pool.execute(`
       SELECT
         a.id,
+        a.usuario_id,
+        a.deporte_id,
+        a.categoria_id,
         u.nombre,
         u.apellido,
         u.email,
         u.telefono,
         a.dni,
         a.fecha_nacimiento,
+        a.fecha_alta AS fecha_inscripcion,
+        a.observaciones,
         d.nombre AS deporte,
         c.nombre AS categoria,
         a.estado_medico AS estado
@@ -133,6 +138,55 @@ router.post('/', async (req, res) => {
     return res.status(500).json({
       message: 'No se pudo registrar el atleta en la base de datos.'
     });
+  } finally {
+    connection.release();
+  }
+});
+
+router.put('/:id', async (req, res) => {
+  const {
+    nombre, apellido, email, telefono, direccion, genero, fecha_nacimiento,
+    dni, deporte_id, categoria_id, fecha_inscripcion, estado_inicial
+  } = req.body;
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+    const [rows] = await connection.execute(
+      'SELECT usuario_id, observaciones FROM atletas WHERE id = ?',
+      [req.params.id]
+    );
+
+    if (!rows.length) {
+      await connection.rollback();
+      return res.status(404).json({ message: 'Atleta no encontrado.' });
+    }
+
+    const usuarioId = rows[0].usuario_id;
+    const observaciones = [
+      direccion ? `Dirección: ${direccion}` : null,
+      genero ? `Género: ${genero}` : null,
+      fecha_nacimiento ? `Fecha de nacimiento: ${fecha_nacimiento}` : null
+    ].filter(Boolean).join(' | ') || null;
+    const estadoMedico = estado_inicial === 'activo' ? 'apto' : estado_inicial === 'inactivo' ? 'pendiente' : 'pendiente';
+
+    await connection.execute(
+      `UPDATE usuarios SET nombre = ?, apellido = ?, email = ?, telefono = ? WHERE id = ?`,
+      [String(nombre).trim(), String(apellido).trim(), String(email).trim().toLowerCase(), telefono || null, usuarioId]
+    );
+    await connection.execute(
+      `UPDATE atletas SET deporte_id = ?, categoria_id = ?, fecha_nacimiento = ?, dni = ?,
+       fecha_alta = ?, estado_medico = ?, observaciones = ? WHERE id = ?`,
+      [Number(deporte_id), categoria_id ? Number(categoria_id) : null, fecha_nacimiento || null,
+        String(dni).trim(), fecha_inscripcion || new Date().toISOString().slice(0, 10), estadoMedico, observaciones, req.params.id]
+    );
+
+    await connection.commit();
+    return res.json({ message: 'Atleta actualizado correctamente.' });
+  } catch (error) {
+    await connection.rollback();
+    console.error('[atletas PUT]', error);
+    return res.status(500).json({ message: 'No se pudo actualizar el atleta.' });
   } finally {
     connection.release();
   }

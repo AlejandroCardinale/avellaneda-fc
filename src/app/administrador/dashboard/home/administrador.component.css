@@ -52,17 +52,21 @@
   border: 1px solid #dfe7f1;
   padding: 8px 12px;
   border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
 }
 
 .avatar {
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, #0f2f4d, #2563eb);
+  border: 3px solid #dbeafe;
   color: white;
+  font-size: 0.78rem;
   font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .admin-user strong,
@@ -230,6 +234,7 @@
 }
 
 .list-bullet.info { background: #dbeafe; }
+.list-bullet.event { background: #dcfce7; color: #166534; }
 
 .list-copy {
   flex: 1;
@@ -255,6 +260,16 @@
   padding: 5px 8px;
   border-radius: 999px;
   font-weight: 600;
+}
+
+.empty-message {
+  margin: 0;
+  padding: 24px 16px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #64748b;
+  text-align: center;
 }
 
 .activity-item {
@@ -304,25 +319,6 @@
 
 .bar-group small {
   color: #64748b;
-}
-
-.quick-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.action-btn {
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 14px 12px;
-  border-radius: 12px;
-  border: 1px solid #dfe7f1;
-  background: #f8fafc;
-  color: #1f2937;
-  font-weight: 600;
 }
 
 .loading-box {

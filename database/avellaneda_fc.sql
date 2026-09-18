@@ -127,6 +127,17 @@ CREATE TABLE atletas (
   CONSTRAINT fk_atleta_categoria FOREIGN KEY (categoria_id) REFERENCES categorias(id)
 );
 
+CREATE TABLE asistencias_entrenamiento (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  atleta_id INT UNSIGNED NOT NULL,
+  fecha DATE NOT NULL,
+  presente BOOLEAN NOT NULL DEFAULT FALSE,
+  creado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_asistencias_entrenamiento_atleta FOREIGN KEY (atleta_id) REFERENCES atletas(id) ON DELETE CASCADE,
+  UNIQUE KEY uq_asistencia_atleta_fecha (atleta_id, fecha),
+  INDEX idx_asistencia_fecha (fecha)
+);
+
 INSERT INTO atletas (usuario_id, deporte_id, categoria_id, fecha_nacimiento, dni, numero_socio, posicion, estado_medico) VALUES
   (4, 1, 4, '2000-05-12', '35000001', 'S-0001', 'Delantero', 'apto'),
   (5, 2, 7, '1998-09-23', '35000002', 'S-0002', NULL,         'apto'),
@@ -370,6 +381,8 @@ CREATE TABLE catalogo_items (
   requiere_talle  BOOLEAN        NOT NULL DEFAULT FALSE,
   requiere_numero BOOLEAN        NOT NULL DEFAULT FALSE,
   activo          BOOLEAN        NOT NULL DEFAULT TRUE
+  ,cantidad_disponible INT UNSIGNED NOT NULL DEFAULT 0
+  ,estado          ENUM('disponible', 'mantenimiento', 'stock_bajo') NOT NULL DEFAULT 'disponible'
 );
 
 INSERT INTO catalogo_items (categoria, nombre, descripcion, icono, requiere_talle, requiere_numero) VALUES

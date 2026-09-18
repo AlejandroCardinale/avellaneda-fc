@@ -13,6 +13,8 @@ export interface Entrenador {
   deporte?: string;
   deporte_id?: number;
   especialidad?: string;
+  licencia?: string | null;
+  fecha_ingreso?: string | null;
   estado: 'activo' | 'inactivo';
 }
 
@@ -23,6 +25,7 @@ export interface EntrenadorPayload {
   telefono?: string;
   deporte_id: number;
   especialidad: string;
+  licencia?: string | null;
   estado_inicial: 'activo' | 'inactivo';
 }
 

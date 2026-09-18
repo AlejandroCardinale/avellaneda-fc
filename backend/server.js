@@ -20,6 +20,7 @@
 require('dotenv').config(); // Carga variables de entorno desde el archivo .env
 const express = require('express');
 const cors    = require('cors');
+const path    = require('path');
 const pool    = require('./db'); // Pool de conexiones MySQL reutilizables
 
 const app  = express();
@@ -55,6 +56,7 @@ app.use(cors({
  * Necesario para leer req.body en los endpoints POST/PUT/PATCH.
  */
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ── Registro de rutas ──────────────────────────────────────────────────────
 
@@ -67,6 +69,10 @@ app.use('/api/admin',       require('./routes/admin'));       // Dashboard admin
 app.use('/api/usuarios',    require('./routes/usuarios'));    // Gestión de usuarios del panel administrativo
 app.use('/api/atletas',     require('./routes/atletas'));     // Alta y gestión de atletas
 app.use('/api/entrenadores', require('./routes/entrenadores')); // Alta y gestión de entrenadores
+app.use('/api/deportes',     require('./routes/deportes'));     // Gestión administrativa de deportes
+app.use('/api/noticias',     require('./routes/noticias'));     // CRUD de noticias del panel administrativo
+app.use('/api/recursos',     require('./routes/recursos'));     // Inventario de recursos deportivos
+app.use('/api/reportes',     require('./routes/reportes'));     // Reportes y exportaciones administrativas
 app.use('/api/catalogo',    require('./routes/catalogo'));    // Lista de ítems disponibles
 app.use('/api/solicitudes', require('./routes/solicitudes')); // CRUD de solicitudes
 app.use('/api/contacto',    require('./routes/contacto'));    // Formulario de contacto

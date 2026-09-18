@@ -18,6 +18,17 @@ export interface DashboardNotice {
   fecha: string;
 }
 
+export interface DashboardEvent {
+  id: number;
+  titulo: string;
+  descripcion: string;
+  fecha: string;
+  fechaHora: string;
+  lugar?: string;
+  disciplina?: string;
+  categoria?: string;
+}
+
 export interface DashboardSolicitud {
   id: number;
   tipo: string;
@@ -41,6 +52,7 @@ export interface DashboardChartItem {
 export interface AdminDashboardResponse {
   summary: DashboardSummary;
   noticias: DashboardNotice[];
+  eventos: DashboardEvent[];
   solicitudes: DashboardSolicitud[];
   actividad: DashboardActivityItem[];
   chart: DashboardChartItem[];

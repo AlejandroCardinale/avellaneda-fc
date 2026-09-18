@@ -19,6 +19,24 @@ export const adminRoutes: Routes = [
     loadComponent: () => import('./dashboard/entrenadores/entrenadores.component').then(m => m.EntrenadoresComponent)
   },
   {
+    path: 'noticias',
+    loadComponent: () => import('./dashboard/gestion-noticias/gestion-noticias.component').then(m => m.GestionNoticiasComponent)
+  },
+  {
+    path: 'recursos',
+    loadComponent: () => import('./dashboard/recursos-deportivos/recursos-deportivos.component').then(m => m.RecursosDeportivosComponent)
+  },
+  {
+    path: 'deportes',
+    loadComponent: () => import('./dashboard/deportes/deportes.component').then(m => m.DeportesAdminComponent)
+  },
+  { path: 'solicitudes', redirectTo: 'home', pathMatch: 'full' },
+  { path: 'eventos', redirectTo: 'home', pathMatch: 'full' },
+  { path: 'instalaciones', redirectTo: 'home', pathMatch: 'full' },
+  {
+    path: 'reportes',
+    loadComponent: () => import('./dashboard/reportes/reportes.component').then(m => m.ReportesAdminComponent)
+  }
     path: 'solicitudes-acceso',
     loadComponent: () => import('./dashboard/solicitudes-acceso/solicitudes-acceso.component').then(m => m.SolicitudesAccesoComponent)
   },

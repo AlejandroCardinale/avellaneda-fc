@@ -21,6 +21,17 @@
   margin-bottom: 18px;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-description {
+  margin: 8px 0 0;
+  color: #64748b;
+}
+
 .eyebrow {
   margin: 0;
   color: #2563eb;
@@ -63,6 +74,8 @@
 .section-card,
 .table-panel {
   padding: 18px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .section-title {
@@ -180,6 +193,67 @@ select:focus {
   margin-bottom: 12px;
 }
 
+.coach-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.coach-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 240px;
+  min-width: 220px;
+  padding: 0 12px;
+  border: 1px solid #dfe7f1;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.coach-search input {
+  width: 100%;
+  min-height: 38px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #0f172a;
+  font: inherit;
+}
+
+.sport-filter,
+.order-filter {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #64748b;
+  font-size: .72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sport-filter select,
+.order-filter select,
+.clear-filter {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid #dfe7f1;
+  border-radius: 8px;
+  background: #fff;
+  color: #607089;
+  cursor: pointer;
+  font: inherit;
+  font-size: .72rem;
+}
+
+.clear-filter:disabled {
+  cursor: default;
+  opacity: .5;
+}
+
 .chip {
   display: inline-flex;
   align-items: center;
@@ -258,6 +332,11 @@ th {
   color: #075985;
 }
 
+.mini-btn:hover,
+.btn:hover {
+  filter: brightness(0.97);
+}
+
 .mini-btn.edit {
   background: #ede9fe;
   color: #5b21b6;
@@ -272,6 +351,140 @@ th {
   padding: 18px 12px;
   color: #64748b;
   text-align: center;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  box-sizing: border-box;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+  overscroll-behavior: contain;
+}
+
+.modal,
+.detail-modal,
+.confirm-dialog {
+  width: min(820px, 100%);
+  max-height: min(850px, calc(100vh - 48px));
+  overflow: auto;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
+}
+
+.detail-modal {
+  width: min(760px, 100%);
+}
+
+.modal-header,
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.modal-header h2,
+.confirm-dialog h2 {
+  margin: 4px 0 0;
+  font-size: 1.35rem;
+}
+
+.close-btn {
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal-body,
+.detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px 24px;
+}
+
+.form-section,
+.detail-section {
+  padding-bottom: 18px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.form-section:last-child,
+.detail-section:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.form-section h3,
+.detail-section h3 {
+  margin: 0 0 12px;
+  color: #334155;
+  font-size: 1rem;
+}
+
+.modal-footer {
+  justify-content: flex-end;
+  border-top: 1px solid #edf2f7;
+  border-bottom: 0;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 20px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.detail-item span {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.detail-item strong {
+  color: #0f172a;
+  overflow-wrap: anywhere;
+}
+
+.confirm-dialog {
+  width: min(470px, 100%);
+  padding: 24px;
+}
+
+.confirm-dialog p:not(.eyebrow) {
+  margin: 12px 0 0;
+  color: #64748b;
+}
+
+.confirm-dialog .modal-footer {
+  margin: 22px -24px -24px;
+}
+
+.btn-danger {
+  border: 0;
+  background: #dc2626;
+  color: #fff;
 }
 
 @media (max-width: 1100px) {
@@ -289,5 +502,47 @@ th {
   .actions-row {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions .btn {
+    flex: 1;
+  }
+
+  .modal-backdrop {
+    padding: 12px;
+  }
+
+  .modal-header,
+  .modal-body,
+  .detail-body,
+  .modal-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .coach-filters {
+    align-items: stretch;
+  }
+
+  .coach-search,
+  .sport-filter,
+  .sport-filter select,
+  .order-filter,
+  .order-filter select,
+  .clear-filter {
+    width: 100%;
+  }
+
+  .sport-filter,
+  .order-filter {
+    justify-content: space-between;
   }
 }

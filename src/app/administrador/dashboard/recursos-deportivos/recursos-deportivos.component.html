@@ -1,0 +1,110 @@
+<section class="resources-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Panel de administración</p>
+      <h1>Recursos Deportivos</h1>
+      <p class="subtitle">Administra el inventario de recursos y materiales del club.</p>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="openNew()">+ Agregar recurso</button>
+  </header>
+
+  <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+
+  <div class="metrics-grid">
+    <article class="metric-card metric-total"><span class="metric-icon">▱</span><div><strong>{{ metrics.total }}</strong><small>Total recursos</small></div></article>
+    <article class="metric-card metric-equipment"><span class="metric-icon">⚒</span><div><strong>{{ metrics.equipamiento }}</strong><small>Equipamiento</small></div></article>
+    <article class="metric-card metric-clothing"><span class="metric-icon">▣</span><div><strong>{{ metrics.indumentaria }}</strong><small>Indumentaria</small></div></article>
+    <article class="metric-card metric-transport"><span class="metric-icon">▰</span><div><strong>{{ metrics.transporte }}</strong><small>Transporte</small></div></article>
+  </div>
+
+  <nav class="tabs" aria-label="Secciones de recursos">
+    <button type="button" [class.active]="activeTab === 'inventario'" (click)="selectTab('inventario')">Inventario</button>
+    <button type="button" [class.active]="activeTab === 'solicitudes'" (click)="selectTab('solicitudes')">Solicitudes</button>
+  </nav>
+
+  <section class="inventory-panel" *ngIf="activeTab === 'inventario'">
+    <div class="toolbar">
+      <div class="search-box">
+        <span aria-hidden="true">&#128269;</span>
+        <input type="search" [(ngModel)]="search" [ngModelOptions]="{ standalone: true }" (keyup.enter)="onSearch()" placeholder="Buscar recurso..." />
+      </div>
+      <div class="filter-group" aria-label="Filtrar por categoría">
+        <button type="button" *ngFor="let item of categorias" [class.active]="categoria === item.value" (click)="filterBy(item.value)">{{ item.label }}</button>
+      </div>
+      <span class="result-count">Mostrando {{ recursos.length }} de {{ total }} recursos</span>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!listLoading; else loadingState">
+      <table>
+        <thead>
+          <tr><th>Nombre del recurso</th><th>Categoría</th><th>Cantidad disponible</th><th>Estado</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let recurso of recursos">
+            <td class="resource-name"><span class="resource-icon" [class]="'icon-' + recurso.categoria">{{ iconFor(recurso) }}</span><strong>{{ recurso.nombre }}</strong></td>
+            <td><span class="category-tag" [class]="'category-' + recurso.categoria">{{ categoryLabel(recurso.categoria) }}</span></td>
+            <td class="quantity"><strong>{{ recurso.cantidad_disponible }}</strong><small> uds.</small></td>
+            <td><span class="status-tag" [class]="'status-' + recurso.estado"><i></i>{{ statusLabel(recurso.estado) }}</span></td>
+            <td class="actions"><button type="button" class="edit-btn" (click)="edit(recurso)">&#9998; Editar</button><button type="button" class="delete-btn" (click)="remove(recurso)" aria-label="Eliminar recurso">&#128465;</button></td>
+          </tr>
+          <tr *ngIf="!recursos.length"><td colspan="5" class="empty-state">No hay recursos que coincidan con la búsqueda.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #loadingState><div class="loading-state">Cargando inventario...</div></ng-template>
+
+    <footer class="pagination" *ngIf="!listLoading">
+      <span>Página {{ page }} de {{ totalPages }}</span>
+      <div class="page-controls"><button type="button" (click)="goToPage(page - 1)" [disabled]="page === 1">‹</button><button type="button" *ngFor="let number of pageNumbers()" [class.current]="number === page" (click)="goToPage(number)">{{ number }}</button><button type="button" (click)="goToPage(page + 1)" [disabled]="page === totalPages">›</button></div>
+    </footer>
+  </section>
+
+  <section class="inventory-panel requests-panel" *ngIf="activeTab === 'solicitudes'">
+    <div class="toolbar request-toolbar">
+      <div><p class="eyebrow">Bandeja administrativa</p><h2>Solicitudes recibidas</h2></div>
+      <select [(ngModel)]="requestStatus" [ngModelOptions]="{ standalone: true }" aria-label="Filtrar solicitudes por estado">
+        <option value="todas">Todos los estados</option>
+        <option *ngFor="let estado of solicitudEstados" [value]="estado">{{ estado | titlecase }}</option>
+      </select>
+    </div>
+    <div class="table-wrapper" *ngIf="!solicitudesLoading; else requestsLoading">
+      <table>
+        <thead><tr><th>Solicitante</th><th>Tipo</th><th>Fecha necesidad</th><th>Ítems</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let solicitud of filteredSolicitudes">
+            <td><strong>{{ solicitud.solicitante }}</strong><small class="cell-muted">{{ solicitud.email }}</small></td>
+            <td><span class="category-tag" [class]="'category-' + solicitud.tipo">{{ categoryLabel(solicitud.tipo) }}</span></td>
+            <td>{{ solicitud.fecha_necesidad | date:'dd/MM/yyyy' }}</td>
+            <td>{{ solicitud.total_items }}</td>
+            <td><span class="request-status" [class]="'request-' + solicitud.estado">{{ solicitud.estado | titlecase }}</span></td>
+            <td class="request-actions">
+              <button type="button" class="approve-btn" *ngIf="solicitud.estado === 'pendiente'" (click)="changeRequestStatus(solicitud, 'aprobada')">Aprobar</button>
+              <button type="button" class="reject-btn" *ngIf="solicitud.estado === 'pendiente'" (click)="changeRequestStatus(solicitud, 'rechazada')">Rechazar</button>
+            </td>
+          </tr>
+          <tr *ngIf="!filteredSolicitudes.length"><td colspan="6" class="empty-state">No hay solicitudes para mostrar.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #requestsLoading><div class="loading-state">Cargando solicitudes...</div></ng-template>
+  </section>
+
+  <div class="modal-backdrop" *ngIf="modalOpen" (click)="closeEditor()">
+    <form class="resource-modal" [formGroup]="form" (ngSubmit)="save()" (click)="$event.stopPropagation()">
+      <div class="modal-heading"><div><p class="eyebrow">{{ editingResource ? 'Editar recurso' : 'Nuevo recurso' }}</p><h2>{{ editingResource ? editingResource.nombre : 'Agregar recurso' }}</h2></div><button type="button" class="close-btn" (click)="closeEditor()" aria-label="Cerrar">×</button></div>
+      <div class="resource-form-grid">
+        <label>Nombre<input type="text" formControlName="nombre" placeholder="Ej: Camiseta de juego" /></label>
+        <label>Categoría<select formControlName="categoria"><option *ngFor="let item of categorias | slice:1" [value]="item.value">{{ item.label }}</option></select></label>
+        <label>Descripción<textarea rows="2" formControlName="descripcion" placeholder="Descripción del recurso"></textarea></label>
+        <label>Icono<input type="text" formControlName="icono" placeholder="fa-box" /></label>
+        <label>Cantidad disponible<input type="number" min="0" formControlName="cantidad_disponible" /></label>
+        <label>Estado<select formControlName="estado"><option *ngFor="let estado of estados" [value]="estado.value">{{ estado.label }}</option></select></label>
+        <label class="check-field"><input type="checkbox" formControlName="requiere_talle" /> Requiere talle</label>
+        <label class="check-field"><input type="checkbox" formControlName="requiere_numero" /> Requiere número</label>
+        <label class="check-field"><input type="checkbox" formControlName="activo" /> Activo</label>
+      </div>
+      <div class="modal-actions"><button type="button" class="btn btn-ghost" (click)="closeEditor()">Cancelar</button><button type="submit" class="btn btn-primary" [disabled]="saving">{{ saving ? 'Guardando...' : (editingResource ? 'Guardar cambios' : 'Crear recurso') }}</button></div>
+    </form>
+  </div>
+</section>

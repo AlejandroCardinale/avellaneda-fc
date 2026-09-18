@@ -21,18 +21,15 @@ import { environment } from '../../../environments/environment';
         </div>
 
         <nav class="nav-menu">
-          <a routerLink="/administrador/home"             routerLinkActive="active">🏠 Inicio</a>
-          <a routerLink="/administrador/usuarios"         routerLinkActive="active">👥 Usuarios</a>
-          <a routerLink="/administrador/registrar-atleta" routerLinkActive="active">🏃 Atletas</a>
-          <a routerLink="/administrador/entrenadores"     routerLinkActive="active">🧑‍🏫 Entrenadores</a>
-          <a routerLink="/administrador/noticias"         routerLinkActive="active">📰 Noticias</a>
-          <a routerLink="/administrador/recursos"         routerLinkActive="active">🛠️ Recursos</a>
-          <a routerLink="/administrador/solicitudes"      routerLinkActive="active">🧾 Solicitudes</a>
-          <a routerLink="/administrador/solicitudes-acceso" routerLinkActive="active" class="nav-item-highlight">
-            🔑 Solicitudes de Acceso
-            <span class="nav-badge" *ngIf="pendientesCount > 0">{{ pendientesCount }}</span>
-          </a>
-          <a routerLink="/administrador/reportes"         routerLinkActive="active">📊 Reportes</a>
+          <a routerLink="/administrador/home" routerLinkActive="active">Inicio</a>
+          <a routerLink="/administrador/usuarios" routerLinkActive="active">Usuarios</a>
+          <a routerLink="/administrador/registrar-atleta" routerLinkActive="active">Atletas</a>
+          <a routerLink="/administrador/entrenadores" routerLinkActive="active">Entrenadores</a>
+          <a routerLink="/administrador/deportes" routerLinkActive="active">Deportes</a>
+          <a routerLink="/administrador/noticias" routerLinkActive="active">Noticias</a>
+          <a routerLink="/administrador/recursos" routerLinkActive="active">Recursos Deportivos</a>
+          <a routerLink="/administrador/solicitudes" routerLinkActive="active">Solicitudes</a>
+          <a routerLink="/administrador/reportes" routerLinkActive="active">Reportes</a>
         </nav>
 
         <button class="logout-btn" type="button" (click)="logout()">Cerrar Sesión</button>

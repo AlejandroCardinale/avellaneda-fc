@@ -1,4 +1,7 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface News {
   id: number;
@@ -10,8 +13,22 @@ export interface News {
   featured?: boolean;
 }
 
+interface PublicNewsResponse {
+  id: number;
+  titulo: string;
+  descripcion: string;
+  categoria: string;
+  imagen_url: string | null;
+  destacada: boolean;
+  fecha_publicacion: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class NewsService {
+  private readonly api = `${environment.apiUrl}/noticias`;
+
+  constructor(private http: HttpClient) {}
+
   private news: News[] = [
     {
       id: 1,
@@ -81,4 +98,22 @@ export class NewsService {
     return this.news.filter(n => n.category === cat);
   }
   getCategories(): string[] { return ['Todas', 'Institucional', 'Deportes', 'Eventos', 'Comunicados']; }
+
+  getPublicNews(): Observable<News[]> {
+    return this.http.get<PublicNewsResponse[]>(`${this.api}/publicas`).pipe(
+      map(rows => rows.map(row => ({
+        id: row.id,
+        title: row.titulo,
+        description: row.descripcion,
+        category: row.categoria,
+        date: this.formatDate(row.fecha_publicacion),
+        image: row.imagen_url || 'images/football_pitch.png',
+        featured: row.destacada
+      })))
+    );
+  }
+
+  private formatDate(value: string): string {
+    return new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(value));
+  }
 }
