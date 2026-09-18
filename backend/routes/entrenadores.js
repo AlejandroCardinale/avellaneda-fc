@@ -20,6 +20,8 @@ const listQuery = `
     e.deporte_id,
     d.nombre AS deporte,
     e.especialidad,
+    e.licencia,
+    e.fecha_ingreso,
     CASE WHEN u.activo = TRUE THEN 'activo' ELSE 'inactivo' END AS estado
   FROM entrenadores e
   JOIN usuarios u ON u.id = e.usuario_id
@@ -37,7 +39,7 @@ router.get('/', async (_req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { nombre, apellido, email, telefono, deporte_id, especialidad, estado_inicial } = req.body;
+  const { nombre, apellido, email, telefono, deporte_id, especialidad, licencia, estado_inicial } = req.body;
 
   if (!nombre || !apellido || !email || !telefono || !deporte_id || !especialidad) {
     return res.status(400).json({ message: 'Nombre, apellido, email, teléfono, disciplina y especialidad son obligatorios.' });
@@ -69,9 +71,9 @@ router.post('/', async (req, res) => {
     );
 
     const [coachResult] = await connection.execute(
-      `INSERT INTO entrenadores (usuario_id, deporte_id, especialidad)
-       VALUES (?, ?, ?)`,
-      [userResult.insertId, Number(deporte_id), String(especialidad).trim()]
+      `INSERT INTO entrenadores (usuario_id, deporte_id, especialidad, licencia)
+       VALUES (?, ?, ?, ?)`,
+      [userResult.insertId, Number(deporte_id), String(especialidad).trim(), licencia ? String(licencia).trim() : null]
     );
 
     await connection.commit();
@@ -90,7 +92,7 @@ router.post('/', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-  const { nombre, apellido, email, telefono, deporte_id, especialidad, estado_inicial } = req.body;
+  const { nombre, apellido, email, telefono, deporte_id, especialidad, licencia, estado_inicial } = req.body;
   const connection = await pool.getConnection();
 
   try {
@@ -107,8 +109,8 @@ router.put('/:id', async (req, res) => {
       [String(nombre).trim(), String(apellido).trim(), String(email).trim().toLowerCase(), String(telefono).trim(), activo, rows[0].usuario_id]
     );
     await connection.execute(
-      'UPDATE entrenadores SET deporte_id = ?, especialidad = ? WHERE id = ?',
-      [Number(deporte_id), String(especialidad).trim(), req.params.id]
+      'UPDATE entrenadores SET deporte_id = ?, especialidad = ?, licencia = ? WHERE id = ?',
+      [Number(deporte_id), String(especialidad).trim(), licencia ? String(licencia).trim() : null, req.params.id]
     );
 
     await connection.commit();

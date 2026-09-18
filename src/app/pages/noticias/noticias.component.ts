@@ -18,16 +18,34 @@ export class NoticiasComponent implements OnInit {
   categories: string[] = [];
   activeCategory = 'Todas';
   searchQuery = '';
+  loading = true;
+  errorMessage = '';
 
   categoryCounts: Record<string, number> = {};
 
   constructor(private newsService: NewsService) {}
 
   ngOnInit() {
-    this.allNews = this.newsService.getAll();
     this.categories = this.newsService.getCategories();
-    this.featured = this.newsService.getFeatured();
-    this.filteredNews = [...this.allNews];
+    this.newsService.getPublicNews().subscribe({
+      next: (news) => {
+        this.allNews = news;
+        this.featured = news.filter(n => n.featured);
+        this.filteredNews = [...news];
+        this.updateCategoryCounts();
+        this.loading = false;
+      },
+      error: () => {
+        this.allNews = [];
+        this.filteredNews = [];
+        this.featured = [];
+        this.loading = false;
+        this.errorMessage = 'No se pudieron cargar las noticias.';
+      }
+    });
+  }
+
+  private updateCategoryCounts(): void {
     this.categories.forEach(cat => {
       this.categoryCounts[cat] = cat === 'Todas'
         ? this.allNews.length

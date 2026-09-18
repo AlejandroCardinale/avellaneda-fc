@@ -1,0 +1,43 @@
+<section class="sports-page">
+  <header class="page-header">
+    <div><p class="eyebrow">Panel de administración</p><h1>Gestión de Deportes</h1><p class="subtitle">Administra las disciplinas deportivas del club.</p></div>
+    <button type="button" class="btn btn-primary" (click)="openNew()">+ Nuevo deporte</button>
+  </header>
+
+  <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+
+  <div class="metrics-grid">
+    <article class="metric-card"><strong>{{ deportes.length }}</strong><small>Deportes visibles</small></article>
+    <article class="metric-card"><strong>{{ totalAthletes }}</strong><small>Atletas asignados</small></article>
+    <article class="metric-card"><strong>{{ totalCoaches }}</strong><small>Entrenadores</small></article>
+  </div>
+
+  <section class="listing-section">
+    <div class="listing-toolbar">
+      <label class="search-box"><span aria-hidden="true">⌕</span><input type="search" [(ngModel)]="search" (keyup.enter)="onSearch()" placeholder="Buscar por nombre o categoría..."></label>
+      <select [(ngModel)]="activo" (change)="load()" aria-label="Filtrar estado"><option value="true">Activos</option><option value="false">Inactivos</option><option value="todos">Todos</option></select>
+      <button type="button" class="btn btn-search" (click)="onSearch()">Buscar</button>
+    </div>
+
+    <div class="sports-grid" *ngIf="!listLoading; else loadingState">
+      <article class="sport-card" *ngFor="let deporte of deportes">
+        <div class="cover"><img [src]="deporte.imagen_url || 'images/football_pitch.png'" [alt]="deporte.nombre"><span class="status" [class.inactive]="!deporte.activo">{{ deporte.activo ? 'Activo' : 'Inactivo' }}</span></div>
+        <div class="card-body"><span class="category">{{ deporte.categoria || 'Sin categoría' }}</span><h2>{{ deporte.nombre }}</h2><p>{{ deporte.descripcion }}</p><small>{{ deporte.atletas }} atletas · {{ deporte.entrenadores }} entrenadores</small></div>
+        <div class="card-actions"><button type="button" (click)="view(deporte)">Ver</button><button type="button" class="edit" (click)="edit(deporte)">Editar</button><button type="button" class="delete" (click)="askDelete(deporte)">Eliminar</button></div>
+      </article>
+      <div class="empty-state" *ngIf="!deportes.length">No hay deportes que coincidan con la búsqueda.</div>
+    </div>
+    <ng-template #loadingState><div class="loading-state">Cargando deportes...</div></ng-template>
+  </section>
+
+  <div class="modal-backdrop" *ngIf="modalOpen" (click)="closeModal()"><form class="modal" [formGroup]="form" (ngSubmit)="save()" (click)="$event.stopPropagation()">
+    <div class="modal-header"><div><p class="eyebrow">{{ editing ? 'Edición' : 'Nuevo registro' }}</p><h2>{{ editing ? 'Editar deporte' : 'Registrar deporte' }}</h2></div><button type="button" class="close" (click)="closeModal()">×</button></div>
+    <div class="form-grid"><label>Nombre del deporte<input formControlName="nombre" placeholder="Ej: Fútbol"><small *ngIf="f['nombre'].touched && f['nombre'].invalid">El nombre es obligatorio.</small></label><label>Categoría<input formControlName="categoria" placeholder="Ej: Deportes de equipo"><small *ngIf="f['categoria'].touched && f['categoria'].invalid">La categoría es obligatoria.</small></label><label class="wide">Descripción<textarea rows="4" formControlName="descripcion"></textarea></label><label>Icono<input formControlName="icono" placeholder="fa-futbol"></label><label>Imagen de portada<input type="file" accept="image/*" (change)="onImageSelected($event)"><small>PNG, JPG o WEBP. Máximo 5 MB.</small></label><label class="check"><input type="checkbox" formControlName="activo"> Activo</label></div>
+    <img class="preview" *ngIf="imagePreview" [src]="imagePreview" alt="Vista previa del deporte"><div class="modal-actions"><button type="button" class="btn btn-ghost" (click)="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary" [disabled]="loading">{{ loading ? 'Guardando...' : (editing ? 'Guardar cambios' : 'Crear deporte') }}</button></div>
+  </form></div>
+
+  <div class="modal-backdrop" *ngIf="detailOpen" (click)="closeDetail()"><article class="modal detail-modal" (click)="$event.stopPropagation()"><div class="modal-header"><div><p class="eyebrow">Detalle</p><h2>{{ selected?.nombre }}</h2></div><button type="button" class="close" (click)="closeDetail()">×</button></div><img class="detail-image" [src]="selected?.imagen_url || 'images/football_pitch.png'" [alt]="selected?.nombre"><div class="detail-content"><p>{{ selected?.descripcion }}</p><strong>Categoría: {{ selected?.categoria || 'Sin categoría' }}</strong><span>{{ selected?.atletas }} atletas · {{ selected?.entrenadores }} entrenadores</span></div><div class="modal-actions"><button type="button" class="btn btn-ghost" (click)="closeDetail()">Cerrar</button></div></article></div>
+
+  <div class="modal-backdrop" *ngIf="confirmOpen" (click)="cancelDelete()"><article class="modal confirm-modal" (click)="$event.stopPropagation()"><p class="eyebrow">Confirmar eliminación</p><h2>¿Seguro quiere eliminar a "{{ deleting?.nombre }}"?</h2><p>El deporte quedará inactivo en el inventario.</p><div class="modal-actions"><button type="button" class="btn btn-ghost" (click)="cancelDelete()">Cancelar</button><button type="button" class="btn btn-danger" (click)="confirmDelete()">Sí, eliminar</button></div></article></div>
+</section>

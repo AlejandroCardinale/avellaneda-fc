@@ -7,6 +7,8 @@
   </div>
 </section>
 
+<div class="container public-news-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
 <!-- SEARCH + FILTERS -->
 <section class="section-sm" style="background: var(--light-gray); border-bottom: 1px solid var(--border-gray);">
   <div class="container">
@@ -31,7 +33,7 @@
 
       <!-- News Grid -->
       <div>
-        <div class="news-grid" *ngIf="filteredNews.length > 0; else noResults">
+        <div class="news-grid" *ngIf="!loading && filteredNews.length > 0; else noResults">
           <div class="news-card card" *ngFor="let news of filteredNews">
             <div class="news-card-img">
               <img [src]="news.image" [alt]="news.title">
@@ -47,8 +49,8 @@
         </div>
         <ng-template #noResults>
           <div class="no-results">
-            <i class="fa-solid fa-newspaper"></i>
-            <p>No se encontraron noticias.</p>
+            <i class="fa-solid fa-newspaper" *ngIf="!loading"></i>
+            <p>{{ loading ? 'Cargando noticias...' : 'No se encontraron noticias.' }}</p>
           </div>
         </ng-template>
       </div>

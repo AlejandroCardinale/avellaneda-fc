@@ -1,0 +1,534 @@
+AVELLANEDA FC
+Documentacion del Backend y la Base de Datos
+============================================================
+
+1. DESCRIPCION GENERAL
+
+El proyecto utiliza una arquitectura separada en dos partes principales:
+
+- Frontend: Angular 19, ubicado principalmente en la carpeta src/.
+- Backend: Node.js con Express, ubicado en la carpeta backend/.
+- Base de datos: MySQL o MariaDB, definida en database/avellaneda_fc.sql.
+
+El frontend se comunica con el backend mediante peticiones HTTP a una API REST.
+El backend recibe esas peticiones, valida la autenticacion y los permisos,
+consulta o modifica MySQL y devuelve respuestas en formato JSON.
+
+Flujo general:
+
+    Angular
+       |
+       | HTTP + JSON + JWT
+       v
+    Node.js / Express
+       |
+       | mysql2/promise
+       v
+    MySQL: avellaneda_fc
+
+
+2. ESTRUCTURA DEL BACKEND
+
+backend/
+|-- server.js
+|-- db.js
+|-- package.json
+|-- middleware/
+|   |-- auth.js
+|   `-- require-admin.js
+`-- routes/
+    |-- auth.js
+    |-- admin.js
+    |-- usuarios.js
+    |-- atletas.js
+    |-- entrenadores.js
+    |-- catalogo.js
+    `-- solicitudes.js
+
+
+3. ARCHIVO backend/server.js
+
+server.js es el punto de entrada de la API.
+
+Sus responsabilidades son:
+
+- Cargar las variables de entorno desde el archivo .env.
+- Crear la aplicacion Express.
+- Configurar el puerto, normalmente el 3000.
+- Habilitar CORS para permitir peticiones desde Angular.
+- Interpretar cuerpos JSON mediante express.json().
+- Registrar las rutas de cada modulo.
+- Verificar la conexion a MySQL antes de iniciar el servidor.
+- Responder con un error 404 cuando la ruta no existe.
+
+Rutas principales registradas:
+
+- /api/auth          Autenticacion, login, registro y tokens.
+- /api/admin         Metricas y datos del panel administrativo.
+- /api/usuarios      Gestion de usuarios.
+- /api/atletas       Alta y consulta de atletas.
+- /api/entrenadores  Alta, consulta, edicion y eliminacion de entrenadores.
+- /api/catalogo      Catalogo de indumentaria y equipamiento.
+- /api/solicitudes   Gestion de solicitudes.
+
+Tambien existe un health check:
+
+GET http://localhost:3000/api/health
+
+Una respuesta correcta tiene una estructura similar a:
+
+{
+  "status": "ok",
+  "time": "..."
+}
+
+
+4. ARCHIVO backend/db.js
+
+Este archivo crea un pool de conexiones reutilizables con MySQL utilizando
+mysql2/promise.
+
+El pool evita abrir y cerrar una conexion nueva en cada peticion. Las
+conexiones se reutilizan y se controlan mediante un limite de conexiones.
+
+Configuracion utilizada:
+
+- Host por defecto: localhost.
+- Puerto por defecto: 3306.
+- Usuario: se obtiene desde DB_USER.
+- Contrasena: se obtiene desde DB_PASS.
+- Base de datos: se obtiene desde DB_NAME o utiliza avellaneda_fc.
+- Limite de conexiones simultaneas: 10.
+
+Las credenciales deben estar en backend/.env y no deben subirse a GitHub.
+Ejemplo de variables esperadas:
+
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASS=TU_CONTRASENA
+DB_NAME=avellaneda_fc
+PORT=3000
+JWT_SECRET=UNA_CLAVE_SECRETA
+JWT_REFRESH_SECRET=OTRA_CLAVE_SECRETA
+
+
+5. MIDDLEWARES DE SEGURIDAD
+
+5.1 middleware/auth.js
+
+Este middleware protege las rutas que requieren una sesion iniciada.
+
+Proceso:
+
+1. Lee el header HTTP Authorization.
+2. Espera el formato: Bearer TOKEN.
+3. Verifica el JWT utilizando JWT_SECRET.
+4. Comprueba que el token no este modificado ni vencido.
+5. Guarda la informacion del usuario en req.usuario.
+6. Permite continuar al controlador de la ruta.
+
+Si no existe un token o es invalido, responde con HTTP 401.
+
+5.2 middleware/require-admin.js
+
+Este middleware se ejecuta despues de auth.js en las rutas administrativas.
+
+Comprueba que req.usuario.rol sea administrador.
+
+- Si no hay usuario autenticado: HTTP 401.
+- Si el usuario no es administrador: HTTP 403.
+- Si es administrador: permite continuar.
+
+Por eso las rutas de gestion de usuarios, atletas y entrenadores requieren
+un usuario administrador autenticado.
+
+
+6. RUTAS DEL BACKEND
+
+6.1 routes/auth.js
+
+Maneja el ciclo de autenticacion:
+
+- POST /api/auth/register
+- POST /api/auth/login
+- POST /api/auth/refresh
+- POST /api/auth/logout
+
+Las contrasenas no se guardan en texto plano. Se procesan con bcrypt y un
+factor de costo 12. El login compara la contrasena recibida con el hash
+almacenado en usuarios.password_hash.
+
+Al iniciar sesion se generan tokens JWT. El access token se envia en las
+peticiones protegidas y el refresh token permite renovar la sesion.
+
+6.2 routes/usuarios.js
+
+Permite al administrador consultar y gestionar usuarios.
+
+Operaciones principales:
+
+- GET /api/usuarios
+- GET /api/usuarios/:id
+- PATCH /api/usuarios/:id/activo
+- DELETE /api/usuarios/:id
+
+6.3 routes/atletas.js
+
+Gestiona el perfil deportivo de los atletas.
+
+Operaciones principales:
+
+- GET /api/atletas: lista atletas con usuario, deporte y categoria.
+- POST /api/atletas: crea un usuario y su perfil de atleta.
+- DELETE /api/atletas/:id: elimina el atleta y su usuario relacionado.
+
+El registro se realiza dentro de una transaccion. Esto significa que si falla
+una parte de la operacion, se ejecuta rollback y no queda informacion parcial.
+
+6.4 routes/entrenadores.js
+
+Gestiona los entrenadores del club.
+
+Operaciones principales:
+
+- GET /api/entrenadores: lista entrenadores con sus datos relacionados.
+- POST /api/entrenadores: crea el usuario y el perfil entrenador.
+- PUT /api/entrenadores/:id: actualiza datos personales y profesionales.
+- DELETE /api/entrenadores/:id: elimina el perfil y su usuario relacionado.
+
+El formulario Angular envia:
+
+- nombre
+- apellido
+- email
+- telefono
+- deporte_id
+- especialidad
+- estado_inicial
+
+Para los nuevos entrenadores se genera una contrasena inicial en el backend:
+
+Entrenador1234!
+
+La contrasena se almacena hasheada con bcrypt, nunca como texto plano.
+
+6.5 routes/admin.js
+
+Proporciona informacion para el dashboard administrativo, como cantidades
+de usuarios, atletas, entrenadores y otros indicadores del sistema.
+
+6.6 routes/catalogo.js y routes/solicitudes.js
+
+Estos modulos gestionan los elementos disponibles para solicitar y las
+solicitudes realizadas por los usuarios.
+
+Las solicitudes tienen una cabecera en solicitudes y sus productos o recursos
+relacionados en solicitud_items.
+
+
+7. ESTRUCTURA DE LA BASE DE DATOS
+
+La base de datos se llama avellaneda_fc y esta definida en:
+
+database/avellaneda_fc.sql
+
+Utiliza codificacion utf8mb4 y contiene tablas de usuarios, perfiles
+ deportivos, sesiones, instalaciones, eventos, noticias, solicitudes y
+catalogo.
+
+
+8. TABLAS PRINCIPALES
+
+8.1 roles
+
+Define los permisos generales del sistema.
+
+Roles iniciales:
+
+- administrador: acceso al panel y gestion general.
+- entrenador: gestiona deportes, atletas y entrenamientos.
+- atleta: consulta su perfil y sus actividades.
+
+Relacion:
+
+roles.id -> usuarios.rol_id
+
+8.2 usuarios
+
+Es la tabla central de identidad y autenticacion.
+
+Campos importantes:
+
+- id: identificador principal.
+- rol_id: rol del usuario.
+- nombre y apellido.
+- email: unico.
+- password_hash: contrasena protegida con bcrypt.
+- telefono.
+- activo: indica si la cuenta esta habilitada.
+- creado_en y actualizado_en.
+- ultimo_login.
+
+Relacion:
+
+usuarios.rol_id -> roles.id
+
+Los perfiles de atletas y entrenadores se vinculan con esta tabla mediante
+usuario_id.
+
+8.3 deportes
+
+Contiene las disciplinas disponibles del club, por ejemplo Futbol, Natacion,
+Tenis, Gimnasio, Basquet, Voley, Atletismo y Artes Marciales.
+
+8.4 categorias
+
+Contiene las categorias deportivas. Cada categoria pertenece a un deporte.
+
+Relacion:
+
+categorias.deporte_id -> deportes.id
+
+8.5 atletas
+
+Representa el perfil deportivo de un usuario atleta.
+
+Campos importantes:
+
+- usuario_id: usuario propietario del perfil.
+- deporte_id: disciplina que practica.
+- categoria_id: categoria deportiva.
+- fecha_nacimiento.
+- dni.
+- numero_socio.
+- posicion.
+- estado_medico: apto, no_apto o pendiente.
+- observaciones.
+
+Relaciones:
+
+atletas.usuario_id -> usuarios.id
+atletas.deporte_id -> deportes.id
+atletas.categoria_id -> categorias.id
+
+8.6 entrenadores
+
+Representa el perfil profesional de un usuario entrenador.
+
+Campos importantes:
+
+- usuario_id: usuario propietario del perfil.
+- deporte_id: disciplina que entrena.
+- especialidad.
+- licencia.
+- fecha_ingreso.
+
+Relaciones:
+
+entrenadores.usuario_id -> usuarios.id
+entrenadores.deporte_id -> deportes.id
+
+El estado del entrenador se obtiene actualmente desde usuarios.activo.
+
+8.7 instalaciones
+
+Contiene los espacios del club, como canchas, piscina, gimnasio y
+polideportivo.
+
+8.8 sesiones
+
+Representa las sesiones de entrenamiento.
+
+Puede vincular:
+
+- un entrenador.
+- un deporte.
+- una categoria.
+- una instalacion.
+
+Estados posibles:
+
+- programada
+- en_curso
+- finalizada
+- cancelada
+
+8.9 asistencias
+
+Relaciona atletas con sesiones y permite indicar si estuvieron presentes.
+
+Tiene una restriccion unica para evitar registrar dos veces al mismo atleta
+en la misma sesion.
+
+8.10 reservas
+
+Permite reservar instalaciones para un usuario en un horario determinado.
+
+8.11 eventos
+
+Contiene torneos, actividades y eventos del club. Cada evento registra el
+usuario que lo creo.
+
+8.12 noticias
+
+Contiene las noticias publicadas por el club y el usuario administrador que
+las creo.
+
+8.13 contactos
+
+Almacena los mensajes enviados desde el formulario de contacto publico.
+
+8.14 refresh_tokens
+
+Almacena los refresh tokens asociados a usuarios, con fecha de expiracion y
+estado de revocacion.
+
+8.15 catalogo_items
+
+Contiene los productos o recursos disponibles para solicitar, clasificados
+en indumentaria, equipamiento y transporte.
+
+8.16 solicitudes
+
+Representa una solicitud realizada por un usuario.
+
+Estados posibles:
+
+- pendiente
+- aprobada
+- rechazada
+- entregada
+
+8.17 solicitud_items
+
+Relaciona cada solicitud con los elementos del catalogo y guarda cantidad,
+talle, numero de dorsal y observaciones.
+
+
+9. RELACIONES PRINCIPALES
+
+roles 1 ---- N usuarios
+usuarios 1 ---- 1 atletas
+usuarios 1 ---- 1 entrenadores
+usuarios 1 ---- N refresh_tokens
+usuarios 1 ---- N reservas
+usuarios 1 ---- N solicitudes
+usuarios 1 ---- N eventos creados
+usuarios 1 ---- N noticias creadas
+
+deportes 1 ---- N categorias
+deportes 1 ---- N atletas
+deportes 1 ---- N entrenadores
+deportes 1 ---- N sesiones
+
+entrenadores 1 ---- N sesiones
+instalaciones 1 ---- N sesiones
+sesiones N ---- N atletas mediante asistencias
+solicitudes 1 ---- N solicitud_items
+catalogo_items 1 ---- N solicitud_items
+
+
+10. VISTAS SQL
+
+El archivo SQL define vistas para simplificar consultas frecuentes:
+
+- v_usuarios: usuarios con su rol.
+- v_atletas: atletas con deporte y categoria.
+- v_sesiones: sesiones con entrenador, deporte, categoria e instalacion.
+- v_solicitudes: solicitudes con solicitante, rol y cantidad de items.
+
+Las vistas no reemplazan las tablas. Son consultas guardadas que permiten
+obtener informacion relacionada de forma mas sencilla.
+
+
+11. TRANSACCIONES
+
+Las operaciones que crean o eliminan informacion relacionada utilizan
+transacciones MySQL:
+
+1. Se obtiene una conexion del pool.
+2. Se ejecuta BEGIN TRANSACTION.
+3. Se insertan, actualizan o eliminan los registros necesarios.
+4. Si todo funciona, se ejecuta COMMIT.
+5. Si ocurre un error, se ejecuta ROLLBACK.
+6. Finalmente, la conexion vuelve al pool.
+
+Esto es importante al crear atletas o entrenadores porque se modifican dos
+tablas relacionadas: usuarios y su perfil deportivo.
+
+
+12. COMO INICIAR EL BACKEND
+
+Requisitos:
+
+- Node.js instalado.
+- MySQL o MariaDB activo.
+- Base de datos avellaneda_fc creada.
+- Archivo backend/.env configurado.
+- Dependencias instaladas.
+
+Desde la carpeta backend:
+
+    npm install
+    npm start
+
+Para desarrollo con reinicio automatico:
+
+    npm run dev
+
+El servidor queda disponible normalmente en:
+
+    http://localhost:3000
+
+Para comprobarlo:
+
+    http://localhost:3000/api/health
+
+
+13. COMUNICACION CON ANGULAR
+
+Angular utiliza servicios para encapsular las peticiones HTTP. Por ejemplo,
+el modulo de entrenadores utiliza:
+
+    http://localhost:3000/api/entrenadores
+
+El interceptor de autenticacion agrega el access token a las peticiones
+protegidas mediante el header:
+
+    Authorization: Bearer TOKEN
+
+Si el token expira, el flujo de autenticacion debe renovarlo mediante el
+refresh token o solicitar nuevamente el login.
+
+
+14. RECOMENDACIONES DE SEGURIDAD
+
+- No subir backend/.env a GitHub.
+- No guardar contrasenas en texto plano.
+- No compartir JWT_SECRET ni JWT_REFRESH_SECRET.
+- Mantener bcrypt para las contrasenas.
+- Validar datos tanto en Angular como en el backend.
+- Mantener protegidas las rutas administrativas con auth y require-admin.
+- Usar HTTPS en produccion.
+- No mostrar errores internos de MySQL directamente al usuario final.
+- Realizar backups de la base de datos.
+
+
+15. RESUMEN
+
+El sistema utiliza una arquitectura REST modular:
+
+- Angular presenta formularios y tablas.
+- Los servicios Angular llaman a la API.
+- Express organiza las rutas por funcionalidad.
+- Los middlewares validan autenticacion y permisos.
+- mysql2/promise conecta el backend con MySQL mediante un pool.
+- La base de datos separa la identidad del usuario de sus perfiles de atleta
+y entrenador.
+- Las claves foraneas mantienen la integridad entre usuarios, deportes,
+categorias, sesiones, instalaciones y solicitudes.
+- Las transacciones protegen las operaciones que afectan varias tablas.
+
+============================================================
+Fin de la documentacion

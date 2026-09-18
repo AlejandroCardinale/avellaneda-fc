@@ -1,0 +1,30 @@
+<section class="reports-page">
+  <header class="page-header">
+    <div><p class="eyebrow">Panel de administración</p><h1>Reportes</h1><p class="subtitle">Visualiza métricas clave y genera reportes del club.</p></div>
+    <div class="header-actions"><button type="button" class="btn btn-light" (click)="export('excel')" [disabled]="!!exporting">▣ Exportar Excel</button><button type="button" class="btn btn-light" (click)="export('pdf')" [disabled]="!!exporting">▤ Exportar PDF</button><button type="button" class="btn btn-primary" (click)="generate()" [disabled]="loading">▥ Generar reporte</button></div>
+  </header>
+
+  <div class="alert" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <section class="filters-panel">
+    <span class="filter-label">▣ Filtros</span>
+    <label>Desde <input type="date" [(ngModel)]="filters.desde" (change)="onFilterChange()" /></label>
+    <label>Hasta <input type="date" [(ngModel)]="filters.hasta" (change)="onFilterChange()" /></label>
+    <label>Disciplina <select [(ngModel)]="filters.disciplina" (change)="onFilterChange()"><option *ngFor="let disciplina of disciplinas" [value]="disciplina.id">{{ disciplina.nombre }}</option></select></label>
+    <div class="range-group"><button type="button" *ngFor="let range of ranges" [class.active]="activeRange === range.key" (click)="applyRange(range)">{{ range.key }}</button></div>
+  </section>
+
+  <div class="metrics-grid" *ngIf="report && !loading">
+    <article class="metric-card"><span class="metric-icon blue">♙</span><div><strong>{{ report.metrics.totalAtletas }}</strong><small>Total atletas</small></div><b class="variation positive">Datos reales</b></article>
+    <article class="metric-card"><span class="metric-icon green">▣</span><div><strong>{{ report.metrics.promedioAsistencia }}%</strong><small>Promedio asistencia</small></div><b class="variation positive">Periodo</b></article>
+    <article class="metric-card"><span class="metric-icon yellow">◈</span><div><strong>{{ report.metrics.recursosEnUso }}</strong><small>Recursos en uso</small></div><b class="variation neutral">Solicitados</b></article>
+    <article class="metric-card"><span class="metric-icon purple">✓</span><div><strong>{{ report.metrics.solicitudesResueltas }}</strong><small>Solicitudes resueltas</small></div><b class="variation positive">Cerradas</b></article>
+  </div>
+
+  <div class="reports-grid" *ngIf="report && !loading">
+    <section class="report-card"><div class="card-heading"><div><h2>Atletas por Disciplina</h2><small>Distribución del total del periodo seleccionado</small></div><span class="heading-icon">♙</span></div><div class="discipline-row" *ngFor="let item of report.atletasPorDisciplina"><div class="row-meta"><strong>{{ item.nombre }}</strong><b>{{ item.total }}</b></div><div class="track"><span [style.width.%]="(item.total / maxDiscipline()) * 100"></span></div></div><p class="empty" *ngIf="!report.atletasPorDisciplina.length">No hay atletas para los filtros seleccionados.</p></section>
+    <section class="report-card"><div class="card-heading"><div><h2>Recursos Más Solicitados</h2><small>Veces solicitados en el periodo</small></div><span class="heading-icon yellow">◈</span></div><div class="requested-row" *ngFor="let item of report.recursosMasSolicitados; let index = index"><span class="rank">{{ index + 1 }}</span><div class="requested-copy"><div class="row-meta"><strong>{{ item.nombre }}</strong><b>{{ item.total }}</b></div><div class="track"><span [style.width.%]="(item.total / maxRequested()) * 100"></span></div></div></div><p class="empty" *ngIf="!report.recursosMasSolicitados.length">No hay solicitudes resueltas en el periodo.</p></section>
+  </div>
+
+  <section class="report-card attendance-card" *ngIf="report && !loading"><div class="card-heading"><div><h2>Asistencia a Entrenamientos</h2><small>Porcentaje de asistencia semanal en el periodo seleccionado</small></div><span class="legend-label"><i></i>% Asistencia</span></div><div class="chart"><div class="y-axis"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div><div class="bars"><div class="bar-column" *ngFor="let item of report.asistenciaSemanal"><strong>{{ item.porcentaje }}%</strong><span class="bar" [class]="barClass(item.porcentaje)" [style.height.%]="item.porcentaje"></span><small>Sem {{ item.semana }}</small></div></div></div><div class="chart-legend"><span class="high-dot"></span> Alta (85%+) <span class="normal-dot"></span> Normal (75-84%) <span class="low-dot"></span> Baja (&lt;75%)</div></section>
+  <div class="loading-state" *ngIf="loading">Generando reporte...</div>
+</section>

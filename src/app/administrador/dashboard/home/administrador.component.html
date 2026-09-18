@@ -5,11 +5,10 @@
       <h1>Dashboard</h1>
     </div>
     <div class="header-tools">
-      <input type="text" class="search-box" placeholder="Buscar..." />
       <div class="admin-user">
-        <span class="avatar">A</span>
+        <span class="avatar" aria-hidden="true">CM</span>
         <div>
-          <strong>{{ authService.getUsuario()?.nombre || 'Administrador' }}</strong>
+          <strong>{{ authService.getUsuario()?.nombre || 'Carlos Mendoza' }}</strong>
           <small>Administrador</small>
         </div>
       </div>
@@ -22,25 +21,25 @@
 
   <div class="stats-grid" *ngIf="dashboard">
     <article class="stat-card">
-      <div class="stat-icon athletes">👥</div>
+      <div class="stat-icon athletes" aria-hidden="true">♟</div>
       <div class="stat-body">
-        <span class="stat-tag">+12 este mes</span>
+        <span class="stat-tag">+{{dashboard.summary.totalAtletas}} este mes</span>
         <h2>{{ dashboard.summary.totalAtletas }}</h2>
         <p>Total Atletas</p>
       </div>
     </article>
 
     <article class="stat-card">
-      <div class="stat-icon coaches">🧑‍🏫</div>
+      <div class="stat-icon coaches" aria-hidden="true">⚑</div>
       <div class="stat-body">
-        <span class="stat-tag warning">+2 este mes</span>
+        <span class="stat-tag warning">+{{ dashboard.summary.totalEntrenadores }} este mes</span>
         <h2>{{ dashboard.summary.totalEntrenadores }}</h2>
         <p>Total Entrenadores</p>
       </div>
     </article>
 
     <article class="stat-card">
-      <div class="stat-icon pending">🧾</div>
+      <div class="stat-icon pending" aria-hidden="true">▤</div>
       <div class="stat-body">
         <span class="stat-tag danger">{{ dashboard.summary.solicitudesPendientes }} pendientes</span>
         <h2>{{ dashboard.summary.solicitudesPendientes }}</h2>
@@ -49,7 +48,7 @@
     </article>
 
     <article class="stat-card">
-      <div class="stat-icon resources">🛠️</div>
+      <div class="stat-icon resources" aria-hidden="true">⚒</div>
       <div class="stat-body">
         <span class="stat-tag success">{{ dashboard.summary.recursosDisponibles }} disponibles</span>
         <h2>{{ dashboard.summary.recursosDisponibles }}</h2>
@@ -68,9 +67,9 @@
         <a routerLink="/noticias" class="link-btn">Ver todas →</a>
       </div>
 
-      <div class="list-items" *ngIf="dashboard?.noticias?.length">
+      <div class="list-items" *ngIf="dashboard.noticias.length; else noNews">
         <article class="list-item" *ngFor="let noticia of dashboard.noticias">
-          <div class="list-bullet info">📝</div>
+          <div class="list-bullet info" aria-hidden="true">▤</div>
           <div class="list-copy">
             <h4>{{ noticia.titulo }}</h4>
             <div class="meta-row">
@@ -80,26 +79,34 @@
           </div>
         </article>
       </div>
+      <ng-template #noNews>
+        <p class="empty-message">No hay noticias pendientes en la última semana</p>
+      </ng-template>
     </section>
 
     <section class="panel">
       <div class="panel-header">
         <div>
-          <h3>Actividad reciente</h3>
-          <small>Últimas acciones del sistema</small>
+          <h3>Eventos recientes</h3>
+          <small>Actividades programadas en la última semana</small>
         </div>
-        <button class="link-btn ghost" type="button">Ver todo →</button>
       </div>
 
-      <div class="activity-list" *ngIf="dashboard?.actividad?.length">
-        <div class="activity-item" *ngFor="let item of dashboard.actividad">
-          <span class="activity-icon">{{ item.tipo === 'noticia' ? '📰' : '📌' }}</span>
-          <div>
-            <strong>{{ item.texto }}</strong>
-            <small>Hace {{ item.minutos_antes }} min</small>
+      <div class="list-items" *ngIf="dashboard.eventos.length; else noEvents">
+        <article class="list-item" *ngFor="let evento of dashboard.eventos">
+          <div class="list-bullet event" aria-hidden="true">◆</div>
+          <div class="list-copy">
+            <h4>{{ evento.titulo }}</h4>
+            <div class="meta-row">
+              <span>{{ evento.fecha }}{{ evento.lugar ? ' · ' + evento.lugar : '' }}</span>
+              <span class="badge-soft">{{ evento.disciplina || evento.categoria || 'Evento' }}</span>
+            </div>
           </div>
-        </div>
+        </article>
       </div>
+      <ng-template #noEvents>
+        <p class="empty-message">No hay eventos recientes en la última semana</p>
+      </ng-template>
     </section>
   </div>
 
@@ -112,7 +119,7 @@
         </div>
       </div>
 
-      <div class="chart" *ngIf="dashboard?.chart?.length">
+      <div class="chart" *ngIf="dashboard.chart.length">
         <div class="chart-bars">
           <div class="bar-group" *ngFor="let point of dashboard.chart">
             <span class="bar" [style.height.%]="(point.total / maxChartValue) * 100 || 14"></span>
@@ -122,21 +129,6 @@
       </div>
     </section>
 
-    <section class="panel quick-actions">
-      <div class="panel-header">
-        <div>
-          <h3>Acciones rápidas</h3>
-          <small>Crear registros del sistema</small>
-        </div>
-      </div>
-
-      <div class="quick-grid">
-        <a routerLink="/administrador/registrar-atleta" class="action-btn">👤 Nuevo atleta</a>
-        <a routerLink="/noticias" class="action-btn">📰 Nueva noticia</a>
-        <a routerLink="/eventos" class="action-btn">📅 Nuevo evento</a>
-        <a routerLink="/solicitud" class="action-btn">🧾 Nueva solicitud</a>
-      </div>
-    </section>
   </div>
 </section>
 

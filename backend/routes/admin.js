@@ -34,7 +34,25 @@ router.get('/dashboard', async (_req, res) => {
         DATE_FORMAT(creado_en, '%d %b %Y') AS fecha_formateada
       FROM noticias
       WHERE publicada = TRUE
+        AND creado_en >= NOW() - INTERVAL 7 DAY
       ORDER BY creado_en DESC
+      LIMIT 3
+    `);
+
+    const [eventos] = await pool.execute(`
+      SELECT
+        id,
+        titulo,
+        descripcion,
+        fecha_hora,
+        lugar,
+        disciplina,
+        categoria,
+        DATE_FORMAT(fecha_hora, '%d %b %Y %H:%i') AS fecha_formateada
+      FROM eventos
+      WHERE publicado = TRUE
+        AND creado_en >= NOW() - INTERVAL 7 DAY
+      ORDER BY fecha_hora ASC
       LIMIT 3
     `);
 
@@ -109,6 +127,16 @@ router.get('/dashboard', async (_req, res) => {
         descripcion: n.descripcion,
         categoria: n.categoria,
         fecha: n.fecha_formateada
+      })),
+      eventos: eventos.map(e => ({
+        id: e.id,
+        titulo: e.titulo,
+        descripcion: e.descripcion,
+        fecha: e.fecha_formateada,
+        fechaHora: e.fecha_hora,
+        lugar: e.lugar,
+        disciplina: e.disciplina,
+        categoria: e.categoria
       })),
       solicitudes: solicitudes.map(s => ({
         id: s.id,

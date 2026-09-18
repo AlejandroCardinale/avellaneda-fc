@@ -1,0 +1,128 @@
+<section class="news-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Panel de administración</p>
+      <h1>Gestión de Noticias</h1>
+      <p class="subtitle">Administra las publicaciones y comunicados del club.</p>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="abrirNuevo()">+ Nueva noticia</button>
+  </header>
+
+  <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+
+  <div class="metrics-grid">
+    <article class="metric-card metric-published">
+      <span class="metric-icon">&#10003;</span>
+      <div><strong>{{ metrics.publicadas }}</strong><small>Total publicadas</small></div>
+    </article>
+    <article class="metric-card metric-draft">
+      <span class="metric-icon">&#9998;</span>
+      <div><strong>{{ metrics.borradores }}</strong><small>Borradores</small></div>
+    </article>
+    <article class="metric-card metric-scheduled">
+      <span class="metric-icon">&#8987;</span>
+      <div><strong>{{ metrics.programadas }}</strong><small>Programadas</small></div>
+    </article>
+  </div>
+
+  <section class="listing-section">
+    <div class="listing-toolbar">
+      <div class="search-box">
+        <span aria-hidden="true">&#128269;</span>
+        <input type="search" [(ngModel)]="search" [ngModelOptions]="{standalone: true}" (keyup.enter)="onSearch()" placeholder="Buscar por título o contenido" />
+      </div>
+      <div class="filter-group" aria-label="Filtrar noticias por estado">
+        <button type="button" [class.active]="status === 'todas'" (click)="onStatusChange('todas')">Todas</button>
+        <button type="button" [class.active]="status === 'publicada'" (click)="onStatusChange('publicada')">Publicadas</button>
+        <button type="button" [class.active]="status === 'borrador'" (click)="onStatusChange('borrador')">Borradores</button>
+        <button type="button" [class.active]="status === 'programada'" (click)="onStatusChange('programada')">Programadas</button>
+      </div>
+      <label class="sort-control">Ordenar por
+        <select [value]="order" (change)="onOrderChange($any($event.target).value)">
+          <option value="recent">Más reciente</option>
+          <option value="oldest">Más antigua</option>
+        </select>
+      </label>
+      <button type="button" class="btn btn-search" (click)="onSearch()">Buscar</button>
+    </div>
+
+    <div class="cards-grid" *ngIf="!listLoading; else loadingState">
+      <article class="news-card" *ngFor="let noticia of noticias">
+        <div class="cover">
+          <img [src]="noticia.imagen_url || 'images/football_pitch.png'" [alt]="noticia.titulo" />
+          <span class="category-badge">{{ noticia.categoria }}</span>
+          <span class="status-badge" [class]="'status-' + noticia.estado">{{ noticia.estado }}</span>
+        </div>
+        <div class="card-body">
+          <time>{{ formatDate(noticia.fecha_publicacion) }}</time>
+          <h3>{{ noticia.titulo }}</h3>
+          <p>{{ noticia.descripcion }}</p>
+        </div>
+        <div class="card-actions">
+          <button type="button" class="action-view" (click)="ver(noticia)">Ver</button>
+          <button type="button" class="action-edit" (click)="editar(noticia)">Editar</button>
+          <button type="button" class="action-delete" (click)="eliminar(noticia)" aria-label="Eliminar noticia">&#128465;</button>
+        </div>
+      </article>
+      <div class="empty-state" *ngIf="!noticias.length">No hay noticias que coincidan con los filtros.</div>
+    </div>
+    <ng-template #loadingState><div class="loading-state">Cargando noticias...</div></ng-template>
+
+    <footer class="pagination" *ngIf="!listLoading">
+      <span>Mostrando {{ noticias.length }} de {{ total }} noticias</span>
+      <div class="page-controls">
+        <button type="button" (click)="goToPage(page - 1)" [disabled]="page === 1">‹</button>
+        <button type="button" *ngFor="let number of pageNumbers()" [class.current]="number === page" (click)="goToPage(number)">{{ number }}</button>
+        <button type="button" (click)="goToPage(page + 1)" [disabled]="page === totalPages">›</button>
+      </div>
+    </footer>
+  </section>
+
+  <div class="modal-backdrop" *ngIf="modalOpen" (click)="cerrarModal()">
+    <div class="news-modal" role="dialog" aria-modal="true" aria-labelledby="news-modal-title" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">{{ editingId ? 'Edición' : 'Nueva publicación' }}</p>
+          <h2 id="news-modal-title">{{ editingId ? 'Editar noticia' : 'Crear noticia' }}</h2>
+        </div>
+        <button type="button" class="close-btn" aria-label="Cerrar" (click)="cerrarModal()">×</button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <div class="modal-body">
+          <div class="form-grid">
+            <label class="field field-wide">Título
+              <input type="text" formControlName="titulo" placeholder="Ej: Torneo Interclubes 2025" />
+              <small *ngIf="f['titulo'].touched && f['titulo'].invalid">El título es obligatorio y debe tener hasta 160 caracteres.</small>
+            </label>
+            <label class="field">Categoría
+              <select formControlName="categoria"><option *ngFor="let categoria of categorias" [value]="categoria">{{ categoria }}</option></select>
+            </label>
+            <label class="field">Estado
+              <select formControlName="estado"><option *ngFor="let estado of estados" [value]="estado.value">{{ estado.label }}</option></select>
+            </label>
+            <label class="field">Fecha de publicación
+              <input type="datetime-local" formControlName="fecha_publicacion" />
+            </label>
+            <label class="field field-wide">Imagen de portada
+              <input type="file" accept="image/*" (change)="onImageSelected($event)" />
+              <small>PNG, JPG o WEBP. Máximo 5 MB.</small>
+            </label>
+            <div class="image-preview" *ngIf="imagePreview">
+              <img [src]="imagePreview" alt="Vista previa de portada" />
+            </div>
+            <label class="field field-wide">Extracto
+              <textarea rows="3" formControlName="descripcion" placeholder="Escribe una breve descripción de la noticia"></textarea>
+              <small *ngIf="f['descripcion'].touched && f['descripcion'].invalid">La descripción debe tener al menos 10 caracteres.</small>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="loading">{{ loading ? 'Guardando...' : (editingId ? 'Guardar cambios' : 'Publicar noticia') }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
