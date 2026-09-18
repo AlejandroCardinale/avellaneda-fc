@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-dashboard-admin',
@@ -110,16 +112,45 @@ import { AuthService } from '../../services/auth.service';
         .admin-shell { grid-template-columns: 1fr; }
         .sidebar { padding-bottom: 10px; }
       }
+      .nav-item-highlight { position: relative; }
+      .nav-badge {
+        margin-left: auto;
+        background: #f59e0b;
+        color: #1c1917;
+        font-size: 11px;
+        font-weight: 800;
+        border-radius: 10px;
+        padding: 1px 7px;
+        min-width: 20px;
+        text-align: center;
+      }
     `
   ]
 })
-export class DashboardComponent {
-  constructor(private authService: AuthService, private router: Router) {}
+export class DashboardComponent implements OnInit {
+  pendientesCount = 0;
 
-  logout(): void {
-    this.authService.logout().subscribe({
-      next: () => this.router.navigate(['/login']),
-      error: () => this.router.navigate(['/login'])
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private http: HttpClient
+  ) {}
+
+  ngOnInit(): void {
+    this.http.get<{ total: number }>(
+      `${environment.apiUrl}/solicitudes-acceso/conteo`
+    ).subscribe({
+      next: res => { this.pendientesCount = res.total; },
+      error: ()  => { this.pendientesCount = 0; }
     });
   }
+
+  logout(): void {
+    // clearSession ya se llama dentro de authService.logout()
+    this.authService.logout().subscribe({
+      next:  () => this.router.navigate(['/login']),
+      error: () => this.router.navigate(['/login'])   // igual redirige si el backend falla
+    });
+  }
+
 }

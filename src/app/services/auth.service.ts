@@ -26,7 +26,9 @@ export interface LoginRequest    { email: string; password: string; }
 /** Estructura del cuerpo que se envía al registrarse */
 export interface RegisterRequest {
   nombre: string; apellido: string;
-  email: string; password: string; telefono?: string;
+  email: string; password: string;
+  telefono?: string;
+  rol?: string;   // 'atleta' | 'entrenador' | 'administrador'
 }
 
 /** Estructura de la respuesta del backend al autenticar exitosamente */
@@ -63,29 +65,23 @@ export class AuthService {
   }
 
   /**
-   * Registra un nuevo usuario en la base de datos.
-   * El backend hashea la contraseña con bcrypt y crea el usuario con rol 'atleta'.
-   * Al registrarse exitosamente, también inicia sesión automáticamente (guarda tokens).
+   * Registra un nuevo usuario.
+   * Ahora el backend devuelve { message, pendiente: true } — NO tokens.
+   * La cuenta queda pendiente hasta aprobación del admin.
    */
-  register(data: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API}/register`, data).pipe(
-      tap(res => {
-        localStorage.setItem('access_token',  res.access_token);
-        localStorage.setItem('refresh_token', res.refresh_token);
-        localStorage.setItem('usuario',       JSON.stringify(res.usuario));
-      })
-    );
+  register(data: RegisterRequest): Observable<{ message: string; pendiente: boolean }> {
+    return this.http.post<{ message: string; pendiente: boolean }>(`${this.API}/register`, data);
+    // No se guardan tokens — el usuario no inicia sesión automáticamente
   }
 
   /**
    * Cierra la sesión del usuario.
-   * Notifica al backend (para posibles operaciones de limpieza)
-   * y luego limpia el localStorage mediante clearSession().
+   * Limpia localStorage inmediatamente (no espera al backend).
+   * Si el backend falla (p.ej. no está corriendo), igual cierra sesión local.
    */
   logout(): Observable<void> {
-    return this.http.post<void>(`${this.API}/logout`, {}).pipe(
-      tap(() => this.clearSession())
-    );
+    this.clearSession();   // limpiar ANTES de la petición → el usuario queda deslogueado
+    return this.http.post<void>(`${this.API}/logout`, {});
   }
 
   /**

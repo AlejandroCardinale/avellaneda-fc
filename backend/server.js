@@ -75,6 +75,9 @@ app.use('/api/recursos',     require('./routes/recursos'));     // Inventario de
 app.use('/api/reportes',     require('./routes/reportes'));     // Reportes y exportaciones administrativas
 app.use('/api/catalogo',    require('./routes/catalogo'));    // Lista de ítems disponibles
 app.use('/api/solicitudes', require('./routes/solicitudes')); // CRUD de solicitudes
+app.use('/api/contacto',    require('./routes/contacto'));    // Formulario de contacto
+app.use('/api/solicitudes-acceso', require('./routes/solicitudes-acceso')); // Aprobación de cuentas
+
 
 // ── Health check ───────────────────────────────────────────────────────────
 /**

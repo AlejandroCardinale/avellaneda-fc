@@ -20,11 +20,12 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 })
 export class RegistroComponent {
   form: FormGroup;
-  submitted    = false;
-  loading      = false;
-  errorMessage = '';
-  showPassword = false;
-  showConfirm  = false;
+  submitted       = false;
+  loading         = false;
+  errorMessage    = '';
+  registroExitoso = false;   // true cuando la solicitud fue enviada
+  showPassword    = false;
+  showConfirm     = false;
 
   constructor(
     private fb: FormBuilder,
@@ -36,6 +37,7 @@ export class RegistroComponent {
       apellido:        ['', [Validators.required, Validators.minLength(2)]],
       email:           ['', [Validators.required, Validators.email]],
       telefono:        [''],
+      rol:             ['atleta', Validators.required],   // atleta por defecto
       password:        ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required]
     }, { validators: passwordsMatch });
@@ -52,16 +54,16 @@ export class RegistroComponent {
     if (this.form.invalid) return;
 
     this.loading = true;
-    const { nombre, apellido, email, password, telefono } = this.form.value;
-    const data: RegisterRequest = { nombre, apellido, email, password, telefono: telefono || undefined };
+    const { nombre, apellido, email, password, telefono, rol } = this.form.value;
+    const data: RegisterRequest = { nombre, apellido, email, password, telefono: telefono || undefined, rol };
 
     this.authService.register(data).subscribe({
       next: () => {
-        this.loading = false;
-        this.router.navigate(['/inicio']);
+        this.loading         = false;
+        this.registroExitoso = true;   // Muestra el mensaje de "solicitud pendiente"
       },
       error: (err) => {
-        this.loading = false;
+        this.loading      = false;
         this.errorMessage = err?.error?.message ?? 'Error al registrarse. Intentá nuevamente.';
       }
     });

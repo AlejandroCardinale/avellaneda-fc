@@ -1,0 +1,125 @@
+<div class="login-page">
+
+  <!-- Left panel -->
+  <div class="login-left">
+    <div class="login-left-bg">
+      <img src="images/hero_stadium.png" alt="Avellaneda FC" class="login-bg-img">
+      <div class="login-left-overlay"></div>
+    </div>
+    <div class="login-left-content">
+      <a routerLink="/inicio" class="login-logo">
+        <div class="login-logo-img">
+          <img src="images/logo.png" alt="Avellaneda FC Logo">
+        </div>
+        <span>AVELLANEDA FC</span>
+      </a>
+      <div class="login-left-text">
+        <h2>Nueva contraseña</h2>
+        <p>Elegí una contraseña segura de al menos 6 caracteres para proteger tu cuenta.</p>
+      </div>
+      <div class="login-benefits">
+        <div class="login-benefit">
+          <div class="login-benefit-icon"><i class="fa-solid fa-lock"></i></div>
+          <span>Mínimo 6 caracteres</span>
+        </div>
+        <div class="login-benefit">
+          <div class="login-benefit-icon"><i class="fa-solid fa-key"></i></div>
+          <span>Tu contraseña anterior quedará desactivada</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="login-right">
+    <div class="login-form-container">
+
+      <!-- Token inválido -->
+      <div *ngIf="tokenInvalido" class="recovery-success">
+        <div class="success-icon error-icon">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h1 class="login-title">Link inválido</h1>
+        <p class="login-subtitle">
+          Este link de recuperación es inválido o ya expiró (duran 1 hora).<br>
+          Solicitá uno nuevo desde la página de recuperación.
+        </p>
+        <a routerLink="/recuperar-contrasena" class="btn btn-primary btn-lg login-btn" style="margin-top: 24px;">
+          <i class="fa-solid fa-rotate-right"></i> Solicitar nuevo link
+        </a>
+      </div>
+
+      <!-- Éxito -->
+      <div *ngIf="exitoso && !tokenInvalido" class="recovery-success">
+        <div class="success-icon">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <h1 class="login-title">¡Contraseña actualizada!</h1>
+        <p class="login-subtitle">
+          Tu contraseña fue cambiada exitosamente. Ya podés iniciar sesión con tu nueva contraseña.
+        </p>
+        <a routerLink="/login" class="btn btn-primary btn-lg login-btn" style="margin-top: 24px;">
+          <i class="fa-solid fa-arrow-right"></i> Ir al login
+        </a>
+      </div>
+
+      <!-- Formulario -->
+      <ng-container *ngIf="!tokenInvalido && !exitoso">
+        <div class="login-form-header">
+          <h1 class="login-title">Crear nueva contraseña</h1>
+          <p class="login-subtitle">Ingresá y confirmá tu nueva contraseña.</p>
+        </div>
+
+        <div class="login-error" *ngIf="errorMessage">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-form" novalidate>
+
+          <div class="form-group">
+            <label class="form-label" for="password">Nueva contraseña</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-lock input-icon"></i>
+              <input id="password" [type]="showPass ? 'text' : 'password'"
+                class="form-control form-control-icon form-control-icon-right"
+                placeholder="••••••••"
+                formControlName="password"
+                [class.is-invalid]="submitted && f['password'].errors">
+              <button type="button" class="toggle-pass" (click)="showPass = !showPass">
+                <i class="fa-regular" [class.fa-eye]="!showPass" [class.fa-eye-slash]="showPass"></i>
+              </button>
+            </div>
+            <span class="form-error" *ngIf="submitted && f['password'].errors?.['required']">La contraseña es requerida.</span>
+            <span class="form-error" *ngIf="submitted && f['password'].errors?.['minlength']">Mínimo 6 caracteres.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="confirmar">Confirmar contraseña</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-lock input-icon"></i>
+              <input id="confirmar" [type]="showConfirm ? 'text' : 'password'"
+                class="form-control form-control-icon form-control-icon-right"
+                placeholder="••••••••"
+                formControlName="confirmar"
+                [class.is-invalid]="submitted && (f['confirmar'].errors || noCoinciden)">
+              <button type="button" class="toggle-pass" (click)="showConfirm = !showConfirm">
+                <i class="fa-regular" [class.fa-eye]="!showConfirm" [class.fa-eye-slash]="showConfirm"></i>
+              </button>
+            </div>
+            <span class="form-error" *ngIf="submitted && f['confirmar'].errors?.['required']">Confirmá la contraseña.</span>
+            <span class="form-error" *ngIf="submitted && noCoinciden">Las contraseñas no coinciden.</span>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg login-btn" [disabled]="loading">
+            <span *ngIf="!loading"><i class="fa-solid fa-check"></i> Guardar nueva contraseña</span>
+            <span *ngIf="loading"><i class="fa-solid fa-spinner fa-spin"></i> Guardando...</span>
+          </button>
+
+        </form>
+      </ng-container>
+
+    </div>
+  </div>
+
+</div>

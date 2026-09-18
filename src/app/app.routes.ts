@@ -22,6 +22,8 @@
  *   /registro        → Registro de nuevo usuario
  *   /solicitud       → Módulo de solicitudes (requiere login)
  *   /reportes        → Módulo de reportes (solo administrador)
+ *   /recuperar-contrasena → Formulario para solicitar recuperación por email
+ *   /nueva-contrasena    → Formulario para ingresar la nueva contraseña (usa ?token=)
  *   **               → Cualquier otra URL redirige a /inicio
  * ============================================================
  */
@@ -75,6 +77,15 @@ export const routes: Routes = [
   {
     path: 'registro',
     loadComponent: () => import('./pages/registro/registro.component').then(m => m.RegistroComponent)
+  },
+
+  {
+    path: 'recuperar-contrasena',
+    loadComponent: () => import('./pages/recuperar-contrasena/recuperar-contrasena.component').then(m => m.RecuperarContrasenaComponent)
+  },
+  {
+    path: 'nueva-contrasena',
+    loadComponent: () => import('./pages/nueva-contrasena/nueva-contrasena.component').then(m => m.NuevaContrasenaComponent)
   },
 
   { path: '**', redirectTo: '/inicio' }
