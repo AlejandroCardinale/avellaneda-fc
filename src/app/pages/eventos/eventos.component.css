@@ -177,7 +177,13 @@
   background: var(--accent-blue);
 }
 .cal-day.today.has-event::after { background: var(--white); }
-
+.cal-day.selected {
+  background: var(--primary-dark);
+  color: var(--white);
+  border: 1.5px solid var(--accent-blue);
+  font-weight: 700;
+}
+.cal-day.selected::after { background: var(--white) !important; }
 /* Sidebar events */
 .sidebar-events-list { display: flex; flex-direction: column; gap: 12px; }
 

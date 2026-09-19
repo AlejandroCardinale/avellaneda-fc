@@ -1,0 +1,212 @@
+<!-- NOT FOUND STATE -->
+<section *ngIf="notFound" class="section">
+  <div class="container">
+    <div class="not-found-state">
+      <div class="not-found-icon">
+        <i class="fa-solid fa-building-circle-xmark"></i>
+      </div>
+      <h2>Instalación no encontrada</h2>
+      <p>No pudimos encontrar la instalación que estás buscando.</p>
+      <a routerLink="/instalaciones" class="btn btn-primary">
+        <i class="fa-solid fa-arrow-left"></i> Volver a Instalaciones
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- DETALLE DE LA INSTALACIÓN -->
+<ng-container *ngIf="facility && !notFound">
+
+  <!-- HERO -->
+  <section class="page-hero install-detail-hero">
+    <img [src]="facility.image" [alt]="facility.name" class="page-hero-bg">
+    <div class="install-detail-overlay"></div>
+    <div class="container page-hero-content">
+
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb-nav">
+        <a routerLink="/instalaciones" class="breadcrumb-link">
+          <i class="fa-solid fa-arrow-left"></i> Instalaciones
+        </a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">{{ facility.name }}</span>
+      </nav>
+
+      <div class="install-hero-body">
+        <div class="install-hero-icon">
+          <i class="fa-solid" [ngClass]="facility.icon"></i>
+        </div>
+        <div>
+          <span class="badge badge-blue mb-12">{{ facility.label }}</span>
+          <h1 class="page-hero-title">{{ facility.name }}</h1>
+          <p class="page-hero-subtitle">{{ facility.description }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN CONTENT -->
+  <section class="section" style="background: var(--light-gray);">
+    <div class="container">
+      <div class="install-detail-layout">
+
+        <!-- LEFT: Contenido principal -->
+        <div class="install-detail-main">
+
+          <!-- Descripción larga -->
+          <div class="install-card">
+            <div class="install-card-header">
+              <div class="icon-circle icon-circle-lg">
+                <i class="fa-solid" [ngClass]="facility.icon"></i>
+              </div>
+              <div>
+                <h2 class="install-section-title">Sobre {{ facility.name }}</h2>
+                <p class="text-muted" style="font-size:14px">Historia, características y lo que la hace única</p>
+              </div>
+            </div>
+            <p class="install-long-desc">{{ facility.longDescription }}</p>
+          </div>
+
+          <!-- Especificaciones técnicas -->
+          <div class="install-card">
+            <h2 class="install-section-title mb-24">
+              <i class="fa-solid fa-ruler-combined text-blue" style="margin-right:10px"></i>
+              Especificaciones Técnicas
+            </h2>
+            <div class="tech-specs-grid">
+              <div *ngFor="let spec of facility.technicalSpecs" class="spec-item">
+                <span class="spec-key">{{ spec.key }}</span>
+                <span class="spec-value">{{ spec.value }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Equipamiento disponible -->
+          <div class="install-card">
+            <h2 class="install-section-title mb-24">
+              <i class="fa-solid fa-toolbox text-blue" style="margin-right:10px"></i>
+              Equipamiento Disponible
+            </h2>
+            <ul class="equipment-list">
+              <li *ngFor="let eq of facility.equipment" class="equipment-item">
+                <div class="equip-check">
+                  <i class="fa-solid fa-check"></i>
+                </div>
+                <span>{{ eq }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Normativa de uso -->
+          <div class="install-card regulations-card">
+            <h2 class="install-section-title mb-24">
+              <i class="fa-solid fa-clipboard-list text-blue" style="margin-right:10px"></i>
+              Reglamento de Uso
+            </h2>
+            <ul class="regulations-list">
+              <li *ngFor="let reg of facility.regulations; let i = index" class="regulation-item">
+                <div class="reg-number">{{ i + 1 }}</div>
+                <span>{{ reg }}</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Sidebar -->
+        <aside class="install-detail-sidebar">
+
+          <!-- Horarios -->
+          <div class="sidebar-card install-schedule-card">
+            <div class="schedule-icon-wrap">
+              <i class="fa-solid fa-clock"></i>
+            </div>
+            <h3>Horarios de Acceso</h3>
+            <p class="schedule-text">{{ facility.schedule }}</p>
+            <a routerLink="/contacto" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:16px;">
+              <i class="fa-solid fa-calendar-plus"></i> Reservar turno
+            </a>
+          </div>
+
+          <!-- Características rápidas -->
+          <div class="sidebar-card">
+            <h3>Características</h3>
+            <ul class="sidebar-features">
+              <li *ngFor="let feat of facility.features" class="sidebar-feat-item">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>{{ feat }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- CTA -->
+          <div class="sidebar-card install-cta-card">
+            <h3>¿Querés usar esta instalación?</h3>
+            <p>Hazte socio del club y accedé a todas las instalaciones con beneficios exclusivos para socios.</p>
+            <a routerLink="/contacto" class="btn btn-outline" style="width:100%; justify-content:center; margin-top:16px;">
+              <i class="fa-solid fa-id-card"></i> Hacete socio
+            </a>
+          </div>
+
+          <!-- Volver -->
+          <div class="sidebar-card" style="text-align:center;">
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">
+              ¿Querés conocer otras instalaciones?
+            </p>
+            <a routerLink="/instalaciones" class="btn btn-outline-blue btn-sm" style="width:100%; justify-content:center;">
+              <i class="fa-solid fa-arrow-left"></i> Ver todas las instalaciones
+            </a>
+          </div>
+
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- OTRAS INSTALACIONES -->
+  <section *ngIf="relatedFacilities.length" class="section-sm" style="background:var(--white);">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Otras Instalaciones</h2>
+        <p class="section-subtitle">Explorá más espacios disponibles en Avellaneda FC</p>
+      </div>
+      <div class="related-install-grid">
+        <div *ngFor="let rel of relatedFacilities" class="related-install-card card">
+          <div class="related-install-img">
+            <img [src]="rel.image" [alt]="rel.name">
+            <span class="badge badge-blue rel-badge">{{ rel.label }}</span>
+          </div>
+          <div class="related-install-body">
+            <div class="facility-icon-sm">
+              <i class="fa-solid" [ngClass]="rel.icon"></i>
+            </div>
+            <h3>{{ rel.name }}</h3>
+            <p>{{ rel.description }}</p>
+            <a [routerLink]="['/instalaciones', rel.id]" class="btn btn-outline-blue btn-sm">
+              Ver detalle <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="section-sm" style="background:var(--light-gray);">
+    <div class="container">
+      <div class="cta-section">
+        <div class="cta-text">
+          <h2>Conocé {{ facility.name }} en persona</h2>
+          <p>Coordiná una visita guiada y descubrí todo lo que Avellaneda FC tiene para ofrecerte.</p>
+        </div>
+        <div class="cta-actions">
+          <a routerLink="/contacto" class="btn btn-outline btn-lg">
+            Solicitar visita <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</ng-container>

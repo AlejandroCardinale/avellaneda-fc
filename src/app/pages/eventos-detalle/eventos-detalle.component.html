@@ -1,0 +1,256 @@
+<!-- NOT FOUND STATE -->
+<section *ngIf="notFound" class="section">
+  <div class="container">
+    <div class="not-found-state">
+      <div class="not-found-icon">
+        <i class="fa-solid fa-calendar-xmark"></i>
+      </div>
+      <h2>Evento no encontrado</h2>
+      <p>No pudimos encontrar el evento que estás buscando.</p>
+      <a routerLink="/eventos" class="btn btn-primary">
+        <i class="fa-solid fa-arrow-left"></i> Volver a Eventos
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- DETALLE DEL EVENTO -->
+<ng-container *ngIf="event && !notFound">
+
+  <!-- HERO -->
+  <section class="page-hero ev-detail-hero">
+    <img [src]="event.image" [alt]="event.title" class="page-hero-bg">
+    <div class="ev-detail-overlay"></div>
+    <div class="container page-hero-content">
+
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb-nav">
+        <a routerLink="/eventos" class="breadcrumb-link">
+          <i class="fa-solid fa-arrow-left"></i> Eventos
+        </a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">{{ event.title }}</span>
+      </nav>
+
+      <div class="ev-hero-body">
+        <!-- Fecha destacada -->
+        <div class="ev-hero-date">
+          <span class="ev-hero-day">{{ event.day }}</span>
+          <span class="ev-hero-month">{{ event.month }}</span>
+        </div>
+        <div>
+          <div class="ev-hero-badges">
+            <span class="badge badge-blue">{{ event.category }}</span>
+            <span class="badge badge-dark">{{ event.discipline }}</span>
+          </div>
+          <h1 class="page-hero-title">{{ event.title }}</h1>
+          <div class="ev-hero-meta">
+            <span><i class="fa-regular fa-clock"></i> {{ event.time }} — {{ event.endTime }}</span>
+            <span><i class="fa-solid fa-location-dot"></i> {{ event.location }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN CONTENT -->
+  <section class="section" style="background: var(--light-gray);">
+    <div class="container">
+      <div class="ev-detail-layout">
+
+        <!-- LEFT: Contenido principal -->
+        <div class="ev-detail-main">
+
+          <!-- Descripción -->
+          <div class="ev-card">
+            <div class="ev-card-header">
+              <div class="icon-circle icon-circle-lg">
+                <i class="fa-solid" [ngClass]="getCategoryIcon(event.category)"></i>
+              </div>
+              <div>
+                <h2 class="ev-section-title">Sobre el evento</h2>
+                <p class="text-muted" style="font-size:14px">Todo lo que necesitás saber</p>
+              </div>
+            </div>
+            <p class="ev-long-desc">{{ event.longDescription }}</p>
+            <div class="ev-location-box">
+              <i class="fa-solid fa-map-location-dot"></i>
+              <div>
+                <strong>Lugar:</strong> {{ event.location }}
+                <p>{{ event.locationDetail }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cronograma -->
+          <div class="ev-card">
+            <h2 class="ev-section-title mb-24">
+              <i class="fa-solid fa-list-check text-blue" style="margin-right:10px"></i>
+              Cronograma del Evento
+            </h2>
+            <div class="schedule-timeline">
+              <div *ngFor="let item of event.schedule; let last = last" class="timeline-item">
+                <div class="timeline-time">{{ item.time }}</div>
+                <div class="timeline-dot" [class.last]="last"></div>
+                <div class="timeline-activity">{{ item.activity }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Categorías participantes -->
+          <div class="ev-card">
+            <h2 class="ev-section-title mb-24">
+              <i class="fa-solid fa-layer-group text-blue" style="margin-right:10px"></i>
+              Categorías y Participantes
+            </h2>
+            <div class="ev-categories-list">
+              <div *ngFor="let cat of event.categories; let i = index" class="ev-category-chip">
+                <div class="ev-cat-number">{{ i + 1 }}</div>
+                <span>{{ cat }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reglas -->
+          <div class="ev-card ev-rules-card">
+            <h2 class="ev-section-title mb-24">
+              <i class="fa-solid fa-clipboard-list text-blue" style="margin-right:10px"></i>
+              Reglas y Consideraciones
+            </h2>
+            <ul class="ev-rules-list">
+              <li *ngFor="let rule of event.rules; let i = index" class="ev-rule-item">
+                <div class="rule-number">{{ i + 1 }}</div>
+                <span>{{ rule }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Premios -->
+          <div class="ev-card ev-prizes-card">
+            <h2 class="ev-section-title mb-24">
+              <i class="fa-solid fa-trophy text-blue" style="margin-right:10px"></i>
+              Premios y Reconocimientos
+            </h2>
+            <ul class="ev-prizes-list">
+              <li *ngFor="let prize of event.prizes" class="ev-prize-item">
+                {{ prize }}
+              </li>
+            </ul>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Sidebar -->
+        <aside class="ev-detail-sidebar">
+
+          <!-- Fecha y hora -->
+          <div class="sidebar-card ev-datetime-card">
+            <div class="ev-big-date">
+              <span class="ev-big-day">{{ event.day }}</span>
+              <div>
+                <span class="ev-big-month">{{ event.month }} 2026</span>
+                <span class="ev-big-time">{{ event.time }}</span>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="ev-sidebar-info-item">
+              <i class="fa-solid fa-clock"></i>
+              <span>Duración aprox. hasta las {{ event.endTime }}</span>
+            </div>
+            <div class="ev-sidebar-info-item">
+              <i class="fa-solid fa-location-dot"></i>
+              <span>{{ event.location }}</span>
+            </div>
+            <div class="ev-sidebar-info-item">
+              <i class="fa-solid fa-tag"></i>
+              <span>{{ event.discipline }} — {{ event.category }}</span>
+            </div>
+          </div>
+
+          <!-- Inscripción -->
+          <div class="sidebar-card ev-inscription-card">
+            <div class="inscription-status" [class.open]="event.inscription.open" [class.closed]="!event.inscription.open">
+              <i class="fa-solid" [class]="event.inscription.open ? 'fa-circle-check' : 'fa-circle-xmark'"></i>
+              {{ event.inscription.open ? 'Inscripción abierta' : 'Inscripción cerrada' }}
+            </div>
+            <h3>Inscripción</h3>
+            <div class="inscription-details">
+              <div class="inscription-row">
+                <span class="inscription-label">Cierre</span>
+                <span class="inscription-value">{{ event.inscription.deadline }}</span>
+              </div>
+              <div class="inscription-row">
+                <span class="inscription-label">Contacto</span>
+                <span class="inscription-value" style="font-size:12px">{{ event.inscription.contact }}</span>
+              </div>
+            </div>
+            <a *ngIf="event.inscription.open" routerLink="/contacto" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:16px;">
+              <i class="fa-solid fa-pen-to-square"></i> Inscribirme ahora
+            </a>
+          </div>
+
+          <!-- Volver -->
+          <div class="sidebar-card" style="text-align:center;">
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">
+              ¿Querés ver otros eventos?
+            </p>
+            <a routerLink="/eventos" class="btn btn-outline-blue btn-sm" style="width:100%; justify-content:center;">
+              <i class="fa-solid fa-arrow-left"></i> Ver todos los eventos
+            </a>
+          </div>
+
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- OTROS EVENTOS -->
+  <section *ngIf="relatedEvents.length" class="section-sm" style="background:var(--white);">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Otros Eventos</h2>
+        <p class="section-subtitle">Más actividades que se realizarán en Avellaneda FC</p>
+      </div>
+      <div class="related-ev-grid">
+        <div *ngFor="let rel of relatedEvents" class="related-ev-card card">
+          <div class="related-ev-img">
+            <img [src]="rel.image" [alt]="rel.title">
+            <span class="badge badge-blue rel-badge">{{ rel.category }}</span>
+          </div>
+          <div class="related-ev-body">
+            <div class="related-ev-date">
+              <span class="rel-day">{{ rel.day }}</span>
+              <span class="rel-month">{{ rel.month }}</span>
+            </div>
+            <div>
+              <h3>{{ rel.title }}</h3>
+              <p>{{ rel.description }}</p>
+              <a [routerLink]="['/eventos', rel.id]" class="btn btn-outline-blue btn-sm">
+                Ver detalles <i class="fa-solid fa-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section-sm" style="background:var(--light-gray);">
+    <div class="container">
+      <div class="cta-section">
+        <div class="cta-text">
+          <h2>¿Querés participar en este evento?</h2>
+          <p>Contactanos y te damos toda la información que necesitás para inscribirte.</p>
+        </div>
+        <div class="cta-actions">
+          <a routerLink="/contacto" class="btn btn-outline btn-lg">
+            Contactar <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</ng-container>

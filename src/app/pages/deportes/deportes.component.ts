@@ -20,7 +20,7 @@ export class DeportesComponent implements OnInit {
   searchQuery = '';
 
   statItems = [
-    { value: '12', label: 'Disciplinas', icon: 'fa-medal' },
+    { value: '8', label: 'Disciplinas', icon: 'fa-medal' },
     { value: '+300', label: 'Atletas', icon: 'fa-users' },
     { value: '45', label: 'Entrenadores', icon: 'fa-whistle' },
     { value: '+1500', label: 'Socios', icon: 'fa-id-card' }

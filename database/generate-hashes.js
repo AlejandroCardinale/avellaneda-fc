@@ -12,26 +12,26 @@
  * ----------------------------------------------------------
  */
 
-const mysql  = require('mysql2/promise');
+const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 
 // ── Configuración de la conexión ──────────────────────────
 const DB_CONFIG = {
-  host    : process.env.DB_HOST || 'localhost',
-  port    : parseInt(process.env.DB_PORT || '3306'),
-  user    : process.env.DB_USER || 'root',
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '3306'),
+  user: process.env.DB_USER || 'root',
   password: process.env.DB_PASS || '',          // ← cambiá si tu root tiene contraseña
   database: process.env.DB_NAME || 'avellaneda_fc'
 };
 
 // ── Usuarios de prueba con contraseñas en texto plano ─────
 const USUARIOS = [
-  { email: 'admin@avellanedafc.com',       password: 'Admin1234!' },
+  { email: 'admin@avellanedafc.com', password: 'Admin1234!' },
   { email: 'entrenador1@avellanedafc.com', password: 'Entrenador1!' },
   { email: 'entrenador2@avellanedafc.com', password: 'Entrenador2!' },
-  { email: 'atleta1@avellanedafc.com',     password: 'Atleta1234!' },
-  { email: 'atleta2@avellanedafc.com',     password: 'Atleta1234!' },
-  { email: 'atleta3@avellanedafc.com',     password: 'Atleta1234!' },
+  { email: 'atleta1@avellanedafc.com', password: 'Atleta1234!' },
+  { email: 'atleta2@avellanedafc.com', password: 'Atleta1234!' },
+  { email: 'atleta3@avellanedafc.com', password: 'Atleta1234!' },
 ];
 
 const SALT_ROUNDS = 12;

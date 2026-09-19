@@ -4,7 +4,7 @@
   <div class="container page-hero-content">
     <h1 class="page-hero-title">Deportes</h1>
     <p class="page-hero-subtitle">Descubrí todas las disciplinas que forman parte de Avellaneda FC.<br>
-    Formación, competencia y pasión en cada actividad.</p>
+      Formación, competencia y pasión en cada actividad.</p>
   </div>
 </section>
 
@@ -33,7 +33,8 @@
               </div>
               <h3>{{ sport.name }}</h3>
               <p>{{ sport.description }}</p>
-              <a routerLink="/deportes" class="btn btn-outline-blue btn-sm">Ver más <i class="fa-solid fa-arrow-right"></i></a>
+              <a [routerLink]="['/deportes', sport.id]" class="btn btn-outline-blue btn-sm">Ver más <i
+                  class="fa-solid fa-arrow-right"></i></a>
             </div>
           </div>
         </div>
@@ -70,7 +71,8 @@
               </div>
             </div>
           </div>
-          <a routerLink="/eventos" class="btn btn-outline-blue btn-sm" style="margin-top:16px;width:100%;justify-content:center">Ver todos los eventos</a>
+          <a routerLink="/eventos" class="btn btn-outline-blue btn-sm"
+            style="margin-top:16px;width:100%;justify-content:center">Ver todos los eventos</a>
         </div>
       </div>
 
@@ -87,7 +89,8 @@
         <p>Un club, muchas pasiones. Sumate y sé parte de nuestra familia.</p>
       </div>
       <div class="cta-actions">
-        <a routerLink="/contacto" class="btn btn-primary btn-lg">Hacete socio <i class="fa-solid fa-arrow-right"></i></a>
+        <a routerLink="/contacto" class="btn btn-primary btn-lg">Hacete socio <i
+            class="fa-solid fa-arrow-right"></i></a>
       </div>
     </div>
   </div>
