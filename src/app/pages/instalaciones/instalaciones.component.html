@@ -49,7 +49,7 @@
           <ul class="facility-features">
             <li *ngFor="let feat of f.features"><i class="fa-solid fa-check"></i> {{ feat }}</li>
           </ul>
-          <button class="btn btn-outline-blue btn-sm">Ver detalles <i class="fa-solid fa-arrow-right"></i></button>
+          <a [routerLink]="['/instalaciones', f.id]" class="btn btn-outline-blue btn-sm">Ver detalle <i class="fa-solid fa-arrow-right"></i></a>
         </div>
       </div>
     </div>

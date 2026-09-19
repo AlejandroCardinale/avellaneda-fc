@@ -28,7 +28,7 @@
       <!-- Events list -->
       <div>
         <h2 class="section-title mb-32">Próximos Eventos</h2>
-        <div class="events-list">
+        <div class="events-list" *ngIf="filteredEvents.length > 0; else noEvents">
           <div class="event-card card" *ngFor="let ev of filteredEvents">
             <div class="event-card-img">
               <img [src]="ev.image" [alt]="ev.title">
@@ -47,11 +47,22 @@
                 </div>
                 <h3>{{ ev.title }}</h3>
                 <p>{{ ev.description }}</p>
-                <button class="btn btn-outline-blue btn-sm">Ver detalles <i class="fa-solid fa-arrow-right"></i></button>
+                <a [routerLink]="['/eventos', ev.id]" class="btn btn-outline-blue btn-sm">Ver detalles <i class="fa-solid fa-arrow-right"></i></a>
               </div>
             </div>
           </div>
         </div>
+        
+        <ng-template #noEvents>
+          <div class="empty-state card" style="padding: 40px; text-align: center; background: white;">
+            <i class="fa-regular fa-calendar-xmark text-muted" style="font-size: 40px; margin-bottom: 16px;"></i>
+            <h3>No hay eventos programados</h3>
+            <p class="text-muted mb-24">No se encontraron eventos para {{ selectedDate ? 'la fecha seleccionada' : 'esta categoría' }}.</p>
+            <button class="btn btn-primary" (click)="clearDateFilter()" *ngIf="selectedDate">
+              Ver todos los próximos eventos
+            </button>
+          </div>
+        </ng-template>
       </div>
 
       <!-- Sidebar Calendar -->
@@ -67,7 +78,10 @@
             <div class="cal-day" *ngFor="let day of calendarDays"
               [class.today]="isToday(day)"
               [class.has-event]="isEventDay(day)"
-              [class.empty]="!day">
+              [class.selected]="isSelectedDay(day)"
+              [class.empty]="!day"
+              (click)="selectDate(day)"
+              style="cursor: pointer;">
               {{ day || '' }}
             </div>
           </div>
