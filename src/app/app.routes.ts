@@ -46,12 +46,24 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/deportes/deportes.component').then(m => m.DeportesComponent)
   },
   {
+    path: 'deportes/:id',
+    loadComponent: () => import('./pages/deportes-detalle/deportes-detalle.component').then(m => m.DeportesDetalleComponent)
+  },
+  {
     path: 'instalaciones',
     loadComponent: () => import('./pages/instalaciones/instalaciones.component').then(m => m.InstalacionesComponent)
   },
   {
+    path: 'instalaciones/:id',
+    loadComponent: () => import('./pages/instalaciones-detalle/instalaciones-detalle.component').then(m => m.InstalacionesDetalleComponent)
+  },
+  {
     path: 'eventos',
     loadComponent: () => import('./pages/eventos/eventos.component').then(m => m.EventosComponent)
+  },
+  {
+    path: 'eventos/:id',
+    loadComponent: () => import('./pages/eventos-detalle/eventos-detalle.component').then(m => m.EventosDetalleComponent)
   },
   {
     path: 'contacto',

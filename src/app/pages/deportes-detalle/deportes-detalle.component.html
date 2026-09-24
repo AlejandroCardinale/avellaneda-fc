@@ -1,0 +1,224 @@
+<!-- NOT FOUND STATE -->
+<section *ngIf="notFound" class="section">
+  <div class="container">
+    <div class="not-found-state">
+      <div class="not-found-icon">
+        <i class="fa-solid fa-circle-exclamation"></i>
+      </div>
+      <h2>Disciplina no encontrada</h2>
+      <p>No pudimos encontrar la disciplina que estás buscando.</p>
+      <a routerLink="/deportes" class="btn btn-primary">
+        <i class="fa-solid fa-arrow-left"></i> Volver a Deportes
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- DETALLE DEL DEPORTE -->
+<ng-container *ngIf="sport && !notFound">
+
+  <!-- HERO -->
+  <section class="page-hero detail-hero">
+    <img [src]="sport.image" [alt]="sport.name" class="page-hero-bg">
+    <div class="detail-hero-overlay"></div>
+    <div class="container page-hero-content">
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb-nav">
+        <a routerLink="/deportes" class="breadcrumb-link">
+          <i class="fa-solid fa-arrow-left"></i> Deportes
+        </a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">{{ sport.name }}</span>
+      </nav>
+
+      <div class="detail-hero-body">
+        <div class="detail-hero-icon">
+          <i class="fa-solid" [ngClass]="sport.icon"></i>
+        </div>
+        <div>
+          <span class="badge badge-dark mb-12">Disciplina oficial</span>
+          <h1 class="page-hero-title">{{ sport.name }}</h1>
+          <p class="page-hero-subtitle">{{ sport.description }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar">
+    <div class="container">
+      <div class="stats-bar-inner">
+        <div class="stat-item">
+          <i class="fa-solid fa-users"></i>
+          <div class="stat-item-text">
+            <strong>{{ sport.athletes }}</strong>
+            <span>Atletas activos</span>
+          </div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <i class="fa-solid fa-whistle"></i>
+          <div class="stat-item-text">
+            <strong>{{ sport.coaches }}</strong>
+            <span>Entrenadores</span>
+          </div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <i class="fa-solid fa-clock"></i>
+          <div class="stat-item-text">
+            <strong>Horarios</strong>
+            <span>{{ sport.schedule }}</span>
+          </div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <i class="fa-solid fa-layer-group"></i>
+          <div class="stat-item-text">
+            <strong>{{ sport.categories.length }}</strong>
+            <span>Categorías disponibles</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <section class="section" style="background: var(--light-gray);">
+    <div class="container">
+      <div class="detail-layout">
+
+        <!-- LEFT: Descripción + Categorías -->
+        <div class="detail-main">
+
+          <!-- Descripción larga -->
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <div class="icon-circle icon-circle-lg">
+                <i class="fa-solid" [ngClass]="sport.icon"></i>
+              </div>
+              <div>
+                <h2 class="detail-section-title">Sobre {{ sport.name }}</h2>
+                <p class="text-muted" style="font-size: 14px;">Conocé todos los detalles de la disciplina</p>
+              </div>
+            </div>
+            <p class="detail-long-description">{{ sport.longDescription }}</p>
+          </div>
+
+          <!-- Instalaciones y características -->
+          <div class="detail-card">
+            <h2 class="detail-section-title mb-24">
+              <i class="fa-solid fa-star text-blue" style="margin-right: 10px;"></i>
+              Instalaciones y Beneficios
+            </h2>
+            <ul class="features-list">
+              <li *ngFor="let feature of sport.features" class="feature-item">
+                <div class="feature-check">
+                  <i class="fa-solid fa-check"></i>
+                </div>
+                <span>{{ feature }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Categorías -->
+          <div class="detail-card">
+            <h2 class="detail-section-title mb-24">
+              <i class="fa-solid fa-layer-group text-blue" style="margin-right: 10px;"></i>
+              Categorías Disponibles
+            </h2>
+            <div class="categories-grid">
+              <div *ngFor="let cat of sport.categories; let i = index" class="category-chip">
+                <span class="category-number">{{ i + 1 }}</span>
+                <span>{{ cat }}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Sidebar -->
+        <aside class="detail-sidebar">
+
+          <!-- Horarios -->
+          <div class="sidebar-card schedule-card">
+            <div class="schedule-icon-wrap">
+              <i class="fa-solid fa-calendar-days"></i>
+            </div>
+            <h3>Horarios de Práctica</h3>
+            <p class="schedule-text">{{ sport.schedule }}</p>
+            <a routerLink="/contacto" class="btn btn-primary" style="width:100%; justify-content:center; margin-top: 16px;">
+              <i class="fa-solid fa-envelope"></i> Consultar inscripción
+            </a>
+          </div>
+
+          <!-- CTA Socio -->
+          <div class="sidebar-card cta-sidebar-card">
+            <h3>¿Querés practicar {{ sport.name }}?</h3>
+            <p>Hazte socio del club y accedé a esta y todas las disciplinas con beneficios exclusivos.</p>
+            <a routerLink="/contacto" class="btn btn-outline" style="width:100%; justify-content:center; margin-top: 16px;">
+              <i class="fa-solid fa-id-card"></i> Hacete socio
+            </a>
+          </div>
+
+          <!-- Volver -->
+          <div class="sidebar-card" style="text-align: center;">
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+              ¿Querés explorar otras disciplinas?
+            </p>
+            <a routerLink="/deportes" class="btn btn-outline-blue btn-sm" style="width:100%; justify-content:center;">
+              <i class="fa-solid fa-arrow-left"></i> Ver todas las disciplinas
+            </a>
+          </div>
+
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- OTRAS DISCIPLINAS -->
+  <section class="section-sm" style="background: var(--white);">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Otras Disciplinas</h2>
+        <p class="section-subtitle">Descubrí más actividades que tenemos para vos en Avellaneda FC</p>
+      </div>
+      <div class="related-grid">
+        <div *ngFor="let related of relatedSports" class="related-card card">
+          <div class="related-card-img">
+            <img [src]="related.image" [alt]="related.name">
+          </div>
+          <div class="related-card-body">
+            <div class="sport-icon-sm">
+              <i class="fa-solid" [ngClass]="related.icon"></i>
+            </div>
+            <h3>{{ related.name }}</h3>
+            <p>{{ related.description }}</p>
+            <a [routerLink]="['/deportes', related.id]" class="btn btn-outline-blue btn-sm">
+              Ver más <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="section-sm">
+    <div class="container">
+      <div class="cta-section">
+        <div class="cta-text">
+          <h2>Viví {{ sport.name }} en Avellaneda FC</h2>
+          <p>Sumate a nuestra comunidad deportiva y disfrutá de las mejores instalaciones.</p>
+        </div>
+        <div class="cta-actions">
+          <a routerLink="/contacto" class="btn btn-outline btn-lg">
+            Contactanos <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</ng-container>

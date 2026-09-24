@@ -21,11 +21,13 @@ export class EventosComponent implements OnInit {
   calendarDays: (number | null)[] = [];
   monthName = '';
   monthYear = '';
+  selectedDate: string | null = null;
 
   constructor(private eventsService: EventsService) {}
 
   ngOnInit() {
-    this.events = this.eventsService.getAll();
+    // Obtenemos los eventos y los ordenamos cronológicamente
+    this.events = this.eventsService.getAll().sort((a,b) => new Date(a.isoDate).getTime() - new Date(b.isoDate).getTime());
     this.filteredEvents = [...this.events];
     this.categories = this.eventsService.getCategories();
     this.buildCalendar();
@@ -33,9 +35,45 @@ export class EventosComponent implements OnInit {
 
   filterBy(cat: string) {
     this.activeCategory = cat;
-    this.filteredEvents = this.eventsService.getByCategory(
-      cat === 'Todos los eventos' ? 'Todos' : cat
-    );
+    this.selectedDate = null; // Al cambiar de categoría limpiamos la fecha
+    this.applyFilters();
+  }
+
+  selectDate(day: number | null) {
+    if (!day) return;
+    
+    const y = this.selectedMonth.getFullYear();
+    const m = String(this.selectedMonth.getMonth() + 1).padStart(2, '0');
+    const d = String(day).padStart(2, '0');
+    const fullDate = `${y}-${m}-${d}`;
+
+    // Toggle: si ya estaba seleccionada, la deselecciona
+    if (this.selectedDate === fullDate) {
+      this.selectedDate = null;
+    } else {
+      this.selectedDate = fullDate;
+    }
+    
+    this.applyFilters();
+  }
+
+  clearDateFilter() {
+    this.selectedDate = null;
+    this.applyFilters();
+  }
+
+  applyFilters() {
+    let result = this.events;
+
+    if (this.activeCategory !== 'Todos los eventos') {
+      result = result.filter(e => e.category === this.activeCategory);
+    }
+
+    if (this.selectedDate) {
+      result = result.filter(e => e.isoDate === this.selectedDate);
+    }
+
+    this.filteredEvents = result;
   }
 
   buildCalendar() {
@@ -62,8 +100,23 @@ export class EventosComponent implements OnInit {
 
   isEventDay(day: number | null): boolean {
     if (!day) return false;
-    const eventDays = [15, 22, 5, 20];
-    return eventDays.includes(day);
+    const y = this.selectedMonth.getFullYear();
+    const m = String(this.selectedMonth.getMonth() + 1).padStart(2, '0');
+    const d = String(day).padStart(2, '0');
+    const fullDate = `${y}-${m}-${d}`;
+    
+    // Comprobar si hay un evento en esa fecha
+    return this.events.some(e => e.isoDate === fullDate);
+  }
+  
+  isSelectedDay(day: number | null): boolean {
+    if (!day || !this.selectedDate) return false;
+    const y = this.selectedMonth.getFullYear();
+    const m = String(this.selectedMonth.getMonth() + 1).padStart(2, '0');
+    const d = String(day).padStart(2, '0');
+    const fullDate = `${y}-${m}-${d}`;
+    
+    return this.selectedDate === fullDate;
   }
 
   isToday(day: number | null): boolean {
