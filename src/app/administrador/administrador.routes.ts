@@ -34,11 +34,11 @@ export const adminRoutes: Routes = [
     path: 'solicitudes-acceso',
     loadComponent: () => import('./dashboard/solicitudes-acceso/solicitudes-acceso.component').then(m => m.SolicitudesAccesoComponent)
   },
-  { path: 'eventos', redirectTo: 'home', pathMatch: 'full' },
-  { path: 'instalaciones', redirectTo: 'home', pathMatch: 'full' },
   {
     path: 'reportes',
     loadComponent: () => import('./dashboard/reportes/reportes.component').then(m => m.ReportesAdminComponent)
   },
-  { path: 'solicitudes', redirectTo: 'solicitudes-acceso', pathMatch: 'full' }
+  { path: 'solicitudes',   redirectTo: 'solicitudes-acceso', pathMatch: 'full' },
+  { path: 'eventos',       redirectTo: 'home', pathMatch: 'full' },
+  { path: 'instalaciones', redirectTo: 'home', pathMatch: 'full' }
 ];
