@@ -90,6 +90,10 @@
   border-radius: 20px; padding: 4px 10px; color: var(--text-body);
 }
 .historial-destino { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+.historial-observaciones { margin: 8px 0 0; color: var(--text-muted); font-size: 12px; }
+.request-cancel { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 10px; border: 1px solid #fecaca; border-radius: 5px; background: #fff; color: #b91c1c; font-size: 11px; font-weight: 700; cursor: pointer; }
+.request-cancel:hover:not(:disabled) { background: #fef2f2; }
+.request-cancel:disabled { opacity: .55; cursor: wait; }
 
 /* ── Badges ──────────────────────────────────────────────── */
 .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
