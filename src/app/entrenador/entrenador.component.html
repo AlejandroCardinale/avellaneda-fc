@@ -1,0 +1,565 @@
+<section class="coach-page">
+  <div class="coach-layout">
+    <aside class="coach-sidebar" aria-label="Navegación del panel">
+      <a
+        class="club-mark"
+        routerLink="/inicio"
+        aria-label="Avellaneda FC, inicio"
+      >
+        <img src="images/logo.png" alt="" />
+        <span
+          ><strong>AVELLANEDA FC</strong><small>Área de entrenador</small></span
+        >
+      </a>
+
+      <nav class="coach-nav">
+        <button
+          type="button"
+          [class.active]="view === 'inicio'"
+          (click)="setView('inicio')"
+        >
+          <i class="fa-solid fa-house" aria-hidden="true"></i
+          ><span>Resumen</span>
+        </button>
+        <button
+          type="button"
+          [class.active]="view === 'atletas'"
+          (click)="setView('atletas')"
+        >
+          <i class="fa-solid fa-people-group" aria-hidden="true"></i
+          ><span>Plantel</span>
+          <span class="nav-count">{{ atletas.length }}</span>
+        </button>
+        <button
+          type="button"
+          [class.active]="view === 'entrenamientos'"
+          (click)="setView('entrenamientos')"
+        >
+          <i class="fa-regular fa-calendar" aria-hidden="true"></i
+          ><span>Entrenamientos</span>
+        </button>
+        <a class="coach-request-link" routerLink="/solicitud">
+          <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i
+          ><span>Solicitudes</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <a routerLink="/inicio"
+          ><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Sitio del
+          club</a
+        >
+        <button type="button" (click)="logout()">
+          <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+          Cerrar sesión
+        </button>
+      </div>
+    </aside>
+
+    <main class="coach-main">
+      <header class="topbar">
+        <div>
+          <p class="overline">
+            {{ dashboard?.entrenador?.deporte || "Panel deportivo" }}
+          </p>
+          <h1>
+            {{
+              view === "inicio"
+                ? "Resumen del equipo"
+                : view === "atletas"
+                  ? "Plantel"
+                  : "Entrenamientos"
+            }}
+          </h1>
+        </div>
+        <div class="coach-identity" *ngIf="dashboard?.entrenador as coach">
+          <span class="identity-mark"
+            >{{ coach.nombre[0] }}{{ coach.apellido[0] }}</span
+          >
+          <span
+            ><strong>{{ coach.nombre }} {{ coach.apellido }}</strong
+            ><small>{{ coach.especialidad || "Entrenador" }}</small></span
+          >
+        </div>
+      </header>
+
+      <div class="notice error" *ngIf="errorMessage" role="alert">
+        {{ errorMessage }}
+      </div>
+      <div class="notice success" *ngIf="successMessage" role="status">
+        {{ successMessage }}
+      </div>
+
+      <div class="loading-state" *ngIf="loading">
+        <span class="loader"></span><span>Cargando tu espacio...</span>
+      </div>
+
+      <ng-container *ngIf="!loading && dashboard">
+        <section *ngIf="view === 'inicio'" class="view-section">
+          <div class="welcome-band">
+            <div>
+              <p class="overline">Temporada deportiva</p>
+              <h2>Hola, {{ dashboard.entrenador.nombre }}.</h2>
+              <p>
+                Tu disciplina:
+                <strong>{{ dashboard.entrenador.deporte }}</strong
+                ><span *ngIf="dashboard.entrenador.especialidad">
+                  · {{ dashboard.entrenador.especialidad }}</span
+                >
+              </p>
+            </div>
+            <button
+              type="button"
+              class="button button-light"
+              (click)="newSession(); setView('entrenamientos')"
+            >
+              <i class="fa-solid fa-plus" aria-hidden="true"></i> Programar
+              entrenamiento
+            </button>
+          </div>
+
+          <div class="metric-row">
+            <article class="metric">
+              <span>Atletas del plantel</span
+              ><strong>{{ dashboard.resumen.atletas }}</strong
+              ><small>Disciplina {{ dashboard.entrenador.deporte }}</small>
+            </article>
+            <article class="metric">
+              <span>Sesiones creadas</span
+              ><strong>{{ dashboard.resumen.sesiones }}</strong
+              ><small>En toda la temporada</small>
+            </article>
+            <article class="metric">
+              <span>Próximas sesiones</span
+              ><strong>{{ dashboard.resumen.proximas }}</strong
+              ><small>Entrenamientos programados</small>
+            </article>
+          </div>
+
+          <section class="data-section">
+            <div class="section-heading">
+              <div>
+                <p class="overline">Agenda del equipo</p>
+                <h2>Próximos entrenamientos</h2>
+              </div>
+              <button
+                type="button"
+                class="text-action"
+                (click)="setView('entrenamientos')"
+              >
+                Ver agenda
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div
+              class="session-list"
+              *ngIf="dashboard.proximosEntrenamientos.length; else noUpcoming"
+            >
+              <article
+                class="upcoming-row"
+                *ngFor="let session of dashboard.proximosEntrenamientos"
+              >
+                <div class="date-block">
+                  <strong>{{ session.fecha_hora | date: "dd" }}</strong
+                  ><span>{{ session.fecha_hora | date: "MMM" }}</span>
+                </div>
+                <div class="upcoming-info">
+                  <strong>{{ session.titulo }}</strong
+                  ><span
+                    >{{ formatDate(session.fecha_hora) }} ·
+                    {{ session.duracion_min }} min</span
+                  >
+                </div>
+                <span class="category-label">{{
+                  session.categoria || "Todas las categorías"
+                }}</span>
+                <span
+                  class="state-dot"
+                  [class]="'state-dot ' + session.estado"
+                  >{{ estadoLabel(session.estado) }}</span
+                >
+              </article>
+            </div>
+            <ng-template #noUpcoming
+              ><div class="empty-state">
+                Todavía no hay entrenamientos próximos en la agenda.
+              </div></ng-template
+            >
+          </section>
+        </section>
+
+        <section *ngIf="view === 'atletas'" class="view-section">
+          <div class="section-heading page-heading">
+            <div>
+              <p class="overline">{{ atletas.length }} integrantes</p>
+              <h2>Plantel de {{ dashboard.entrenador.deporte }}</h2>
+            </div>
+          </div>
+          <div class="list-toolbar">
+            <label class="search-field"
+              ><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i
+              ><input
+                type="search"
+                [(ngModel)]="search"
+                placeholder="Buscar atleta o categoría"
+                aria-label="Buscar atleta o categoría"
+            /></label>
+            <span>{{ filteredAthletes.length }} resultados</span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Atleta</th>
+                  <th>Categoría</th>
+                  <th>Contacto</th>
+                  <th>Estado médico</th>
+                  <th>Alta</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let athlete of filteredAthletes">
+                  <td>
+                    <strong
+                      >{{ athlete.apellido }}, {{ athlete.nombre }}</strong
+                    >
+                  </td>
+                  <td>{{ athlete.categoria || "Sin categoría" }}</td>
+                  <td>
+                    <a [href]="'mailto:' + athlete.email">{{ athlete.email }}</a
+                    ><small *ngIf="athlete.telefono">{{
+                      athlete.telefono
+                    }}</small>
+                  </td>
+                  <td>
+                    <span
+                      class="medical-status"
+                      [class.pending]="athlete.estado_medico === 'pendiente'"
+                      >{{
+                        athlete.estado_medico === "apto" ? "Apto" : "Pendiente"
+                      }}</span
+                    >
+                  </td>
+                  <td>{{ athlete.fecha_alta | date: "dd/MM/yyyy" }}</td>
+                </tr>
+                <tr *ngIf="!filteredAthletes.length">
+                  <td colspan="5" class="empty-state">
+                    No hay atletas para mostrar con esa búsqueda.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section *ngIf="view === 'entrenamientos'" class="view-section">
+          <div class="section-heading page-heading">
+            <div>
+              <p class="overline">Agenda y asistencia</p>
+              <h2>Gestión de entrenamientos</h2>
+            </div>
+            <button
+              type="button"
+              class="button button-primary"
+              (click)="newSession()"
+            >
+              <i class="fa-solid fa-plus" aria-hidden="true"></i> Nueva sesión
+            </button>
+          </div>
+
+          <form
+            class="session-form"
+            *ngIf="showSessionForm"
+            (ngSubmit)="saveSession()"
+          >
+            <div class="form-heading">
+              <div>
+                <p class="overline">
+                  {{ editingSessionId ? "Editar sesión" : "Nueva sesión" }}
+                </p>
+                <h3>
+                  {{
+                    editingSessionId
+                      ? "Actualizar entrenamiento"
+                      : "Programar entrenamiento"
+                  }}
+                </h3>
+              </div>
+              <button
+                type="button"
+                class="icon-button"
+                aria-label="Cerrar formulario"
+                (click)="closeSessionForm()"
+              >
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div class="form-grid">
+              <label class="wide-field"
+                >Título<input
+                  name="titulo"
+                  [(ngModel)]="sessionForm.titulo"
+                  maxlength="120"
+                  required
+                  placeholder="Ej. Preparación física"
+              /></label>
+              <label
+                >Fecha y hora<input
+                  name="fecha_hora"
+                  type="datetime-local"
+                  [(ngModel)]="sessionForm.fecha_hora"
+                  required
+              /></label>
+              <label
+                >Duración<input
+                  name="duracion_min"
+                  type="number"
+                  [(ngModel)]="sessionForm.duracion_min"
+                  min="15"
+                  max="360"
+                  step="15"
+                  required
+                />
+                <small>Minutos</small></label
+              >
+              <label
+                >Categoría<select
+                  name="categoria_id"
+                  [(ngModel)]="sessionForm.categoria_id"
+                >
+                  <option [ngValue]="null">Todas las categorías</option>
+                  <option
+                    *ngFor="let category of categorias"
+                    [ngValue]="category.id"
+                  >
+                    {{ category.nombre }}
+                  </option>
+                </select></label
+              >
+              <label
+                >Instalación<select
+                  name="instalacion_id"
+                  [(ngModel)]="sessionForm.instalacion_id"
+                >
+                  <option [ngValue]="null">Sin asignar</option>
+                  <option
+                    *ngFor="let facility of instalaciones"
+                    [ngValue]="facility.id"
+                  >
+                    {{ facility.nombre }}
+                  </option>
+                </select></label
+              >
+              <label class="wide-field"
+                >Descripción<textarea
+                  name="descripcion"
+                  [(ngModel)]="sessionForm.descripcion"
+                  rows="2"
+                  maxlength="1000"
+                  placeholder="Objetivo o indicaciones para el equipo"
+                ></textarea>
+              </label>
+            </div>
+            <div class="form-actions">
+              <button
+                type="button"
+                class="button button-quiet"
+                (click)="closeSessionForm()"
+              >
+                Cancelar</button
+              ><button
+                class="button button-primary"
+                type="submit"
+                [disabled]="saving"
+              >
+                {{
+                  saving
+                    ? "Guardando..."
+                    : editingSessionId
+                      ? "Guardar cambios"
+                      : "Crear sesión"
+                }}
+              </button>
+            </div>
+          </form>
+
+          <div class="table-scroll session-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Entrenamiento</th>
+                  <th>Fecha</th>
+                  <th>Categoría / lugar</th>
+                  <th>Asistencia</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let session of sesiones">
+                  <td>
+                    <strong>{{ session.titulo }}</strong
+                    ><small>{{ session.duracion_min }} minutos</small>
+                  </td>
+                  <td>{{ formatDate(session.fecha_hora) }}</td>
+                  <td>
+                    {{ session.categoria || "Todas"
+                    }}<small>{{
+                      session.instalacion || "Lugar sin asignar"
+                    }}</small>
+                  </td>
+                  <td>
+                    {{ session.presentes || 0 }} /
+                    {{ session.total_atletas || 0 }}
+                  </td>
+                  <td>
+                    <span
+                      class="state-dot"
+                      [class]="'state-dot ' + session.estado"
+                      >{{ estadoLabel(session.estado) }}</span
+                    >
+                  </td>
+                  <td class="row-actions">
+                    <button
+                      type="button"
+                      class="mini-action"
+                      (click)="openAttendance(session)"
+                      [disabled]="session.estado === 'cancelada'"
+                      title="Pasar lista"
+                    >
+                      <i class="fa-solid fa-list-check" aria-hidden="true"></i
+                      ><span>Asistencia</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="mini-action"
+                      (click)="editSession(session)"
+                      [disabled]="
+                        session.estado === 'cancelada' ||
+                        session.estado === 'finalizada'
+                      "
+                      title="Editar sesión"
+                    >
+                      <i
+                        class="fa-regular fa-pen-to-square"
+                        aria-hidden="true"
+                      ></i
+                      ><span>Editar</span>
+                    </button>
+                    <button
+                      *ngIf="session.estado === 'programada'"
+                      type="button"
+                      class="mini-action"
+                      (click)="changeSessionState(session, 'en_curso')"
+                      title="Iniciar sesión"
+                    >
+                      <i class="fa-solid fa-play" aria-hidden="true"></i
+                      ><span>Iniciar</span>
+                    </button>
+                    <button
+                      *ngIf="session.estado === 'en_curso'"
+                      type="button"
+                      class="mini-action"
+                      (click)="changeSessionState(session, 'finalizada')"
+                      title="Finalizar sesión"
+                    >
+                      <i class="fa-solid fa-check" aria-hidden="true"></i
+                      ><span>Finalizar</span>
+                    </button>
+                    <button
+                      *ngIf="session.estado === 'programada'"
+                      type="button"
+                      class="mini-action danger-action"
+                      (click)="changeSessionState(session, 'cancelada')"
+                      title="Cancelar sesión"
+                    >
+                      <i class="fa-solid fa-ban" aria-hidden="true"></i
+                      ><span>Cancelar</span>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="!sesiones.length">
+                  <td colspan="6" class="empty-state">
+                    Aún no has programado sesiones.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </ng-container>
+
+      <div
+        class="attendance-backdrop"
+        *ngIf="attendanceSessionId !== null"
+        (click)="closeAttendance()"
+      >
+        <section
+          class="attendance-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="attendance-title"
+          (click)="$event.stopPropagation()"
+        >
+          <header class="form-heading">
+            <div>
+              <p class="overline">Control de asistencia</p>
+              <h2 id="attendance-title">{{ attendanceSessionTitle }}</h2>
+            </div>
+            <button
+              type="button"
+              class="icon-button"
+              aria-label="Cerrar asistencia"
+              (click)="closeAttendance()"
+            >
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+          </header>
+          <p class="attendance-count" *ngIf="!attendanceLoading">
+            {{ presentAttendanceCount }} presentes de
+            {{ attendance.length }} atletas
+          </p>
+          <div class="attendance-loading" *ngIf="attendanceLoading">
+            Cargando plantel...
+          </div>
+          <div class="attendance-list" *ngIf="!attendanceLoading">
+            <div class="attendance-row" *ngFor="let row of attendance">
+              <label class="attendance-check"
+                ><input type="checkbox" [(ngModel)]="row.presente" /><span
+                  ><strong>{{ row.apellido }}, {{ row.nombre }}</strong
+                  ><small>{{ row.categoria || "Sin categoría" }}</small></span
+                ></label
+              >
+              <input
+                class="attendance-note"
+                [(ngModel)]="row.observacion"
+                maxlength="200"
+                [attr.aria-label]="'Observación para ' + row.nombre"
+                placeholder="Observación"
+              />
+            </div>
+            <div class="empty-state" *ngIf="!attendance.length">
+              No hay atletas asignados a esta sesión.
+            </div>
+          </div>
+          <footer class="form-actions">
+            <button
+              type="button"
+              class="button button-quiet"
+              (click)="closeAttendance()"
+            >
+              Cerrar</button
+            ><button
+              type="button"
+              class="button button-primary"
+              (click)="saveAttendance()"
+              [disabled]="attendanceSaving || attendanceLoading"
+            >
+              {{ attendanceSaving ? "Guardando..." : "Guardar asistencia" }}
+            </button>
+          </footer>
+        </section>
+      </div>
+    </main>
+  </div>
+</section>

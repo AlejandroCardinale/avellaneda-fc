@@ -21,6 +21,8 @@ const express = require('express');
 const pool    = require('../db');
 const auth    = require('../middleware/auth');
 const router  = express.Router();
+const categories = ['indumentaria', 'equipamiento', 'transporte'];
+const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
 /**
  * Aplica el middleware de autenticación JWT a TODAS las rutas de este router.
@@ -59,13 +61,59 @@ router.post('/', async (req, res) => {
   const { tipo, fecha_necesidad, destino, pasajeros, observaciones, items } = req.body;
   const usuario_id = req.usuario.id; // Tomado del JWT, no del body del cliente
 
-  if (!tipo || !fecha_necesidad || !items || items.length === 0) {
-    return res.status(400).json({ message: 'Tipo, fecha y al menos un ítem son obligatorios.' });
+  if (!categories.includes(tipo) || !/^\d{4}-\d{2}-\d{2}$/.test(String(fecha_necesidad || '')) ||
+      !Array.isArray(items) || items.length === 0 || items.length > 30) {
+    return res.status(400).json({ message: 'Indica una categoría, fecha válida y entre 1 y 30 ítems.' });
+  }
+  if (items.some(item => !Number.isInteger(Number(item.item_id)) || Number(item.item_id) <= 0 ||
+      !Number.isInteger(Number(item.cantidad)) || Number(item.cantidad) < 1 || Number(item.cantidad) > 255 ||
+      String(item.observacion || '').length > 255)) {
+    return res.status(400).json({ message: 'Revisa los productos, cantidades y observaciones de los ítems.' });
+  }
+  if (tipo === 'transporte') {
+    const passengerCount = Number(pasajeros);
+    if (items.length !== 1 || !String(destino || '').trim() || String(destino).trim().length > 200 ||
+        !Number.isInteger(passengerCount) || passengerCount < 1 || passengerCount > 70) {
+      return res.status(400).json({ message: 'El transporte requiere un vehículo, destino y entre 1 y 70 pasajeros.' });
+    }
+  } else if (items.some(item => item.talle || item.numero_dorsal)) {
+    const invalidSize = items.some(item => item.talle && !sizes.includes(item.talle));
+    const invalidNumber = items.some(item => item.numero_dorsal &&
+      (!Number.isInteger(Number(item.numero_dorsal)) || Number(item.numero_dorsal) < 1 || Number(item.numero_dorsal) > 99));
+    if (tipo !== 'indumentaria' || invalidSize || invalidNumber) {
+      return res.status(400).json({ message: 'Talle y dorsal solo son válidos para indumentaria.' });
+    }
+  }
+  if (String(observaciones || '').length > 2000) {
+    return res.status(400).json({ message: 'Las observaciones generales no pueden superar los 2000 caracteres.' });
   }
 
-  // Obtener una conexión dedicada del pool para usar transacción
-  const conn = await pool.getConnection();
+  let conn;
   try {
+    conn = await pool.getConnection();
+    const itemIds = [...new Set(items.map(item => Number(item.item_id)))];
+    const placeholders = itemIds.map(() => '?').join(',');
+    const [catalogItems] = await conn.execute(
+      `SELECT id, categoria, requiere_talle, requiere_numero FROM catalogo_items
+       WHERE activo = TRUE AND id IN (${placeholders})`,
+      itemIds
+    );
+    const catalogById = new Map(catalogItems.map(item => [Number(item.id), item]));
+    if (items.some(item => {
+      const catalogItem = catalogById.get(Number(item.item_id));
+      if (!catalogItem || catalogItem.categoria !== tipo) return true;
+      if (catalogItem.requiere_talle && !sizes.includes(item.talle)) return true;
+      if (!catalogItem.requiere_talle && item.talle) return true;
+      if (catalogItem.requiere_numero &&
+          (!Number.isInteger(Number(item.numero_dorsal)) || Number(item.numero_dorsal) < 1 || Number(item.numero_dorsal) > 99)) return true;
+      return !catalogItem.requiere_numero && item.numero_dorsal;
+    })) {
+      return res.status(400).json({ message: 'Los productos deben pertenecer a la categoría y completar sus datos requeridos.' });
+    }
+
+    const [[dateCheck]] = await conn.execute('SELECT ? >= CURDATE() AS es_valida', [fecha_necesidad]);
+    if (!dateCheck.es_valida) return res.status(400).json({ message: 'La fecha solicitada no puede estar en el pasado.' });
+
     await conn.beginTransaction(); // Iniciar transacción
 
     // 1. Insertar la cabecera de la solicitud
@@ -76,17 +124,17 @@ router.post('/', async (req, res) => {
     );
     const solicitud_id = result.insertId; // ID autogenerado de la solicitud recién creada
 
-    // 2. Insertar cada ítem en solicitud_items (texto libre, sin referencia al catálogo)
+    // 2. Insertar cada producto del catálogo asociado a la solicitud
     for (const item of items) {
       await conn.execute(
-        `INSERT INTO solicitud_items (solicitud_id, nombre, item_id, cantidad, talle, numero_dorsal, observacion)
-         VALUES (?, ?, NULL, ?, ?, ?, ?)`,
+        `INSERT INTO solicitud_items (solicitud_id, item_id, cantidad, talle, numero_dorsal, observacion)
+         VALUES (?, ?, ?, ?, ?, ?)`,
         [
           solicitud_id,
-          item.nombre    || 'Sin descripción',
-          item.cantidad  || 1,
-          item.talle     || null,       // null si no es indumentaria
-          item.numero_dorsal || null,   // null si no requiere dorsal
+          Number(item.item_id),
+          Number(item.cantidad),
+          item.talle || null,
+          item.numero_dorsal || null,
           item.observacion   || null
         ]
       );
@@ -95,11 +143,11 @@ router.post('/', async (req, res) => {
     await conn.commit(); // Todo OK → confirmar cambios en la BD
     return res.status(201).json({ id: solicitud_id, message: 'Solicitud creada correctamente.' });
   } catch (err) {
-    await conn.rollback(); // Algo falló → deshacer todo
+    if (conn) await conn.rollback(); // Algo falló → deshacer todo
     console.error('[solicitudes POST]', err);
     return res.status(500).json({ message: 'Error al crear la solicitud.' });
   } finally {
-    conn.release(); // Devolver la conexión al pool (siempre, con o sin error)
+    if (conn) conn.release(); // Devolver la conexión al pool (siempre, con o sin error)
   }
 });
 
@@ -130,7 +178,7 @@ router.get('/mias', async (req, res) => {
     // Para cada solicitud, traer sus ítems con detalles del catálogo (si tiene referencia)
     for (const sol of solicitudes) {
       const [items] = await pool.execute(
-        `SELECT si.id, si.nombre, ci.icono, ci.categoria,
+        `SELECT si.id, si.item_id, ci.nombre, ci.icono, ci.categoria,
                 si.cantidad, si.talle, si.numero_dorsal, si.observacion
          FROM solicitud_items si
          LEFT JOIN catalogo_items ci ON ci.id = si.item_id
@@ -144,6 +192,22 @@ router.get('/mias', async (req, res) => {
   } catch (err) {
     console.error('[solicitudes mias]', err);
     return res.status(500).json({ message: 'Error interno.' });
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  try {
+    const [result] = await pool.execute(
+      "DELETE FROM solicitudes WHERE id = ? AND usuario_id = ? AND estado = 'pendiente'",
+      [req.params.id, req.usuario.id]
+    );
+    if (!result.affectedRows) {
+      return res.status(404).json({ message: 'Solo puedes cancelar tus solicitudes pendientes.' });
+    }
+    return res.json({ message: 'Solicitud cancelada.' });
+  } catch (err) {
+    console.error('[solicitudes DELETE own]', err);
+    return res.status(500).json({ message: 'No se pudo cancelar la solicitud.' });
   }
 });
 

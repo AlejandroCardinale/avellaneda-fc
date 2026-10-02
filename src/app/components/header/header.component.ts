@@ -56,6 +56,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
       links.push({ label: 'Solicitud', path: '/solicitud' });
     }
 
+    if (this.authService.isEntrenador()) {
+      links.push({ label: 'Panel entrenador', path: '/entrenador' });
+    }
+
     // Solo Admin: agrega Reportes
     if (this.authService.isAdmin()) {
       links.push({ label: 'Reportes', path: '/reportes' });

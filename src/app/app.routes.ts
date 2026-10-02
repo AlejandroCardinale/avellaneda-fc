@@ -87,6 +87,10 @@ export const routes: Routes = [
     children: adminRoutes
   },
   {
+    path: 'entrenador',
+    loadComponent: () => import('./entrenador/entrenador.component').then(m => m.EntrenadorComponent)
+  },
+  {
     path: 'registro',
     loadComponent: () => import('./pages/registro/registro.component').then(m => m.RegistroComponent)
   },

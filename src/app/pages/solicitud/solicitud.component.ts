@@ -20,7 +20,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { SolicitudesService, Solicitud } from '../../services/solicitudes.service';
+import { CatalogoItem, SolicitudesService, Solicitud, SolicitudItem, SolicitudPayload } from '../../services/solicitudes.service';
 import { AuthService } from '../../services/auth.service';
 
 /** Tipo que limita las pestañas válidas del formulario */
@@ -30,18 +30,9 @@ type Tab = 'indumentaria' | 'equipamiento' | 'transporte';
 const TALLES  = ['XS','S','M','L','XL','XXL'];
 
 /** Opciones predefinidas del selector de tipo de prenda */
-const TIPOS_INDUMENTARIA = ['Camiseta de juego','Short','Medias','Buzo','Campera','Conjunto de arquero','Otro'];
-
-/** Opciones predefinidas del selector de equipamiento */
-const TIPOS_EQUIPAMIENTO = ['Pelota de fútbol N°5','Pelota de fútbol N°4','Pelota de básquet','Arco','Vallas','Colchoneta','Conos','Pecheras','Escalera de agilidad','Otro'];
-
-/** Tipos de vehículo disponibles para solicitar */
-const TIPOS_TRANSPORTE   = ['Micro chico (20 pax)','Micro mediano (40 pax)','Micro grande (60 pax)','Camioneta'];
-
 /** Estructura de una fila de indumentaria en el formulario */
 interface FilaIndumentaria {
-  tipo: string;         // Seleccionado del dropdown o 'Otro'
-  otroTipo: string;     // Texto libre si tipo === 'Otro'
+  itemId: number | null;
   talle: string;        // XS | S | M | L | XL | XXL
   numeroDorsal: number | null; // Opcional, para camisetas
   cantidad: number;
@@ -49,8 +40,7 @@ interface FilaIndumentaria {
 
 /** Estructura de una fila de equipamiento en el formulario */
 interface FilaEquipamiento {
-  tipo: string;
-  otroTipo: string;
+  itemId: number | null;
   cantidad: number;
 }
 
@@ -67,9 +57,8 @@ export class SolicitudComponent implements OnInit {
 
   /** Arrays de opciones expuestos al template para usar en *ngFor */
   talles               = TALLES;
-  tiposIndumentaria    = TIPOS_INDUMENTARIA;
-  tiposEquipamiento    = TIPOS_EQUIPAMIENTO;
-  tiposTransporte      = TIPOS_TRANSPORTE;
+  catalogo: CatalogoItem[] = [];
+  catalogoLoading = false;
 
   /**
    * Fecha mínima permitida en los campos de fecha.
@@ -87,7 +76,7 @@ export class SolicitudComponent implements OnInit {
   filasEquip: FilaEquipamiento[] = [this.nuevaFilaEquip()];
 
   /** Datos del formulario de transporte (un solo vehículo por solicitud) */
-  transporte = { tipo: TIPOS_TRANSPORTE[0], fecha: '', destino: '', pasajeros: 1, observaciones: '' };
+  transporte = { itemId: null as number | null, fecha: '', destino: '', pasajeros: 1, observaciones: '' };
 
   /** Fecha para la que se necesita indumentaria o equipamiento */
   fechaNecesidad = '';
@@ -98,10 +87,12 @@ export class SolicitudComponent implements OnInit {
   // ── Estado de la UI ──────────────────────────────────────
   enviando  = false;           // true mientras espera respuesta del backend
   exito     = false;           // true al recibir confirmación exitosa
+  successMessage = '';
   error     = '';              // Mensaje de error visible al usuario
   mostrarHistorial = false;    // Alterna la visibilidad del panel de historial
   historial: Solicitud[] = []; // Lista de solicitudes previas del usuario
   loadingHistorial = false;    // true mientras carga el historial
+  cancellingId: number | null = null;
 
   constructor(
     private solicitudesService: SolicitudesService,
@@ -114,20 +105,29 @@ export class SolicitudComponent implements OnInit {
    * Verifica que el usuario esté logueado; si no, lo redirige al login.
    */
   ngOnInit() {
-    if (!this.authService.isLoggedIn()) { this.router.navigate(['/login']); }
+    if (!this.authService.isLoggedIn()) { this.router.navigate(['/login']); return; }
+    this.cargarCatalogo();
+  }
+
+  get catalogoIndumentaria(): CatalogoItem[] { return this.catalogo.filter(item => item.categoria === 'indumentaria'); }
+  get catalogoEquipamiento(): CatalogoItem[] { return this.catalogo.filter(item => item.categoria === 'equipamiento'); }
+  get catalogoTransporte(): CatalogoItem[] { return this.catalogo.filter(item => item.categoria === 'transporte'); }
+
+  getCatalogItem(id: number | null): CatalogoItem | undefined {
+    return this.catalogo.find(item => item.id === Number(id));
   }
 
   /** Cambia la pestaña activa y limpia mensajes de error/éxito */
   setTab(tab: Tab) {
     this.tabActiva = tab;
-    this.exito = false; this.error = '';
+    this.exito = false; this.error = ''; this.successMessage = '';
   }
 
   // ── Gestión de filas de Indumentaria ────────────────────
 
   /** Crea un objeto de fila con valores por defecto */
   nuevaFilaIndum(): FilaIndumentaria {
-    return { tipo: TIPOS_INDUMENTARIA[0], otroTipo: '', talle: 'M', numeroDorsal: null, cantidad: 1 };
+    return { itemId: this.catalogoIndumentaria[0]?.id ?? null, talle: 'M', numeroDorsal: null, cantidad: 1 };
   }
 
   /** Agrega una nueva fila vacía al formulario de indumentaria */
@@ -139,7 +139,7 @@ export class SolicitudComponent implements OnInit {
   // ── Gestión de filas de Equipamiento ────────────────────
 
   nuevaFilaEquip(): FilaEquipamiento {
-    return { tipo: TIPOS_EQUIPAMIENTO[0], otroTipo: '', cantidad: 1 };
+    return { itemId: this.catalogoEquipamiento[0]?.id ?? null, cantidad: 1 };
   }
   agregarFilaEquip()  { this.filasEquip.push(this.nuevaFilaEquip()); }
   quitarFilaEquip(i: number) { if (this.filasEquip.length > 1) this.filasEquip.splice(i, 1); }
@@ -164,7 +164,7 @@ export class SolicitudComponent implements OnInit {
    *   - Recarga el historial si está visible
    */
   enviarSolicitud() {
-    this.error = ''; this.exito = false;
+    this.error = ''; this.exito = false; this.successMessage = '';
 
     // Validaciones
     if (this.tabActiva !== 'transporte' && !this.fechaNecesidad) {
@@ -175,7 +175,7 @@ export class SolicitudComponent implements OnInit {
       if (!this.transporte.destino.trim()) { this.error = 'Indicá el destino.'; return; }
     }
 
-    let items: any[];
+    let items: SolicitudItem[];
     let tipo: Tab;
     let fecha_necesidad: string;
     let destino: string | undefined;
@@ -183,40 +183,54 @@ export class SolicitudComponent implements OnInit {
     let observaciones: string | undefined;
 
     if (this.tabActiva === 'indumentaria') {
+      const invalidItem = this.filasIndum.some(row => {
+        const catalogItem = this.catalogo.find(item => item.id === Number(row.itemId));
+        return !catalogItem || row.cantidad < 1 || row.cantidad > 255 ||
+          (catalogItem.requiere_talle && !row.talle) ||
+          (catalogItem.requiere_numero && (!row.numeroDorsal || row.numeroDorsal < 1 || row.numeroDorsal > 99));
+      });
+      if (invalidItem) { this.error = 'Revisá los productos, talles, dorsales y cantidades.'; return; }
       tipo = 'indumentaria'; fecha_necesidad = this.fechaNecesidad;
       observaciones = this.observacionesGeneral || undefined;
-      // Mapea cada fila al formato que espera el backend
-      items = this.filasIndum.map(f => ({
-        nombre:        f.tipo === 'Otro' ? (f.otroTipo || 'Indumentaria') : f.tipo,
-        talle:         f.talle,
-        numero_dorsal: f.numeroDorsal || undefined,
-        cantidad:      f.cantidad
+      items = this.filasIndum.map(row => ({
+        item_id: Number(row.itemId),
+        talle: this.catalogo.find(item => item.id === Number(row.itemId))?.requiere_talle ? row.talle : undefined,
+        numero_dorsal: this.catalogo.find(item => item.id === Number(row.itemId))?.requiere_numero ? (row.numeroDorsal || undefined) : undefined,
+        cantidad: row.cantidad
       }));
     } else if (this.tabActiva === 'equipamiento') {
+      if (this.filasEquip.some(row => !this.catalogoEquipamiento.some(item => item.id === Number(row.itemId)) || row.cantidad < 1 || row.cantidad > 255)) {
+        this.error = 'Seleccioná un elemento válido y una cantidad entre 1 y 255.'; return;
+      }
       tipo = 'equipamiento'; fecha_necesidad = this.fechaNecesidad;
       observaciones = this.observacionesGeneral || undefined;
-      items = this.filasEquip.map(f => ({
-        nombre:   f.tipo === 'Otro' ? (f.otroTipo || 'Equipamiento') : f.tipo,
-        cantidad: f.cantidad
+      items = this.filasEquip.map(row => ({
+        item_id: Number(row.itemId),
+        cantidad: row.cantidad
       }));
     } else {
-      // Transporte: un único ítem con el tipo de vehículo
+      if (!this.catalogoTransporte.some(item => item.id === Number(this.transporte.itemId)) ||
+          !Number.isInteger(Number(this.transporte.pasajeros)) || this.transporte.pasajeros < 1 || this.transporte.pasajeros > 70 ||
+          this.transporte.destino.trim().length > 200) {
+        this.error = 'Seleccioná un vehículo e indicá entre 1 y 70 pasajeros y un destino válido.'; return;
+      }
       tipo = 'transporte'; fecha_necesidad = this.transporte.fecha;
       destino    = this.transporte.destino;
       pasajeros  = this.transporte.pasajeros;
       observaciones = this.transporte.observaciones || undefined;
-      items = [{ nombre: this.transporte.tipo, cantidad: 1 }];
+      items = [{ item_id: Number(this.transporte.itemId), cantidad: 1 }];
     }
 
     this.enviando = true;
-    this.solicitudesService.crearSolicitud({ tipo, fecha_necesidad, destino, pasajeros, observaciones, items }).subscribe({
+    const payload: SolicitudPayload = { tipo, fecha_necesidad, destino, pasajeros, observaciones, items };
+    this.solicitudesService.crearSolicitud(payload).subscribe({
       next: () => {
         this.enviando = false; this.exito = true;
         // Resetear formularios a estado inicial
         this.filasIndum = [this.nuevaFilaIndum()];
         this.filasEquip = [this.nuevaFilaEquip()];
         this.fechaNecesidad = ''; this.observacionesGeneral = '';
-        this.transporte = { tipo: TIPOS_TRANSPORTE[0], fecha:'', destino:'', pasajeros:1, observaciones:'' };
+        this.transporte = { itemId: this.catalogoTransporte[0]?.id ?? null, fecha: '', destino: '', pasajeros: 1, observaciones: '' };
         if (this.mostrarHistorial) this.cargarHistorial(); // Actualiza historial si está abierto
       },
       error: (err) => {
@@ -231,7 +245,24 @@ export class SolicitudComponent implements OnInit {
   /** Muestra/oculta el panel de historial. Carga los datos la primera vez que se abre. */
   toggleHistorial() {
     this.mostrarHistorial = !this.mostrarHistorial;
-    if (this.mostrarHistorial && this.historial.length === 0) this.cargarHistorial();
+    if (this.mostrarHistorial) this.cargarHistorial();
+  }
+
+  cargarCatalogo() {
+    this.catalogoLoading = true;
+    this.solicitudesService.getCatalogo().subscribe({
+      next: items => {
+        this.catalogo = items;
+        if (this.transporte.itemId === null) this.transporte.itemId = this.catalogoTransporte[0]?.id ?? null;
+        this.filasIndum.forEach(row => { if (row.itemId === null) row.itemId = this.catalogoIndumentaria[0]?.id ?? null; });
+        this.filasEquip.forEach(row => { if (row.itemId === null) row.itemId = this.catalogoEquipamiento[0]?.id ?? null; });
+        this.catalogoLoading = false;
+      },
+      error: err => {
+        this.catalogoLoading = false;
+        this.error = err?.error?.message || 'No se pudo cargar el catálogo de solicitudes.';
+      }
+    });
   }
 
   /** Hace GET /api/solicitudes/mias y guarda los resultados en this.historial */
@@ -239,7 +270,27 @@ export class SolicitudComponent implements OnInit {
     this.loadingHistorial = true;
     this.solicitudesService.getMisSolicitudes().subscribe({
       next: d  => { this.historial = d; this.loadingHistorial = false; },
-      error: () => { this.loadingHistorial = false; }
+      error: err => { this.loadingHistorial = false; this.error = err?.error?.message || 'No se pudo cargar tu historial.'; }
+    });
+  }
+
+  cancelarSolicitud(solicitud: Solicitud) {
+    if (solicitud.estado !== 'pendiente' || this.cancellingId !== null) return;
+    if (!confirm(`¿Cancelar la solicitud #${solicitud.id}?`)) return;
+    this.cancellingId = solicitud.id;
+    this.error = '';
+    this.solicitudesService.cancelarSolicitud(solicitud.id).subscribe({
+      next: response => {
+        this.cancellingId = null;
+        this.exito = true;
+        this.error = '';
+        this.successMessage = response.message;
+        this.cargarHistorial();
+      },
+      error: err => {
+        this.cancellingId = null;
+        this.error = err?.error?.message || 'No se pudo cancelar la solicitud.';
+      }
     });
   }
 

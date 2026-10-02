@@ -65,6 +65,21 @@ INSERT INTO usuarios (rol_id, nombre, apellido, email, password_hash, telefono, 
   (3, 'Sofia',   'Lopez',     'atleta2@avellanedafc.com',     '$2b$12$sYEEGzXZuqG0azmFBGry2..c/XvZjWbpGJZzAVESXIu5Ohu52yfU.', '1166778899', TRUE, 'aprobado'),
   (3, 'Tomas',   'Garcia',    'atleta3@avellanedafc.com',     '$2b$12$nOLx.wLQgsc2bYD3wf/PD.lrQpZOTTlpobdGIIPzw8KK79V.DFLky', '1177889900', TRUE, 'aprobado');
 
+-- Cuentas de acceso confirmadas solicitadas para pruebas.
+INSERT INTO usuarios (rol_id, nombre, apellido, email, password_hash, telefono, activo, estado_registro)
+SELECT r.id, 'Entrenador', 'Avellaneda', 'enretenador@entrenador',
+       '$2b$12$HCzCqtZURvpTP9dIPPK5GOPnpXZtOIGfnQhwLztkVXusx90swTtGW', NULL, TRUE, 'aprobado'
+FROM roles r
+WHERE r.nombre = 'entrenador'
+  AND NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'enretenador@entrenador');
+
+INSERT INTO usuarios (rol_id, nombre, apellido, email, password_hash, telefono, activo, estado_registro)
+SELECT r.id, 'Admin', 'Avellaneda', 'admin@admin',
+       '$2b$12$kmMp3DFzEepiX/Ki3IBR3udccuyGeGFRZHMZ.y74QocHAhlnG8nFe', NULL, TRUE, 'aprobado'
+FROM roles r
+WHERE r.nombre = 'administrador'
+  AND NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'admin@admin');
+
 -- =============================================================
 -- 3. DEPORTES
 -- =============================================================
@@ -160,6 +175,13 @@ CREATE TABLE entrenadores (
 INSERT INTO entrenadores (usuario_id, deporte_id, especialidad, licencia) VALUES
   (2, 1, 'Futbol infantil y juvenil', 'LIC-001'),
   (3, 2, 'Natacion competitiva',      'LIC-002');
+
+INSERT INTO entrenadores (usuario_id, deporte_id, especialidad, licencia)
+SELECT u.id, d.id, 'Entrenamiento general', NULL
+FROM usuarios u
+JOIN deportes d ON d.nombre = 'Futbol'
+WHERE u.email = 'enretenador@entrenador'
+  AND NOT EXISTS (SELECT 1 FROM entrenadores WHERE usuario_id = u.id);
 
 -- =============================================================
 -- 6. INSTALACIONES

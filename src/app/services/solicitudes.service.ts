@@ -23,6 +23,8 @@ export interface CatalogoItem {
   icono: string;
   requiere_talle: boolean;
   requiere_numero: boolean;
+  cantidad_disponible?: number;
+  estado?: 'disponible' | 'mantenimiento' | 'stock_bajo';
 }
 
 /**
@@ -31,8 +33,7 @@ export interface CatalogoItem {
  * Los campos talle y numero_dorsal solo aplican a indumentaria.
  */
 export interface SolicitudItem {
-  item_id?: number;       // Opcional: referencia al catálogo (no requerida actualmente)
-  nombre: string;         // Nombre libre del ítem solicitado
+  item_id: number;
   cantidad: number;
   talle?: string;         // Solo indumentaria: XS, S, M, L, XL, XXL
   numero_dorsal?: number; // Solo camisetas: número del dorsal (1-99)
@@ -63,6 +64,7 @@ export interface Solicitud {
   observaciones?: string;
   creado_en: string;
   items: any[];
+  puede_cancelar?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -102,5 +104,9 @@ export class SolicitudesService {
    */
   getMisSolicitudes(): Observable<Solicitud[]> {
     return this.http.get<Solicitud[]>(`${this.API}/solicitudes/mias`);
+  }
+
+  cancelarSolicitud(id: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.API}/solicitudes/${id}`);
   }
 }

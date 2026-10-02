@@ -1,49 +1,95 @@
 <div class="sol-page">
-
   <!-- ===== HEADER ===== -->
   <div class="sol-header">
     <div class="sol-header-inner">
       <div>
-        <h1 class="sol-title"><i class="fa-solid fa-clipboard-list"></i> Nueva Solicitud</h1>
+        <h1 class="sol-title">
+          <i class="fa-solid fa-clipboard-list"></i> Nueva Solicitud
+        </h1>
         <p class="sol-subtitle">Completá el formulario con lo que necesitás</p>
       </div>
       <button class="btn-historial" (click)="toggleHistorial()">
-        <i class="fa-solid" [class.fa-clock-rotate-left]="!mostrarHistorial" [class.fa-xmark]="mostrarHistorial"></i>
-        {{ mostrarHistorial ? 'Cerrar historial' : 'Ver mis solicitudes' }}
+        <i
+          class="fa-solid"
+          [class.fa-clock-rotate-left]="!mostrarHistorial"
+          [class.fa-xmark]="mostrarHistorial"
+        ></i>
+        {{ mostrarHistorial ? "Cerrar historial" : "Ver mis solicitudes" }}
       </button>
     </div>
     <div class="sol-tabs">
-      <button class="sol-tab" [class.active]="tabActiva==='indumentaria'" (click)="setTab('indumentaria')">
+      <button
+        class="sol-tab"
+        [class.active]="tabActiva === 'indumentaria'"
+        (click)="setTab('indumentaria')"
+      >
         <i class="fa-solid fa-shirt"></i> Indumentaria
       </button>
-      <button class="sol-tab" [class.active]="tabActiva==='equipamiento'" (click)="setTab('equipamiento')">
+      <button
+        class="sol-tab"
+        [class.active]="tabActiva === 'equipamiento'"
+        (click)="setTab('equipamiento')"
+      >
         <i class="fa-solid fa-futbol"></i> Equipamiento
       </button>
-      <button class="sol-tab" [class.active]="tabActiva==='transporte'" (click)="setTab('transporte')">
+      <button
+        class="sol-tab"
+        [class.active]="tabActiva === 'transporte'"
+        (click)="setTab('transporte')"
+      >
         <i class="fa-solid fa-bus"></i> Transporte
       </button>
     </div>
   </div>
 
   <div class="sol-body">
-
     <!-- Historial -->
     <div class="historial-panel" *ngIf="mostrarHistorial">
-      <h2 class="historial-title"><i class="fa-solid fa-clock-rotate-left"></i> Mis Solicitudes</h2>
-      <div class="historial-loading" *ngIf="loadingHistorial"><i class="fa-solid fa-spinner fa-spin"></i></div>
-      <div class="historial-empty" *ngIf="!loadingHistorial && historial.length===0">No tenés solicitudes previas.</div>
-      <div class="historial-list" *ngIf="!loadingHistorial && historial.length>0">
+      <h2 class="historial-title">
+        <i class="fa-solid fa-clock-rotate-left"></i> Mis Solicitudes
+      </h2>
+      <div class="historial-loading" *ngIf="loadingHistorial">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+      </div>
+      <div
+        class="historial-empty"
+        *ngIf="!loadingHistorial && historial.length === 0"
+      >
+        No tenés solicitudes previas.
+      </div>
+      <div
+        class="historial-list"
+        *ngIf="!loadingHistorial && historial.length > 0"
+      >
         <div class="historial-card" *ngFor="let sol of historial">
           <div class="historial-top">
             <span class="historial-tipo">
-              <i class="fa-solid"
-                [class.fa-shirt]="sol.tipo==='indumentaria'"
-                [class.fa-futbol]="sol.tipo==='equipamiento'"
-                [class.fa-bus]="sol.tipo==='transporte'"></i>
+              <i
+                class="fa-solid"
+                [class.fa-shirt]="sol.tipo === 'indumentaria'"
+                [class.fa-futbol]="sol.tipo === 'equipamiento'"
+                [class.fa-bus]="sol.tipo === 'transporte'"
+              ></i>
               {{ sol.tipo | titlecase }}
             </span>
-            <span class="historial-fecha">Para el {{ sol.fecha_necesidad | date:'dd/MM/yyyy' }}</span>
-            <span class="badge" [ngClass]="estadoBadge(sol.estado)">{{ sol.estado | titlecase }}</span>
+            <span class="historial-fecha"
+              >Para el {{ sol.fecha_necesidad | date: "dd/MM/yyyy" }}</span
+            >
+            <span class="badge" [ngClass]="estadoBadge(sol.estado)">{{
+              sol.estado | titlecase
+            }}</span>
+            <button
+              *ngIf="sol.estado === 'pendiente'"
+              type="button"
+              class="request-cancel"
+              (click)="cancelarSolicitud(sol)"
+              [disabled]="cancellingId !== null"
+            >
+              <i class="fa-solid fa-ban" aria-hidden="true"></i>
+              {{
+                cancellingId === sol.id ? "Cancelando..." : "Cancelar solicitud"
+              }}
+            </button>
           </div>
           <div class="historial-items">
             <span class="historial-chip" *ngFor="let it of sol.items">
@@ -54,26 +100,39 @@
             </span>
           </div>
           <div class="historial-destino" *ngIf="sol.destino">
-            <i class="fa-solid fa-location-dot"></i> {{ sol.destino }} · {{ sol.pasajeros }} pasajeros
+            <i class="fa-solid fa-location-dot"></i> {{ sol.destino }} ·
+            {{ sol.pasajeros }} pasajeros
           </div>
+          <p class="historial-observaciones" *ngIf="sol.observaciones">
+            {{ sol.observaciones }}
+          </p>
         </div>
       </div>
     </div>
 
     <!-- Alertas -->
     <div class="sol-alert success" *ngIf="exito">
-      <i class="fa-solid fa-circle-check"></i> ¡Solicitud enviada! El área administrativa revisará tu pedido.
+      <i class="fa-solid fa-circle-check"></i> ¡Solicitud enviada! El área
+      administrativa revisará tu pedido.
     </div>
     <div class="sol-alert error-alert" *ngIf="error">
       <i class="fa-solid fa-triangle-exclamation"></i> {{ error }}
     </div>
+    <div class="sol-alert success" *ngIf="successMessage">
+      <i class="fa-solid fa-circle-check"></i> {{ successMessage }}
+    </div>
+    <div class="sol-alert" *ngIf="catalogoLoading">
+      <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Cargando
+      productos disponibles...
+    </div>
 
     <!-- ===== FORM CARD ===== -->
     <div class="form-card">
-
       <!-- ─── TAB INDUMENTARIA ─── -->
-      <div *ngIf="tabActiva==='indumentaria'">
-        <p class="form-section-title"><i class="fa-solid fa-shirt"></i> Detalle de indumentaria solicitada</p>
+      <div *ngIf="tabActiva === 'indumentaria'">
+        <p class="form-section-title">
+          <i class="fa-solid fa-shirt"></i> Detalle de indumentaria solicitada
+        </p>
 
         <!-- Tabla de filas -->
         <div class="filas-container">
@@ -87,39 +146,98 @@
           </div>
 
           <!-- Filas dinámicas -->
-          <div class="fila-row" *ngFor="let fila of filasIndum; let i=index">
+          <div class="fila-row" *ngFor="let fila of filasIndum; let i = index">
             <!-- Tipo -->
             <div class="col-tipo">
-              <select class="form-control" [(ngModel)]="fila.tipo">
-                <option *ngFor="let t of tiposIndumentaria" [value]="t">{{ t }}</option>
+              <select
+                class="form-control"
+                [(ngModel)]="fila.itemId"
+                [ngModelOptions]="{ standalone: true }"
+              >
+                <option
+                  *ngFor="let item of catalogoIndumentaria"
+                  [ngValue]="item.id"
+                >
+                  {{ item.nombre }}
+                </option>
               </select>
-              <input *ngIf="fila.tipo==='Otro'" type="text" class="form-control form-control-otro"
-                placeholder="Especificá..." [(ngModel)]="fila.otroTipo">
             </div>
             <!-- Talle -->
-            <div class="col-talle">
+            <div
+              class="col-talle"
+              *ngIf="getCatalogItem(fila.itemId)?.requiere_talle"
+            >
               <div class="talle-pills">
-                <button type="button" *ngFor="let t of talles"
-                  class="talle-pill" [class.active]="fila.talle===t"
-                  (click)="fila.talle=t">{{ t }}</button>
+                <button
+                  type="button"
+                  *ngFor="let t of talles"
+                  class="talle-pill"
+                  [class.active]="fila.talle === t"
+                  (click)="fila.talle = t"
+                >
+                  {{ t }}
+                </button>
               </div>
             </div>
+            <div
+              class="col-talle"
+              *ngIf="!getCatalogItem(fila.itemId)?.requiere_talle"
+            >
+              <small>No requiere talle</small>
+            </div>
             <!-- Dorsal -->
-            <div class="col-dorsal">
-              <input type="number" class="form-control" min="1" max="99" placeholder="—"
-                [(ngModel)]="fila.numeroDorsal">
+            <div
+              class="col-dorsal"
+              *ngIf="getCatalogItem(fila.itemId)?.requiere_numero"
+            >
+              <input
+                type="number"
+                class="form-control"
+                min="1"
+                max="99"
+                placeholder="—"
+                [(ngModel)]="fila.numeroDorsal"
+              />
+            </div>
+            <div
+              class="col-dorsal"
+              *ngIf="!getCatalogItem(fila.itemId)?.requiere_numero"
+            >
+              <small>—</small>
             </div>
             <!-- Cantidad -->
             <div class="col-cantidad">
               <div class="qty-ctrl">
-                <button type="button" (click)="fila.cantidad = fila.cantidad > 1 ? fila.cantidad - 1 : 1">−</button>
+                <button
+                  type="button"
+                  (click)="
+                    fila.cantidad = fila.cantidad > 1 ? fila.cantidad - 1 : 1
+                  "
+                >
+                  −
+                </button>
                 <span>{{ fila.cantidad }}</span>
-                <button type="button" (click)="fila.cantidad = fila.cantidad + 1">+</button>
+                <button
+                  type="button"
+                  (click)="
+                    fila.cantidad =
+                      fila.cantidad < 255 ? fila.cantidad + 1 : 255
+                  "
+                  [disabled]="fila.cantidad >= 255"
+                  aria-label="Aumentar cantidad"
+                >
+                  +
+                </button>
               </div>
             </div>
             <!-- Quitar -->
             <div class="col-accion">
-              <button class="btn-quitar" (click)="quitarFilaIndum(i)" [disabled]="filasIndum.length===1" title="Quitar fila">
+              <button
+                class="btn-quitar"
+                (click)="quitarFilaIndum(i)"
+                [disabled]="filasIndum.length === 1"
+                title="Quitar fila"
+              >
                 <i class="fa-solid fa-xmark"></i>
               </button>
             </div>
@@ -132,8 +250,10 @@
       </div>
 
       <!-- ─── TAB EQUIPAMIENTO ─── -->
-      <div *ngIf="tabActiva==='equipamiento'">
-        <p class="form-section-title"><i class="fa-solid fa-futbol"></i> Detalle de equipamiento solicitado</p>
+      <div *ngIf="tabActiva === 'equipamiento'">
+        <p class="form-section-title">
+          <i class="fa-solid fa-futbol"></i> Detalle de equipamiento solicitado
+        </p>
 
         <div class="filas-container">
           <div class="fila-header fila-header-equip">
@@ -141,23 +261,52 @@
             <span class="col-cantidad">Cantidad</span>
             <span class="col-accion"></span>
           </div>
-          <div class="fila-row" *ngFor="let fila of filasEquip; let i=index">
+          <div class="fila-row" *ngFor="let fila of filasEquip; let i = index">
             <div class="col-tipo-wide">
-              <select class="form-control" [(ngModel)]="fila.tipo">
-                <option *ngFor="let t of tiposEquipamiento" [value]="t">{{ t }}</option>
+              <select
+                class="form-control"
+                [(ngModel)]="fila.itemId"
+                [ngModelOptions]="{ standalone: true }"
+              >
+                <option
+                  *ngFor="let item of catalogoEquipamiento"
+                  [ngValue]="item.id"
+                >
+                  {{ item.nombre }}
+                </option>
               </select>
-              <input *ngIf="fila.tipo==='Otro'" type="text" class="form-control form-control-otro"
-                placeholder="Especificá..." [(ngModel)]="fila.otroTipo">
             </div>
             <div class="col-cantidad">
               <div class="qty-ctrl">
-                <button type="button" (click)="fila.cantidad = fila.cantidad > 1 ? fila.cantidad - 1 : 1">−</button>
+                <button
+                  type="button"
+                  (click)="
+                    fila.cantidad = fila.cantidad > 1 ? fila.cantidad - 1 : 1
+                  "
+                >
+                  −
+                </button>
                 <span>{{ fila.cantidad }}</span>
-                <button type="button" (click)="fila.cantidad = fila.cantidad + 1">+</button>
+                <button
+                  type="button"
+                  (click)="
+                    fila.cantidad =
+                      fila.cantidad < 255 ? fila.cantidad + 1 : 255
+                  "
+                  [disabled]="fila.cantidad >= 255"
+                  aria-label="Aumentar cantidad"
+                >
+                  +
+                </button>
               </div>
             </div>
             <div class="col-accion">
-              <button class="btn-quitar" (click)="quitarFilaEquip(i)" [disabled]="filasEquip.length===1" title="Quitar">
+              <button
+                class="btn-quitar"
+                (click)="quitarFilaEquip(i)"
+                [disabled]="filasEquip.length === 1"
+                title="Quitar"
+              >
                 <i class="fa-solid fa-xmark"></i>
               </button>
             </div>
@@ -170,58 +319,121 @@
       </div>
 
       <!-- ─── TAB TRANSPORTE ─── -->
-      <div *ngIf="tabActiva.toString()==='transporte'" class="transporte-form">
-        <p class="form-section-title"><i class="fa-solid fa-bus"></i> Datos del viaje</p>
+      <div
+        *ngIf="tabActiva.toString() === 'transporte'"
+        class="transporte-form"
+      >
+        <p class="form-section-title">
+          <i class="fa-solid fa-bus"></i> Datos del viaje
+        </p>
 
         <div class="transporte-grid">
           <div class="form-group">
             <label class="form-label">Tipo de vehículo</label>
-            <select class="form-control" [(ngModel)]="transporte.tipo">
-              <option *ngFor="let t of tiposTransporte" [value]="t">{{ t }}</option>
+            <select
+              class="form-control"
+              [(ngModel)]="transporte.itemId"
+              [ngModelOptions]="{ standalone: true }"
+            >
+              <option
+                *ngFor="let item of catalogoTransporte"
+                [ngValue]="item.id"
+              >
+                {{ item.nombre }}
+              </option>
             </select>
           </div>
           <div class="form-group">
             <label class="form-label">Fecha del viaje</label>
-            <input type="date" class="form-control" [min]="fechaMin" [(ngModel)]="transporte.fecha">
+            <input
+              type="date"
+              class="form-control"
+              [min]="fechaMin"
+              [(ngModel)]="transporte.fecha"
+            />
           </div>
           <div class="form-group">
             <label class="form-label">Cantidad de pasajeros</label>
-            <input type="number" class="form-control" min="1" max="70" [(ngModel)]="transporte.pasajeros">
+            <input
+              type="number"
+              class="form-control"
+              min="1"
+              max="70"
+              required
+              [(ngModel)]="transporte.pasajeros"
+            />
           </div>
           <div class="form-group">
             <label class="form-label">Destino</label>
-            <input type="text" class="form-control" placeholder="Club, dirección, etc."
-              [(ngModel)]="transporte.destino">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Club, dirección, etc."
+              [(ngModel)]="transporte.destino"
+            />
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Observaciones <span class="optional">(opcional)</span></label>
-          <textarea class="form-control" rows="3" placeholder="Horario de salida, equipaje, motivo..."
-            [(ngModel)]="transporte.observaciones"></textarea>
+          <label class="form-label"
+            >Observaciones <span class="optional">(opcional)</span></label
+          >
+          <textarea
+            class="form-control"
+            rows="3"
+            placeholder="Horario de salida, equipaje, motivo..."
+            [(ngModel)]="transporte.observaciones"
+          ></textarea>
         </div>
       </div>
 
       <!-- ─── CAMPOS COMUNES (indum / equip) ─── -->
-      <div class="form-footer-fields" *ngIf="tabActiva.toString()!=='transporte'">
+      <div
+        class="form-footer-fields"
+        *ngIf="tabActiva.toString() !== 'transporte'"
+      >
         <div class="form-group form-group-date">
-          <label class="form-label"><i class="fa-regular fa-calendar"></i> ¿Para cuándo lo necesitás?</label>
-          <input type="date" class="form-control" [min]="fechaMin" [(ngModel)]="fechaNecesidad">
+          <label class="form-label"
+            ><i class="fa-regular fa-calendar"></i> ¿Para cuándo lo
+            necesitás?</label
+          >
+          <input
+            type="date"
+            class="form-control"
+            [min]="fechaMin"
+            [(ngModel)]="fechaNecesidad"
+          />
         </div>
         <div class="form-group">
-          <label class="form-label"><i class="fa-regular fa-comment"></i> Observaciones <span class="optional">(opcional)</span></label>
-          <textarea class="form-control" rows="2" placeholder="Aclaraciones adicionales..."
-            [(ngModel)]="observacionesGeneral"></textarea>
+          <label class="form-label"
+            ><i class="fa-regular fa-comment"></i> Observaciones
+            <span class="optional">(opcional)</span></label
+          >
+          <textarea
+            class="form-control"
+            rows="2"
+            placeholder="Aclaraciones adicionales..."
+            [(ngModel)]="observacionesGeneral"
+          ></textarea>
         </div>
       </div>
 
       <!-- ─── BOTÓN ENVIAR ─── -->
       <div class="form-submit">
-        <button class="btn-enviar" [disabled]="enviando" (click)="enviarSolicitud()">
-          <span *ngIf="!enviando"><i class="fa-solid fa-paper-plane"></i> Enviar solicitud</span>
-          <span *ngIf="enviando"><i class="fa-solid fa-spinner fa-spin"></i> Enviando...</span>
+        <button
+          class="btn-enviar"
+          [disabled]="enviando || catalogoLoading || catalogo.length === 0"
+          (click)="enviarSolicitud()"
+        >
+          <span *ngIf="!enviando"
+            ><i class="fa-solid fa-paper-plane"></i> Enviar solicitud</span
+          >
+          <span *ngIf="enviando"
+            ><i class="fa-solid fa-spinner fa-spin"></i> Enviando...</span
+          >
         </button>
       </div>
-
-    </div><!-- /form-card -->
-  </div><!-- /sol-body -->
+    </div>
+    <!-- /form-card -->
+  </div>
+  <!-- /sol-body -->
 </div>

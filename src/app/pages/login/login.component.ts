@@ -50,8 +50,10 @@ export class LoginComponent {
     this.authService.login({ email, password }).subscribe({
       next: () => {
         this.loading = false;
-        // Redirige al inicio; el header recalculará los links por rol
-        this.router.navigate(['/inicio']);
+        const destination = this.authService.isAdmin()
+          ? '/administrador'
+          : this.authService.isEntrenador() ? '/entrenador' : '/inicio';
+        this.router.navigate([destination]);
       },
       error: (err) => {
         this.loading = false;
