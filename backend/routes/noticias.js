@@ -24,7 +24,7 @@ const uploadImage = multer({
 router.get('/publicas', async (_req, res) => {
   try {
     const [rows] = await pool.execute(`
-      SELECT id, titulo, descripcion, categoria, imagen_url, destacada,
+      SELECT id, titulo, descripcion, contenido, categoria, imagen_url, destacada,
              DATE_FORMAT(creado_en, '%Y-%m-%dT%H:%i:%s') AS fecha_publicacion
       FROM noticias
       WHERE publicada = TRUE AND creado_en <= NOW()
@@ -37,6 +37,23 @@ router.get('/publicas', async (_req, res) => {
   }
 });
 
+router.get('/publicas/:id', async (req, res) => {
+  try {
+    const [rows] = await pool.execute(`
+      SELECT id, titulo, descripcion, contenido, categoria, imagen_url, destacada,
+             DATE_FORMAT(creado_en, '%Y-%m-%dT%H:%i:%s') AS fecha_publicacion
+      FROM noticias
+      WHERE id = ? AND publicada = TRUE AND creado_en <= NOW()
+      LIMIT 1
+    `, [req.params.id]);
+    if (!rows.length) return res.status(404).json({ message: 'Noticia no encontrada.' });
+    return res.json(rows[0]);
+  } catch (error) {
+    console.error('[noticias:publica por id]', error);
+    return res.status(500).json({ message: 'No se pudo cargar la noticia.' });
+  }
+});
+
 router.use(auth, requireAdmin);
 
 function normalizeStatus(value) {
@@ -46,6 +63,7 @@ function normalizeStatus(value) {
 function validatePayload(body) {
   const titulo = String(body.titulo || '').trim();
   const descripcion = String(body.descripcion || '').trim();
+  const contenido = String(body.contenido || descripcion).trim();
   const categoria = String(body.categoria || 'Comunicados').trim();
   const imagenUrl = String(body.imagen_url || '').trim();
   const estado = normalizeStatus(body.estado);
@@ -57,7 +75,7 @@ function validatePayload(body) {
   if (fechaPublicacion && Number.isNaN(Date.parse(fechaPublicacion))) {
     return { error: 'La fecha de publicación no es válida.' };
   }
-  return { titulo, descripcion, categoria, imagenUrl, estado, fechaPublicacion };
+  return { titulo, descripcion, contenido, categoria, imagenUrl, estado, fechaPublicacion };
 }
 
 function statusSql(status) {
@@ -68,7 +86,7 @@ function statusSql(status) {
 }
 
 const selectFields = `
-  id, titulo, descripcion, categoria, imagen_url, destacada, publicada,
+  id, titulo, descripcion, contenido, categoria, imagen_url, destacada, publicada,
   creado_en, actualizado_en,
   CASE
     WHEN publicada = TRUE THEN 'publicada'
@@ -90,8 +108,8 @@ router.get('/', async (req, res) => {
     const filters = [statusSql(status)];
 
     if (search) {
-      filters.push('(titulo LIKE ? OR descripcion LIKE ?)');
-      params.push(`%${search}%`, `%${search}%`);
+      filters.push('(titulo LIKE ? OR descripcion LIKE ? OR contenido LIKE ?)');
+      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
     }
 
     const where = filters.join(' AND ');
@@ -137,9 +155,9 @@ router.post('/', uploadImage.single('imagen'), async (req, res) => {
     const fecha = payload.fechaPublicacion ? new Date(payload.fechaPublicacion) : new Date();
     const publicada = payload.estado === 'publicada';
     const [result] = await pool.execute(
-      `INSERT INTO noticias (titulo, descripcion, categoria, imagen_url, destacada, publicada, creado_por, creado_en)
-       VALUES (?, ?, ?, ?, FALSE, ?, ?, ?)`,
-      [payload.titulo, payload.descripcion, payload.categoria, payload.imagenUrl || null, publicada, req.usuario.id, fecha]
+      `INSERT INTO noticias (titulo, descripcion, contenido, categoria, imagen_url, destacada, publicada, creado_por, creado_en)
+       VALUES (?, ?, ?, ?, ?, FALSE, ?, ?, ?)`,
+      [payload.titulo, payload.descripcion, payload.contenido, payload.categoria, payload.imagenUrl || null, publicada, req.usuario.id, fecha]
     );
     return res.status(201).json({ message: 'Noticia creada correctamente.', id: result.insertId });
   } catch (error) {
@@ -160,9 +178,9 @@ router.put('/:id', uploadImage.single('imagen'), async (req, res) => {
     const publicada = payload.estado === 'publicada';
     const [result] = await pool.execute(
       `UPDATE noticias
-       SET titulo = ?, descripcion = ?, categoria = ?, imagen_url = ?, publicada = ?, creado_en = ?
+      SET titulo = ?, descripcion = ?, contenido = ?, categoria = ?, imagen_url = ?, publicada = ?, creado_en = ?
        WHERE id = ?`,
-      [payload.titulo, payload.descripcion, payload.categoria, payload.imagenUrl || null, publicada, fecha, req.params.id]
+          [payload.titulo, payload.descripcion, payload.contenido, payload.categoria, payload.imagenUrl || null, publicada, fecha, req.params.id]
     );
     if (!result.affectedRows) return res.status(404).json({ message: 'Noticia no encontrada.' });
     return res.json({ message: 'Noticia actualizada correctamente.' });

@@ -17,34 +17,43 @@
          (click)="closeMenu()">
         {{ link.label }}
       </a>
-      <!-- Mobile: login o logout -->
-      <ng-container *ngIf="!isLoggedIn; else mobileLogout">
+      <!-- Mobile login -->
+      <ng-container *ngIf="!isLoggedIn">
         <a routerLink="/login" class="btn btn-primary mobile-login" (click)="closeMenu()">
           <i class="fa-regular fa-user"></i> Iniciar sesión
         </a>
       </ng-container>
-      <ng-template #mobileLogout>
-        <button class="btn btn-primary mobile-login" (click)="logout(); closeMenu()">
-          <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
-        </button>
-      </ng-template>
     </nav>
 
-    <!-- Desktop: Login/Logout + Hamburger -->
+    <!-- Perfil o inicio de sesión + menú móvil -->
     <div class="header-actions">
-      <ng-container *ngIf="!isLoggedIn; else desktopLogout">
+      <ng-container *ngIf="!isLoggedIn; else desktopProfile">
         <a routerLink="/login" class="btn-login">
           <i class="fa-regular fa-user"></i>
           <span>Iniciar sesión</span>
         </a>
       </ng-container>
-      <ng-template #desktopLogout>
-        <div class="user-info">
-          <span class="user-name"><i class="fa-solid fa-circle-user"></i> {{ usuarioNombre }}</span>
-          <button class="btn-login btn-logout" (click)="logout()">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            <span>Cerrar sesión</span>
+      <ng-template #desktopProfile>
+        <div class="profile-menu relative" (click)="$event.stopPropagation()">
+          <button type="button" class="profile-trigger" [attr.aria-expanded]="profileMenuOpen" aria-haspopup="menu" (click)="toggleProfileMenu()">
+            <span class="profile-avatar">{{ usuarioIniciales }}</span>
+            <span class="profile-trigger-name">{{ usuarioNombre }}</span>
+            <i class="fa-solid fa-chevron-down profile-chevron" [class.rotated]="profileMenuOpen" aria-hidden="true"></i>
           </button>
+          <div class="profile-dropdown absolute z-50" *ngIf="profileMenuOpen" role="menu">
+            <div class="profile-card-user">
+              <span class="profile-avatar profile-avatar-large">{{ usuarioIniciales }}</span>
+              <div class="profile-user-copy">
+                <strong>{{ usuarioNombre }}</strong>
+                <span class="profile-role">{{ usuarioRol }}</span>
+                <span class="profile-email">{{ usuarioEmail }}</span>
+              </div>
+            </div>
+            <button type="button" class="dropdown-logout" role="menuitem" (click)="logout()">
+              <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+              <span>Cerrar sesión</span>
+            </button>
+          </div>
         </div>
       </ng-template>
 

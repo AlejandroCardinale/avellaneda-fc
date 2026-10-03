@@ -19,7 +19,19 @@ export class GestionUsuariosComponent implements OnInit {
   search = '';
   selectedRole = 'Todos';
   roles = ['Todos', 'Administrador', 'Entrenador', 'Atleta'];
+  editableRoles = [
+    { value: 'administrador', label: 'Administrador' },
+    { value: 'entrenador', label: 'Entrenador' },
+    { value: 'atleta', label: 'Atleta' }
+  ];
   loading = false;
+  saving = false;
+  deleting = false;
+  modalError = '';
+  selectedUser: Usuario | null = null;
+  editUser: Usuario | null = null;
+  deleteUser: Usuario | null = null;
+  editValues = { rol: 'atleta', activo: true };
 
   constructor(private usuariosService: UsuariosService) {}
 
@@ -100,6 +112,14 @@ export class GestionUsuariosComponent implements OnInit {
     return activo ? 'status status-active' : 'status status-inactive';
   }
 
+  ver(usuario: Usuario): void {
+    this.selectedUser = { ...usuario };
+  }
+
+  cerrarDetalle(): void {
+    this.selectedUser = null;
+  }
+
   toggleActivo(usuario: Usuario): void {
     this.usuariosService.toggleActivo(usuario.id, !usuario.activo).subscribe({
       next: () => this.loadUsers(),
@@ -107,11 +127,60 @@ export class GestionUsuariosComponent implements OnInit {
     });
   }
 
-  eliminarUsuario(id: number): void {
-    if (!confirm('¿Eliminar este usuario?')) return;
-    this.usuariosService.delete(id).subscribe({
-      next: () => this.loadUsers(),
-      error: () => this.loadUsers()
+  abrirEdicion(usuario: Usuario): void {
+    this.editUser = usuario;
+    this.editValues = { rol: usuario.rol.toLowerCase(), activo: usuario.activo };
+    this.modalError = '';
+  }
+
+  cerrarEdicion(): void {
+    if (this.saving) return;
+    this.editUser = null;
+    this.modalError = '';
+  }
+
+  guardarEdicion(): void {
+    if (!this.editUser || this.saving) return;
+    this.saving = true;
+    this.modalError = '';
+    this.usuariosService.updateRoleAndStatus(this.editUser.id, this.editValues).subscribe({
+      next: () => {
+        this.saving = false;
+        this.editUser = null;
+        this.loadUsers();
+      },
+      error: (error) => {
+        this.saving = false;
+        this.modalError = error?.error?.message || 'No se pudo actualizar el usuario.';
+      }
+    });
+  }
+
+  solicitarEliminacion(usuario: Usuario): void {
+    this.deleteUser = usuario;
+    this.modalError = '';
+  }
+
+  cancelarEliminacion(): void {
+    if (this.deleting) return;
+    this.deleteUser = null;
+    this.modalError = '';
+  }
+
+  confirmarEliminacion(): void {
+    if (!this.deleteUser || this.deleting) return;
+    this.deleting = true;
+    this.modalError = '';
+    this.usuariosService.delete(this.deleteUser.id).subscribe({
+      next: () => {
+        this.deleting = false;
+        this.deleteUser = null;
+        this.loadUsers();
+      },
+      error: (error) => {
+        this.deleting = false;
+        this.modalError = error?.error?.message || 'No se pudo eliminar el usuario.';
+      }
     });
   }
 }

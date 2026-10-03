@@ -287,6 +287,7 @@ CREATE TABLE noticias (
   id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   titulo         VARCHAR(160) NOT NULL,
   descripcion    TEXT         NOT NULL,
+  contenido      LONGTEXT     NULL,
   categoria      VARCHAR(40),
   imagen_url     VARCHAR(255),
   destacada      BOOLEAN      NOT NULL DEFAULT FALSE,

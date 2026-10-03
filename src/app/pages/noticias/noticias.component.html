@@ -43,7 +43,7 @@
               <span class="news-date"><i class="fa-regular fa-calendar"></i> {{ news.date }}</span>
               <h3>{{ news.title }}</h3>
               <p>{{ news.description }}</p>
-              <a routerLink="/noticias" class="btn btn-outline-blue btn-sm">Leer más <i class="fa-solid fa-arrow-right"></i></a>
+              <a [routerLink]="['/noticia', news.id]" class="btn btn-outline-blue btn-sm">Leer más <i class="fa-solid fa-arrow-right"></i></a>
             </div>
           </div>
         </div>
@@ -74,7 +74,7 @@
         <div class="sidebar-card">
           <h3>Noticias Destacadas</h3>
           <div class="sidebar-news-list">
-            <a routerLink="/noticias" class="sidebar-news-item" *ngFor="let n of featured">
+            <a [routerLink]="['/noticia', n.id]" class="sidebar-news-item" *ngFor="let n of featured">
               <img [src]="n.image" [alt]="n.title">
               <div>
                 <span class="sidebar-news-cat">{{ n.category }}</span>

@@ -1,0 +1,152 @@
+<!-- ESTADO CARGANDO -->
+<section *ngIf="loading" class="section loading-section">
+  <div class="container text-center">
+    <div class="news-skeleton">
+      <div class="skeleton-badge"></div>
+      <div class="skeleton-title"></div>
+      <div class="skeleton-meta"></div>
+      <div class="skeleton-image"></div>
+      <div class="skeleton-text"></div>
+      <div class="skeleton-text short"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ESTADO NO ENCONTRADO -->
+<section *ngIf="!loading && notFound" class="section not-found-section">
+  <div class="container">
+    <div class="not-found-card">
+      <div class="not-found-icon">
+        <i class="fa-solid fa-newspaper"></i>
+      </div>
+      <h2>Noticia no encontrada</h2>
+      <p>El artículo solicitado no existe o ya no está disponible para consulta pública.</p>
+      <a routerLink="/noticias" class="btn btn-primary">
+        <i class="fa-solid fa-arrow-left"></i> Volver a Noticias
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- DETALLE COMPLETO DE LA NOTICIA -->
+<ng-container *ngIf="!loading && newsItem && !notFound">
+  <!-- HERO BANNER -->
+  <header class="article-hero">
+    <div class="container">
+      <nav class="breadcrumb-nav" aria-label="Ruta de navegación">
+        <a routerLink="/inicio" class="breadcrumb-link">Inicio</a>
+        <span class="breadcrumb-sep">/</span>
+        <a routerLink="/noticias" class="breadcrumb-link">Noticias</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">{{ newsItem.category }}</span>
+      </nav>
+
+      <div class="hero-header-box">
+        <div class="badge-row">
+          <span class="category-pill">{{ newsItem.category }}</span>
+          <span class="featured-pill" *ngIf="newsItem.featured">
+            <i class="fa-solid fa-star"></i> Destacada
+          </span>
+        </div>
+
+        <h1 class="article-headline">{{ newsItem.title }}</h1>
+
+        <div class="article-meta-bar">
+          <div class="meta-item">
+            <i class="fa-regular fa-calendar"></i>
+            <span>{{ newsItem.date }}</span>
+          </div>
+          <div class="meta-separator">•</div>
+          <div class="meta-item">
+            <i class="fa-solid fa-user-pen"></i>
+            <span>{{ newsItem.author || 'Prensa Avellaneda FC' }}</span>
+          </div>
+          <div class="meta-separator">•</div>
+          <div class="meta-item">
+            <i class="fa-regular fa-clock"></i>
+            <span>3 min de lectura</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL + SIDEBAR -->
+  <main class="section article-section">
+    <div class="container">
+      <div class="article-layout">
+        <!-- CUERPO PRINCIPAL DEL ARTÍCULO -->
+        <article class="article-main">
+          <!-- IMAGEN PRINCIPAL / PORTADA -->
+          <div class="article-figure">
+            <img [src]="newsItem.image" [alt]="newsItem.title" class="article-cover" />
+          </div>
+
+          <!-- EXTRACTO / LEAD -->
+          <p class="article-lead">
+            {{ newsItem.description }}
+          </p>
+
+          <hr class="article-divider" />
+
+          <!-- CUERPO COMPLETO / PÁRRAFOS -->
+          <div class="article-body">
+            <p *ngFor="let paragraph of getParagraphs()" class="article-p">
+              {{ paragraph }}
+            </p>
+          </div>
+
+          <!-- COMPARTIR Y ACCIONES -->
+          <div class="article-footer-box">
+            <div class="share-group">
+              <span class="share-label">Compartir artículo:</span>
+              <button type="button" class="btn-share whatsapp-btn" (click)="shareWhatsapp()" title="Compartir en WhatsApp">
+                <i class="fa-brands fa-whatsapp"></i> WhatsApp
+              </button>
+              <button type="button" class="btn-share copy-btn" (click)="copyLink()" title="Copiar enlace">
+                <i class="fa-solid fa-link"></i> {{ copied ? '¡Enlace copiado!' : 'Copiar link' }}
+              </button>
+            </div>
+
+            <a routerLink="/noticias" class="back-link-btn">
+              <i class="fa-solid fa-arrow-left"></i> Volver al listado
+            </a>
+          </div>
+        </article>
+
+        <!-- BARRA LATERAL (SIDEBAR) -->
+        <aside class="article-sidebar">
+          <!-- OTRAS NOTICIAS RELACIONADAS -->
+          <div class="sidebar-widget">
+            <h3 class="widget-title">
+              <i class="fa-solid fa-newspaper widget-icon"></i>
+              Otras noticias
+            </h3>
+            <div class="related-list">
+              <a [routerLink]="['/noticia', rel.id]" class="related-card" *ngFor="let rel of relatedNews">
+                <div class="related-thumb-wrap">
+                  <img [src]="rel.image" [alt]="rel.title" class="related-thumb" />
+                </div>
+                <div class="related-content">
+                  <span class="related-category">{{ rel.category }}</span>
+                  <h4 class="related-title">{{ rel.title }}</h4>
+                  <span class="related-date"><i class="fa-regular fa-calendar"></i> {{ rel.date }}</span>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <!-- BANNER COMUNITARIO / SOCIOS -->
+          <div class="sidebar-widget cta-widget">
+            <div class="cta-icon">
+              <i class="fa-solid fa-medal"></i>
+            </div>
+            <h4>Formá parte de Avellaneda FC</h4>
+            <p>Hacete socio y disfrutá de todas las actividades, turnos e instalaciones deportivas.</p>
+            <a routerLink="/registro" class="btn btn-white-solid">Asociate ahora</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+</ng-container>

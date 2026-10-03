@@ -9,6 +9,7 @@ export interface Noticia {
   id: number;
   titulo: string;
   descripcion: string;
+  contenido: string | null;
   categoria: string;
   imagen_url: string | null;
   destacada: boolean;
@@ -20,6 +21,7 @@ export interface Noticia {
 export interface NoticiaPayload {
   titulo: string;
   descripcion: string;
+  contenido: string;
   categoria: string;
   imagen_url: string;
   estado: NoticiaEstado;

@@ -43,6 +43,7 @@ export class GestionNoticiasComponent implements OnInit {
     this.form = this.fb.group({
       titulo: ['', [Validators.required, Validators.maxLength(160)]],
       descripcion: ['', [Validators.required, Validators.minLength(10)]],
+      contenido: ['', [Validators.required, Validators.minLength(10)]],
       categoria: ['Comunicados', Validators.required],
       imagen_url: [''],
       estado: ['borrador', Validators.required],
@@ -118,6 +119,7 @@ export class GestionNoticiasComponent implements OnInit {
     this.form.patchValue({
       titulo: noticia.titulo,
       descripcion: noticia.descripcion,
+      contenido: noticia.contenido || noticia.descripcion,
       categoria: noticia.categoria,
       imagen_url: noticia.imagen_url || '',
       estado: noticia.estado,
@@ -176,7 +178,7 @@ export class GestionNoticiasComponent implements OnInit {
     this.selectedFile = null;
     this.imagePreview = '';
     this.form.reset({
-      titulo: '', descripcion: '', categoria: 'Comunicados', imagen_url: '',
+      titulo: '', descripcion: '', contenido: '', categoria: 'Comunicados', imagen_url: '',
       estado: 'borrador', fecha_publicacion: this.toLocalDateTime(new Date())
     });
   }

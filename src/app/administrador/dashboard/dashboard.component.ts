@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -21,18 +20,17 @@ import { environment } from '../../../environments/environment';
         </div>
 
         <nav class="nav-menu">
-          <a routerLink="/administrador/home" routerLinkActive="active">Inicio</a>
-          <a routerLink="/administrador/usuarios" routerLinkActive="active">Usuarios</a>
-          <a routerLink="/administrador/registrar-atleta" routerLinkActive="active">Atletas</a>
-          <a routerLink="/administrador/entrenadores" routerLinkActive="active">Entrenadores</a>
-          <a routerLink="/administrador/deportes" routerLinkActive="active">Deportes</a>
-          <a routerLink="/administrador/noticias" routerLinkActive="active">Noticias</a>
-          <a routerLink="/administrador/recursos" routerLinkActive="active">Recursos Deportivos</a>
-          <a routerLink="/administrador/solicitudes" routerLinkActive="active">Solicitudes</a>
-          <a routerLink="/administrador/reportes" routerLinkActive="active">Reportes</a>
+          <a routerLink="/administrador/home" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Inicio</span></a>
+          <a routerLink="/administrador/usuarios" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-users" aria-hidden="true"></i><span>Usuarios</span></a>
+          <a routerLink="/administrador/registrar-atleta" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-person-running" aria-hidden="true"></i><span>Atletas</span></a>
+          <a routerLink="/administrador/entrenadores" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-clipboard-user" aria-hidden="true"></i><span>Entrenadores</span></a>
+          <a routerLink="/administrador/deportes" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-trophy" aria-hidden="true"></i><span>Deportes</span></a>
+          <a routerLink="/administrador/noticias" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>Noticias</span></a>
+          <a routerLink="/administrador/recursos" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-dumbbell" aria-hidden="true"></i><span>Recursos Deportivos</span></a>
+          <a routerLink="/administrador/solicitudes" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-file-circle-check" aria-hidden="true"></i><span>Solicitudes</span></a>
+          <a routerLink="/administrador/reportes" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-chart-column" aria-hidden="true"></i><span>Reportes</span></a>
         </nav>
 
-        <button class="logout-btn" type="button" (click)="logout()">Cerrar Sesión</button>
       </aside>
 
       <main class="content-area">
@@ -83,27 +81,46 @@ import { environment } from '../../../environments/environment';
         gap: 6px;
       }
       .nav-menu a {
+        position: relative;
         display: flex;
         align-items: center;
-        border-radius: 10px;
-        padding: 12px 14px;
+        gap: 13px;
+        min-height: 46px;
+        border: 1px solid transparent;
+        border-radius: 9px;
+        padding: 10px 13px;
         color: rgba(255,255,255,0.88);
         text-decoration: none;
         font-weight: 600;
+        transition: all 200ms ease;
+      }
+      .nav-menu a i {
+        display: grid;
+        place-items: center;
+        width: 20px;
+        flex: 0 0 20px;
+        color: #9bb7ce;
+        font-size: 15px;
+        transition: color 200ms ease, transform 200ms ease;
+      }
+      .nav-menu a:hover {
+        transform: translateX(4px);
+        border-color: rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.09);
+        color: #fff;
+      }
+      .nav-menu a:hover i {
+        transform: scale(1.08);
+        color: #d7eaff;
       }
       .nav-menu a.active {
-        background: rgba(255,255,255,0.12);
-      }
-      .logout-btn {
-        margin-top: auto;
-        border: none;
-        background: transparent;
+        border-color: rgba(147,197,253,0.18);
+        background: linear-gradient(100deg, rgba(59,130,246,0.32), rgba(59,130,246,0.12));
         color: #fff;
-        text-align: left;
-        padding: 12px 14px;
-        border-radius: 10px;
-        cursor: pointer;
-        font-weight: 600;
+        box-shadow: inset 3px 0 0 #60a5fa, 0 5px 16px rgba(2,12,27,0.16);
+      }
+      .nav-menu a.active i {
+        color: #bfdbfe;
       }
       .content-area {
         padding: 28px 32px 32px;
@@ -130,11 +147,7 @@ import { environment } from '../../../environments/environment';
 export class DashboardComponent implements OnInit {
   pendientesCount = 0;
 
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-    private http: HttpClient
-  ) {}
+  constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.http.get<{ total: number }>(
@@ -144,13 +157,4 @@ export class DashboardComponent implements OnInit {
       error: ()  => { this.pendientesCount = 0; }
     });
   }
-
-  logout(): void {
-    // clearSession ya se llama dentro de authService.logout()
-    this.authService.logout().subscribe({
-      next:  () => this.router.navigate(['/login']),
-      error: () => this.router.navigate(['/login'])   // igual redirige si el backend falla
-    });
-  }
-
 }

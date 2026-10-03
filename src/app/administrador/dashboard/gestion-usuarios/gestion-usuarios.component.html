@@ -31,6 +31,8 @@
     <div class="results-count">Mostrando {{ usuarios.length }} de {{ total }} usuarios</div>
   </div>
 
+  <p class="feedback-error" *ngIf="modalError && !editUser && !deleteUser" role="alert">{{ modalError }}</p>
+
   <div class="table-wrap">
     <table>
       <thead>
@@ -62,9 +64,9 @@
           </td>
           <td>
             <div class="actions">
-              <button type="button" class="btn-action btn-view">Ver</button>
-              <button type="button" class="btn-action btn-edit">Editar</button>
-              <button type="button" class="btn-action btn-delete" (click)="eliminarUsuario(user.id)">Eliminar</button>
+              <button type="button" class="btn-action btn-view" (click)="ver(user)">Ver</button>
+              <button type="button" class="btn-action btn-edit" (click)="abrirEdicion(user)">Editar</button>
+              <button type="button" class="btn-action btn-delete" (click)="solicitarEliminacion(user)">Eliminar</button>
             </div>
           </td>
         </tr>
@@ -89,5 +91,77 @@
       </button>
       <button type="button" [disabled]="page === totalPages" (click)="nextPage()">›</button>
     </div>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="selectedUser" (click)="cerrarDetalle()">
+    <section class="user-modal" role="dialog" aria-modal="true" aria-labelledby="view-user-title" (click)="$event.stopPropagation()">
+      <header class="modal-heading">
+        <div>
+          <span class="modal-eyebrow">Ficha de usuario</span>
+          <h2 id="view-user-title">{{ selectedUser.nombre }} {{ selectedUser.apellido }}</h2>
+        </div>
+        <button class="modal-close" type="button" aria-label="Cerrar detalles" (click)="cerrarDetalle()">×</button>
+      </header>
+      <div class="user-detail-grid">
+        <div class="user-detail-item"><span>ID de usuario</span><strong>{{ selectedUser.id }}</strong></div>
+        <div class="user-detail-item"><span>Nombre</span><strong>{{ selectedUser.nombre }}</strong></div>
+        <div class="user-detail-item"><span>Apellido</span><strong>{{ selectedUser.apellido }}</strong></div>
+        <div class="user-detail-item"><span>Correo electrónico</span><strong>{{ selectedUser.email }}</strong></div>
+        <div class="user-detail-item"><span>Rol</span><strong class="detail-role">{{ selectedUser.rol }}</strong></div>
+        <div class="user-detail-item"><span>Estado de la cuenta</span><strong [class]="getEstadoClass(selectedUser.activo)">{{ selectedUser.activo ? 'Activo' : 'Inactivo' }}</strong></div>
+      </div>
+      <footer class="modal-actions">
+        <button class="modal-button secondary" type="button" (click)="cerrarDetalle()">Cerrar</button>
+      </footer>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="editUser" (click)="cerrarEdicion()">
+    <section class="user-modal" role="dialog" aria-modal="true" aria-labelledby="edit-user-title" (click)="$event.stopPropagation()">
+      <header class="modal-heading">
+        <div>
+          <span class="modal-eyebrow">Administración de cuenta</span>
+          <h2 id="edit-user-title">Editar usuario</h2>
+        </div>
+        <button class="modal-close" type="button" aria-label="Cerrar" (click)="cerrarEdicion()">×</button>
+      </header>
+      <p class="modal-user-name">{{ editUser.nombre }} {{ editUser.apellido }} <span>{{ editUser.email }}</span></p>
+      <form (ngSubmit)="guardarEdicion()">
+        <label class="modal-field">Rol
+          <select name="rol" [(ngModel)]="editValues.rol">
+            <option *ngFor="let role of editableRoles" [value]="role.value">{{ role.label }}</option>
+          </select>
+        </label>
+        <label class="modal-field">Estado de la cuenta
+          <select name="activo" [ngModel]="editValues.activo" (ngModelChange)="editValues.activo = $event === true || $event === 'true'">
+            <option [ngValue]="true">Activo</option>
+            <option [ngValue]="false">Inactivo</option>
+          </select>
+        </label>
+        <p class="feedback-error" *ngIf="modalError" role="alert">{{ modalError }}</p>
+        <footer class="modal-actions">
+          <button class="modal-button secondary" type="button" (click)="cerrarEdicion()">Cancelar</button>
+          <button class="modal-button primary" type="submit" [disabled]="saving">{{ saving ? 'Guardando...' : 'Guardar cambios' }}</button>
+        </footer>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="deleteUser" (click)="cancelarEliminacion()">
+    <section class="user-modal confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-user-title" (click)="$event.stopPropagation()">
+      <header class="modal-heading">
+        <div>
+          <span class="modal-eyebrow danger-text">Acción permanente</span>
+          <h2 id="delete-user-title">¿Eliminar usuario?</h2>
+        </div>
+        <button class="modal-close" type="button" aria-label="Cerrar" (click)="cancelarEliminacion()">×</button>
+      </header>
+      <p class="confirm-copy">Se eliminará la cuenta de <strong>{{ deleteUser.nombre }} {{ deleteUser.apellido }}</strong>. Esta acción no se puede deshacer.</p>
+      <p class="feedback-error" *ngIf="modalError" role="alert">{{ modalError }}</p>
+      <footer class="modal-actions">
+        <button class="modal-button secondary" type="button" (click)="cancelarEliminacion()">Cancelar</button>
+        <button class="modal-button destructive" type="button" [disabled]="deleting" (click)="confirmarEliminacion()">{{ deleting ? 'Eliminando...' : 'Eliminar cuenta' }}</button>
+      </footer>
+    </section>
   </div>
 </section>

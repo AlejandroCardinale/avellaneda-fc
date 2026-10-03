@@ -79,6 +79,10 @@ export class UsuariosService {
     return this.http.put<Usuario>(`${this.API}/${id}`, data);
   }
 
+  updateRoleAndStatus(id: number, data: Pick<Usuario, 'rol' | 'activo'>): Observable<Usuario> {
+    return this.update(id, data);
+  }
+
   delete(id: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.API}/${id}`);
   }

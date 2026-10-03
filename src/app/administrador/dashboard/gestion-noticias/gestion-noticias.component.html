@@ -116,6 +116,10 @@
               <textarea rows="3" formControlName="descripcion" placeholder="Escribe una breve descripción de la noticia"></textarea>
               <small *ngIf="f['descripcion'].touched && f['descripcion'].invalid">La descripción debe tener al menos 10 caracteres.</small>
             </label>
+            <label class="field field-wide">Contenido completo
+              <textarea rows="10" formControlName="contenido" placeholder="Escribe aquí el artículo completo"></textarea>
+              <small *ngIf="f['contenido'].touched && f['contenido'].invalid">El contenido es obligatorio y debe tener al menos 10 caracteres.</small>
+            </label>
           </div>
         </div>
         <div class="modal-footer">

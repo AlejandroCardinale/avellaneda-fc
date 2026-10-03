@@ -11,12 +11,15 @@ export interface News {
   date: string;
   image: string;
   featured?: boolean;
+  content?: string;
+  author?: string;
 }
 
 interface PublicNewsResponse {
   id: number;
   titulo: string;
   descripcion: string;
+  contenido: string | null;
   categoria: string;
   imagen_url: string | null;
   destacada: boolean;
@@ -99,18 +102,34 @@ export class NewsService {
   }
   getCategories(): string[] { return ['Todas', 'Institucional', 'Deportes', 'Eventos', 'Comunicados']; }
 
+  getById(id: string | number): News | undefined {
+    const item = this.news.find(news => news.id === Number(id));
+    return item ? { ...item, content: item.content || item.description } : undefined;
+  }
+
   getPublicNews(): Observable<News[]> {
     return this.http.get<PublicNewsResponse[]>(`${this.api}/publicas`).pipe(
-      map(rows => rows.map(row => ({
-        id: row.id,
-        title: row.titulo,
-        description: row.descripcion,
-        category: row.categoria,
-        date: this.formatDate(row.fecha_publicacion),
-        image: row.imagen_url || 'images/football_pitch.png',
-        featured: row.destacada
-      })))
+      map(rows => rows.map(row => this.mapNews(row)))
     );
+  }
+
+  getPublicNewsById(id: string | number): Observable<News> {
+    return this.http.get<PublicNewsResponse>(`${this.api}/publicas/${id}`).pipe(
+      map(row => this.mapNews(row))
+    );
+  }
+
+  private mapNews(row: PublicNewsResponse): News {
+    return {
+      id: row.id,
+      title: row.titulo,
+      description: row.descripcion,
+      content: row.contenido || row.descripcion,
+      category: row.categoria,
+      date: this.formatDate(row.fecha_publicacion),
+      image: row.imagen_url || 'images/football_pitch.png',
+      featured: row.destacada
+    };
   }
 
   private formatDate(value: string): string {

@@ -31,14 +31,13 @@ export const adminRoutes: Routes = [
     loadComponent: () => import('./dashboard/deportes/deportes.component').then(m => m.DeportesAdminComponent)
   },
   {
-    path: 'solicitudes-acceso',
+    path: 'solicitudes',
     loadComponent: () => import('./dashboard/solicitudes-acceso/solicitudes-acceso.component').then(m => m.SolicitudesAccesoComponent)
   },
   {
     path: 'reportes',
     loadComponent: () => import('./dashboard/reportes/reportes.component').then(m => m.ReportesAdminComponent)
   },
-  { path: 'solicitudes',   redirectTo: 'solicitudes-acceso', pathMatch: 'full' },
   { path: 'eventos',       redirectTo: 'home', pathMatch: 'full' },
   { path: 'instalaciones', redirectTo: 'home', pathMatch: 'full' }
 ];

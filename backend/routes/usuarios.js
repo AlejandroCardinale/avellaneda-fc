@@ -71,6 +71,39 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+router.put('/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  const rol = String(req.body.rol || '').toLowerCase();
+  const { activo } = req.body;
+  const allowedRoles = ['administrador', 'entrenador', 'atleta'];
+
+  if (!Number.isInteger(id) || !allowedRoles.includes(rol) || typeof activo !== 'boolean') {
+    return res.status(400).json({ message: 'El rol y el estado de la cuenta no son válidos.' });
+  }
+  if (id === Number(req.usuario.id) && (!activo || rol !== 'administrador')) {
+    return res.status(409).json({ message: 'No puedes cambiar tu propio rol ni desactivar tu cuenta.' });
+  }
+
+  try {
+    const [roles] = await pool.execute('SELECT id FROM roles WHERE nombre = ? LIMIT 1', [rol]);
+    if (!roles.length) return res.status(400).json({ message: 'El rol seleccionado no existe.' });
+
+    const [existing] = await pool.execute('SELECT id FROM usuarios WHERE id = ? LIMIT 1', [id]);
+    if (!existing.length) return res.status(404).json({ message: 'Usuario no encontrado.' });
+
+    await pool.execute('UPDATE usuarios SET rol_id = ?, activo = ? WHERE id = ?', [roles[0].id, activo, id]);
+    const [updated] = await pool.execute(`
+      SELECT u.id, u.nombre, u.apellido, u.email, u.telefono, u.avatar_url, u.activo,
+             r.nombre AS rol, u.creado_en, u.ultimo_login
+      FROM usuarios u JOIN roles r ON r.id = u.rol_id WHERE u.id = ?
+    `, [id]);
+    return res.json(updated[0]);
+  } catch (error) {
+    console.error('[usuarios PUT]', error);
+    return res.status(500).json({ message: 'Error al actualizar rol y estado.' });
+  }
+});
+
 router.patch('/:id/activo', async (req, res) => {
   try {
     const { activo } = req.body;
@@ -84,6 +117,9 @@ router.patch('/:id/activo', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
+  if (Number(req.params.id) === Number(req.usuario.id)) {
+    return res.status(409).json({ message: 'No puedes eliminar tu propia cuenta.' });
+  }
   try {
     const [result] = await pool.execute('DELETE FROM usuarios WHERE id = ?', [req.params.id]);
     if (!result.affectedRows) return res.status(404).json({ message: 'Usuario no encontrado.' });

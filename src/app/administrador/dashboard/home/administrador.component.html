@@ -4,15 +4,6 @@
       <p class="eyebrow">Panel de administración</p>
       <h1>Dashboard</h1>
     </div>
-    <div class="header-tools">
-      <div class="admin-user">
-        <span class="avatar" aria-hidden="true">CM</span>
-        <div>
-          <strong>{{ authService.getUsuario()?.nombre || 'Carlos Mendoza' }}</strong>
-          <small>Administrador</small>
-        </div>
-      </div>
-    </div>
   </div>
 
   <div class="admin-error" *ngIf="error">

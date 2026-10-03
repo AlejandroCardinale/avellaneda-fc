@@ -19,7 +19,7 @@ export class AdministradorComponent implements OnInit {
 
   constructor(
     private dashboardService: AdminDashboardService,
-    public authService: AuthService,
+    private authService: AuthService,
     private router: Router
   ) {}
 
