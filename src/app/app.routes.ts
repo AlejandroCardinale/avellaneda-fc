@@ -86,6 +86,15 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/reportes/reportes.component').then(m => m.ReportesComponent)
   },
   {
+    path: 'admin/entrenadores/:id',
+    loadComponent: () => import('./administrador/dashboard/entrenador-detalle/entrenador-detalle.component').then(m => m.EntrenadorDetalleComponent)
+  },
+  {
+    path: 'admin/entrenadores',
+    redirectTo: '/administrador/entrenadores',
+    pathMatch: 'full'
+  },
+  {
     path: 'administrador',
     loadComponent: () => import('./administrador/dashboard/dashboard.component').then(m => m.DashboardComponent),
     children: adminRoutes

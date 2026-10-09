@@ -19,7 +19,6 @@ export class EntrenadoresComponent implements OnInit {
   confirmOpen = false;
   isEditMode = false;
   currentEntrenadorId: number | null = null;
-  selectedEntrenador: Entrenador | null = null;
   entrenadorToDelete: Entrenador | null = null;
   editingId: number | null = null;
   loading = false;
@@ -196,12 +195,7 @@ export class EntrenadoresComponent implements OnInit {
       return;
     }
 
-    this.selectedEntrenador = { ...entrenador, id: entrenadorId };
-    this.errorMessage = '';
-  }
-
-  cerrarDetalle(): void {
-    this.selectedEntrenador = null;
+    this.router.navigate(['/admin/entrenadores', entrenadorId]);
   }
 
   eliminar(entrenador: Entrenador): void {

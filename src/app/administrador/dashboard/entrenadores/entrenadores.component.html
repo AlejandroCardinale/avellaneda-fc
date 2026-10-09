@@ -74,7 +74,7 @@
                 </span>
               </td>
               <td class="actions-cell">
-                <button type="button" class="mini-btn view" (click)="ver(entrenador)">Ver</button>
+                <button type="button" class="mini-btn view" (click)="ver(entrenador)">Ver detalles</button>
                 <button type="button" class="mini-btn edit" (click)="editar(entrenador)">Editar</button>
                 <button type="button" class="mini-btn delete" (click)="eliminar(entrenador)">Eliminar</button>
               </td>
@@ -91,40 +91,6 @@
           </tbody>
         </ng-template>
       </div>
-  </div>
-
-  <div class="modal-backdrop" *ngIf="selectedEntrenador" (click)="cerrarDetalle()">
-    <article class="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-modal-title" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div>
-          <p class="eyebrow tiny">Ficha del entrenador</p>
-          <h2 id="detail-modal-title">{{ selectedEntrenador.nombre }} {{ selectedEntrenador.apellido }}</h2>
-        </div>
-        <button type="button" class="close-btn" aria-label="Cerrar detalles" (click)="cerrarDetalle()">×</button>
-      </div>
-      <div class="detail-body">
-        <section class="detail-section">
-          <h3>Información personal y de contacto</h3>
-          <div class="detail-grid">
-            <div class="detail-item"><span>Nombre completo</span><strong>{{ selectedEntrenador.nombre }} {{ selectedEntrenador.apellido }}</strong></div>
-            <div class="detail-item"><span>ID de entrenador</span><strong>{{ selectedEntrenador.id }}</strong></div>
-            <div class="detail-item"><span>Correo electrónico</span><strong>{{ selectedEntrenador.email || 'No informado' }}</strong></div>
-            <div class="detail-item"><span>Teléfono</span><strong>{{ selectedEntrenador.telefono || 'No informado' }}</strong></div>
-          </div>
-        </section>
-        <section class="detail-section">
-          <h3>Información profesional</h3>
-          <div class="detail-grid">
-            <div class="detail-item"><span>Disciplina deportiva</span><strong>{{ selectedEntrenador.deporte || 'No informada' }}</strong></div>
-            <div class="detail-item"><span>Especialidad</span><strong>{{ selectedEntrenador.especialidad || 'Sin especialidad' }}</strong></div>
-            <div class="detail-item"><span>Licencia</span><strong>{{ selectedEntrenador.licencia || 'Sin licencia' }}</strong></div>
-            <div class="detail-item"><span>Fecha de ingreso</span><strong>{{ selectedEntrenador.fecha_ingreso ? (selectedEntrenador.fecha_ingreso | date:'dd/MM/yyyy') : 'No informada' }}</strong></div>
-            <div class="detail-item"><span>Estado actual</span><strong class="status-badge" [class.active]="selectedEntrenador.estado === 'activo'" [class.inactive]="selectedEntrenador.estado === 'inactivo'">{{ getEstadoLabel(selectedEntrenador.estado) }}</strong></div>
-          </div>
-        </section>
-      </div>
-      <div class="modal-footer"><button type="button" class="btn btn-secondary" (click)="cerrarDetalle()">Cerrar</button></div>
-    </article>
   </div>
 
   <div class="modal-backdrop" *ngIf="modalOpen" (click)="cerrarModal()">

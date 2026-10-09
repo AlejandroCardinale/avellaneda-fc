@@ -15,6 +15,7 @@ router.get('/', async (_req, res) => {
       SELECT
         a.id,
         a.usuario_id,
+        a.entrenador_id,
         a.deporte_id,
         a.categoria_id,
         u.nombre,
@@ -140,6 +141,50 @@ router.post('/', async (req, res) => {
     });
   } finally {
     connection.release();
+  }
+});
+
+router.put('/:id/asignar-entrenador', async (req, res) => {
+  const atletaId = Number(req.params.id);
+  const { entrenador_id } = req.body;
+
+  if (!Number.isInteger(atletaId) || atletaId <= 0) {
+    return res.status(400).json({ message: 'ID de atleta inválido.' });
+  }
+
+  const nuevoEntrenadorId = (entrenador_id === null || entrenador_id === undefined || entrenador_id === '')
+    ? null
+    : Number(entrenador_id);
+
+  if (nuevoEntrenadorId !== null && (!Number.isInteger(nuevoEntrenadorId) || nuevoEntrenadorId <= 0)) {
+    return res.status(400).json({ message: 'ID de entrenador inválido.' });
+  }
+
+  try {
+    const [atletaRows] = await pool.execute('SELECT id, deporte_id FROM atletas WHERE id = ?', [atletaId]);
+    if (!atletaRows.length) {
+      return res.status(404).json({ message: 'Atleta no encontrado.' });
+    }
+
+    if (nuevoEntrenadorId !== null) {
+      const [coachRows] = await pool.execute('SELECT id, deporte_id FROM entrenadores WHERE id = ?', [nuevoEntrenadorId]);
+      if (!coachRows.length) {
+        return res.status(404).json({ message: 'Entrenador no encontrado.' });
+      }
+    }
+
+    await pool.execute('UPDATE atletas SET entrenador_id = ? WHERE id = ?', [nuevoEntrenadorId, atletaId]);
+
+    return res.json({
+      message: nuevoEntrenadorId
+        ? 'Atleta asignado al entrenador correctamente.'
+        : 'Atleta desvinculado del entrenador correctamente.',
+      atletaId,
+      entrenadorId: nuevoEntrenadorId
+    });
+  } catch (error) {
+    console.error('[atletas PUT /:id/asignar-entrenador]', error);
+    return res.status(500).json({ message: 'No se pudo actualizar la asignación del atleta.' });
   }
 });
 

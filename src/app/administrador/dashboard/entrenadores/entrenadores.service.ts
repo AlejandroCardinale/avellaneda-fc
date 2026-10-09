@@ -29,6 +29,21 @@ export interface EntrenadorPayload {
   estado_inicial: 'activo' | 'inactivo';
 }
 
+export interface AtletaAsignado {
+  id: number;
+  usuario_id: number;
+  entrenador_id?: number | null;
+  nombre: string;
+  apellido: string;
+  email: string;
+  avatar_url?: string | null;
+  telefono?: string | null;
+  dni?: string | null;
+  deporte_id?: number;
+  deporte?: string;
+  estado: 'activo' | 'inactivo' | string;
+}
+
 export interface EntrenadorResponse {
   message: string;
   entrenadorId?: number;
@@ -43,6 +58,25 @@ export class EntrenadoresService {
 
   listar(): Observable<Entrenador[]> {
     return this.http.get<Entrenador[]>(this.API);
+  }
+
+  obtenerPorId(id: number): Observable<Entrenador> {
+    return this.http.get<Entrenador>(`${this.API}/${id}`);
+  }
+
+  listarAtletas(id: number): Observable<AtletaAsignado[]> {
+    return this.http.get<AtletaAsignado[]>(`${this.API}/${id}/atletas`);
+  }
+
+  listarAtletasDisponibles(id: number): Observable<AtletaAsignado[]> {
+    return this.http.get<AtletaAsignado[]>(`${this.API}/${id}/atletas-disponibles`);
+  }
+
+  asignarAtleta(atletaId: number, entrenadorId: number | null): Observable<{ message: string; atletaId: number; entrenadorId: number | null }> {
+    return this.http.put<{ message: string; atletaId: number; entrenadorId: number | null }>(
+      `${environment.apiUrl}/atletas/${atletaId}/asignar-entrenador`,
+      { entrenador_id: entrenadorId }
+    );
   }
 
   registrar(payload: EntrenadorPayload): Observable<EntrenadorResponse> {
