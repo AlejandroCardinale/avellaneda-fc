@@ -14,8 +14,8 @@
 
 * { box-sizing: border-box; }
 
-.coach-page { min-height: calc(100vh - var(--header-height, 72px)); padding: 22px; background: var(--canvas); }
-.coach-layout { display: grid; grid-template-columns: 238px minmax(0, 1fr); max-width: 1540px; min-height: 760px; margin: 0 auto; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; box-shadow: 0 18px 48px rgba(13, 27, 62, .08); }
+.coach-page { min-height: calc(100vh - var(--header-height, 72px)); padding: 0; background: var(--canvas); }
+.coach-layout { display: grid; grid-template-columns: 238px minmax(0, 1fr); min-height: calc(100vh - var(--header-height, 72px)); margin: 0; background: var(--paper); overflow: hidden; }
 .coach-sidebar { display: flex; flex-direction: column; padding: 24px 15px 18px; background: var(--forest); color: #fff; }
 .club-mark { display: flex; align-items: center; gap: 10px; padding: 1px 9px 24px; color: #fff; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.18); }
 .club-mark img { width: 36px; height: 36px; object-fit: contain; }
@@ -74,8 +74,8 @@ h1, h2, h3, p { margin-top: 0; }
 .state-dot { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; color: #4b6259; font-size: 10px; font-weight: 700; }
 .state-dot::before { width: 7px; height: 7px; border-radius: 50%; background: #8ca39a; content: ''; }
 .state-dot.programada::before { background: #4ba279; }
-.state-dot.en_curso::before { background: var(--amber); }
-.state-dot.finalizada::before { background: #6385a1; }
+.state-dot.en_curso::before { background: #6385a1; }
+.state-dot.finalizada::before { background: var(--amber); }
 .state-dot.cancelada::before { background: #c05a4b; }
 .page-heading { margin-bottom: 20px; }
 .page-heading h2 { margin: 0; font-size: 22px; }
@@ -90,6 +90,9 @@ td:first-child, th:first-child { padding-left: 3px; }
 td strong { font-size: 12px; }
 td small { margin-top: 5px; color: var(--muted); font-size: 10px; }
 td a { color: var(--leaf); text-decoration: none; }
+.athlete-row { cursor: pointer; }
+.athlete-row:hover { background: #f1f6ff; }
+.athlete-row:focus-visible { outline: 2px solid var(--leaf); outline-offset: -2px; }
 .medical-status { display: inline-block; padding: 5px 8px; border-radius: 3px; background: #e5f4eb; color: #236442; font-size: 10px; font-weight: 750; }
 .medical-status.pending { background: #fff0d7; color: #8a5a0b; }
 .session-form { margin: 0 0 22px; padding: 20px; border: 1px solid var(--line); border-left: 3px solid var(--leaf); border-radius: 5px; background: #f9fbf9; }
@@ -117,6 +120,7 @@ td a { color: var(--leaf); text-decoration: none; }
 .loader { width: 18px; height: 18px; border: 2px solid #d9e5de; border-top-color: var(--leaf); border-radius: 50%; animation: spin .8s linear infinite; }
 .attendance-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(12, 29, 24, .58); }
 .attendance-dialog { width: min(100%, 660px); max-height: min(85vh, 760px); padding: 22px; overflow: auto; border-radius: 6px; background: #fff; box-shadow: 0 24px 70px rgba(0,0,0,.24); }
+.athlete-dialog { width: min(100%, 780px); }
 .attendance-dialog .form-heading h2 { font-size: 20px; }
 .attendance-count { margin: -5px 0 12px; color: var(--muted); font-size: 11px; }
 .attendance-list { border-top: 1px solid var(--line); }
@@ -128,6 +132,17 @@ td a { color: var(--leaf); text-decoration: none; }
 .attendance-check small { margin-top: 4px; color: var(--muted); font-size: 10px; }
 .attendance-note { min-height: 32px; font-size: 11px; }
 .attendance-loading { padding: 32px 0; color: var(--muted); text-align: center; }
+.athlete-profile { margin: 18px 0 24px; }
+.athlete-profile strong { overflow-wrap: anywhere; }
+.athlete-summary-heading { align-items: center; }
+.athlete-summary-heading h3 { margin: 0; }
+.attendance-rate { color: var(--leaf); font-size: 27px; }
+.athlete-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; }
+.athlete-stats .metric { min-height: 0; padding: 12px; }
+.justification-note { margin: 9px 0 0; color: var(--muted); font-size: 10px; }
+.athlete-history { margin-top: 24px; }
+.athlete-history-row { grid-template-columns: minmax(0, 1fr) minmax(80px, .6fr) auto; }
+.athlete-history-row .state-dot { justify-self: end; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes arrive { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -167,6 +182,8 @@ td a { color: var(--leaf); text-decoration: none; }
   .attendance-dialog { padding: 16px; }
   .attendance-row { grid-template-columns: 1fr; gap: 5px; padding: 10px 0; }
   .attendance-note { margin-left: 27px; width: calc(100% - 27px); }
+  .athlete-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .athlete-history-row { align-items: flex-start; }
 }
 
 @media (prefers-reduced-motion: reduce) {

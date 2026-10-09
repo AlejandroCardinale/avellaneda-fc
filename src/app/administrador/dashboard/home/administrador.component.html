@@ -14,7 +14,9 @@
     <article class="stat-card">
       <div class="stat-icon athletes" aria-hidden="true">♟</div>
       <div class="stat-body">
-        <span class="stat-tag">+{{dashboard.summary.totalAtletas}} este mes</span>
+        <span class="stat-tag"
+          >+{{ dashboard.summary.totalAtletas }} este mes</span
+        >
         <h2>{{ dashboard.summary.totalAtletas }}</h2>
         <p>Total Atletas</p>
       </div>
@@ -23,7 +25,9 @@
     <article class="stat-card">
       <div class="stat-icon coaches" aria-hidden="true">⚑</div>
       <div class="stat-body">
-        <span class="stat-tag warning">+{{ dashboard.summary.totalEntrenadores }} este mes</span>
+        <span class="stat-tag warning"
+          >+{{ dashboard.summary.totalEntrenadores }} este mes</span
+        >
         <h2>{{ dashboard.summary.totalEntrenadores }}</h2>
         <p>Total Entrenadores</p>
       </div>
@@ -32,7 +36,9 @@
     <article class="stat-card">
       <div class="stat-icon pending" aria-hidden="true">▤</div>
       <div class="stat-body">
-        <span class="stat-tag danger">{{ dashboard.summary.solicitudesPendientes }} pendientes</span>
+        <span class="stat-tag danger"
+          >{{ dashboard.summary.solicitudesPendientes }} pendientes</span
+        >
         <h2>{{ dashboard.summary.solicitudesPendientes }}</h2>
         <p>Solicitudes Pendientes</p>
       </div>
@@ -41,7 +47,9 @@
     <article class="stat-card">
       <div class="stat-icon resources" aria-hidden="true">⚒</div>
       <div class="stat-body">
-        <span class="stat-tag success">{{ dashboard.summary.recursosDisponibles }} disponibles</span>
+        <span class="stat-tag success"
+          >{{ dashboard.summary.recursosDisponibles }} disponibles</span
+        >
         <h2>{{ dashboard.summary.recursosDisponibles }}</h2>
         <p>Recursos Disponibles</p>
       </div>
@@ -71,7 +79,9 @@
         </article>
       </div>
       <ng-template #noNews>
-        <p class="empty-message">No hay noticias pendientes en la última semana</p>
+        <p class="empty-message">
+          No hay noticias pendientes en la última semana
+        </p>
       </ng-template>
     </section>
 
@@ -89,14 +99,21 @@
           <div class="list-copy">
             <h4>{{ evento.titulo }}</h4>
             <div class="meta-row">
-              <span>{{ evento.fecha }}{{ evento.lugar ? ' · ' + evento.lugar : '' }}</span>
-              <span class="badge-soft">{{ evento.disciplina || evento.categoria || 'Evento' }}</span>
+              <span
+                >{{ evento.fecha
+                }}{{ evento.lugar ? " · " + evento.lugar : "" }}</span
+              >
+              <span class="badge-soft">{{
+                evento.disciplina || evento.categoria || "Evento"
+              }}</span>
             </div>
           </div>
         </article>
       </div>
       <ng-template #noEvents>
-        <p class="empty-message">No hay eventos recientes en la última semana</p>
+        <p class="empty-message">
+          No hay eventos recientes en la última semana
+        </p>
       </ng-template>
     </section>
   </div>
@@ -113,13 +130,15 @@
       <div class="chart" *ngIf="dashboard.chart.length">
         <div class="chart-bars">
           <div class="bar-group" *ngFor="let point of dashboard.chart">
-            <span class="bar" [style.height.%]="(point.total / maxChartValue) * 100 || 14"></span>
+            <span
+              class="bar"
+              [style.height.%]="(point.total / maxChartValue) * 100 || 14"
+            ></span>
             <small>{{ point.mes.slice(0, 3) }}</small>
           </div>
         </div>
       </div>
     </section>
-
   </div>
 </section>
 

@@ -9,7 +9,8 @@ import {
   EntrenadorService,
   Entrenamiento,
   EntrenamientoPayload,
-  ListaAsistencia
+  ListaAsistencia,
+  ResumenAsistenciaAtleta
 } from './entrenador.service';
 
 type CoachView = 'inicio' | 'atletas' | 'entrenamientos';
@@ -40,6 +41,13 @@ export class EntrenadorComponent implements OnInit {
   attendance: ListaAsistencia[] = [];
   attendanceLoading = false;
   attendanceSaving = false;
+  attendanceReadOnly = false;
+  attendanceError = '';
+  readonly absenceReasons = ['Médico', 'Fuerza Mayor', 'Ausente con prev. aviso', 'Día de estudio', 'Otro', 'Injustificado'];
+  selectedAthlete: AtletaEntrenador | null = null;
+  athleteAttendance: ResumenAsistenciaAtleta | null = null;
+  athleteDetailsLoading = false;
+  athleteDetailsError = '';
   sessionForm: EntrenamientoPayload = this.emptySessionForm();
 
   constructor(
@@ -70,6 +78,31 @@ export class EntrenadorComponent implements OnInit {
 
   get presentAttendanceCount(): number {
     return this.attendance.filter(row => Boolean(row.presente)).length;
+  }
+
+  openAthleteDetails(athlete: AtletaEntrenador): void {
+    this.selectedAthlete = athlete;
+    this.athleteAttendance = null;
+    this.athleteDetailsError = '';
+    this.athleteDetailsLoading = true;
+    this.service.resumenAsistenciaAtleta(athlete.id).subscribe({
+      next: summary => {
+        if (this.selectedAthlete?.id !== athlete.id) return;
+        this.athleteAttendance = summary;
+        this.athleteDetailsLoading = false;
+      },
+      error: error => {
+        if (this.selectedAthlete?.id !== athlete.id) return;
+        this.athleteDetailsError = error?.error?.message || 'No se pudo cargar la asistencia del atleta.';
+        this.athleteDetailsLoading = false;
+      }
+    });
+  }
+
+  closeAthleteDetails(): void {
+    this.selectedAthlete = null;
+    this.athleteAttendance = null;
+    this.athleteDetailsError = '';
   }
 
   setView(view: CoachView): void {
@@ -155,26 +188,50 @@ export class EntrenadorComponent implements OnInit {
   openAttendance(session: Entrenamiento): void {
     this.attendanceSessionId = session.id;
     this.attendanceSessionTitle = session.titulo;
+    this.attendanceReadOnly = session.estado === 'finalizada';
     this.attendanceLoading = true;
+    this.attendanceError = '';
     this.errorMessage = '';
     this.service.obtenerAsistencia(session.id).subscribe({
       next: rows => {
-        this.attendance = rows.map(row => ({ ...row, presente: Boolean(row.presente), observacion: row.observacion || '' }));
+        this.attendance = rows.map(row => {
+          const presente = Boolean(row.presente);
+          const observacion = presente ? '' : (row.observacion || '').trim();
+          return {
+            ...row,
+            presente,
+            observacion: this.absenceReasons.includes(observacion) ? observacion : observacion ? 'Otro' : ''
+          };
+        });
         this.attendanceLoading = false;
       },
       error: error => {
         this.attendanceLoading = false;
-        this.errorMessage = error?.error?.message || 'No se pudo cargar la asistencia.';
+        this.attendanceError = error?.error?.message || 'No se pudo cargar la asistencia.';
       }
     });
   }
 
   closeAttendance(): void {
-    if (!this.attendanceSaving) this.attendanceSessionId = null;
+    if (!this.attendanceSaving) {
+      this.attendanceSessionId = null;
+      this.attendanceReadOnly = false;
+      this.attendanceError = '';
+    }
+  }
+
+  onAttendancePresenceChange(row: ListaAsistencia, present: boolean): void {
+    row.presente = present;
+    if (present) row.observacion = '';
   }
 
   saveAttendance(): void {
-    if (this.attendanceSessionId === null) return;
+    if (this.attendanceSessionId === null || this.attendanceReadOnly) return;
+    this.attendanceError = '';
+    if (this.attendance.some(row => !row.presente && !row.observacion)) {
+      this.attendanceError = 'Selecciona un motivo para cada ausencia.';
+      return;
+    }
     this.attendanceSaving = true;
     this.service.guardarAsistencia(this.attendanceSessionId, this.attendance.map(row => ({
       atleta_id: row.atleta_id,
@@ -189,7 +246,7 @@ export class EntrenadorComponent implements OnInit {
       },
       error: error => {
         this.attendanceSaving = false;
-        this.errorMessage = error?.error?.message || 'No se pudo guardar la asistencia.';
+        this.attendanceError = error?.error?.message || 'No se pudo guardar la asistencia.';
       }
     });
   }
