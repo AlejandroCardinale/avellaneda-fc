@@ -12,6 +12,13 @@ interface SolicitudAcceso {
   rol: string;
   estado_registro: 'pendiente' | 'aprobado' | 'rechazado';
   creado_en: string;
+  deporte?: string;
+  dni?: string;
+  numero_socio?: string;
+  posicion?: string;
+  categoria?: string;
+  especialidad?: string;
+  licencia?: string;
 }
 
 @Component({
@@ -23,15 +30,15 @@ interface SolicitudAcceso {
 })
 export class SolicitudesAccesoComponent implements OnInit {
   solicitudes: SolicitudAcceso[] = [];
-  loading       = false;
-  procesando    = new Set<number>();
-  estadoFiltro  = 'pendiente';
-  filtros       = ['pendiente', 'aprobado', 'rechazado'];
-  successMsg    = '';
+  loading = false;
+  procesando = new Set<number>();
+  estadoFiltro = 'pendiente';
+  filtros = ['pendiente', 'aprobado', 'rechazado'];
+  successMsg = '';
 
   private readonly API = `${environment.apiUrl}/solicitudes-acceso`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   ngOnInit(): void { this.cargar(); }
 
@@ -39,7 +46,7 @@ export class SolicitudesAccesoComponent implements OnInit {
     this.loading = true;
     this.http.get<SolicitudAcceso[]>(`${this.API}?estado=${this.estadoFiltro}`).subscribe({
       next: data => { this.solicitudes = data; this.loading = false; },
-      error: ()  => { this.loading = false; }
+      error: () => { this.loading = false; }
     });
   }
 
@@ -52,7 +59,7 @@ export class SolicitudesAccesoComponent implements OnInit {
     this.procesando.add(id);
     this.http.patch(`${this.API}/${id}/aprobar`, {}).subscribe({
       next: () => { this.procesando.delete(id); this.mostrarExito('Cuenta aprobada ✅'); this.cargar(); },
-      error: ()  => { this.procesando.delete(id); }
+      error: () => { this.procesando.delete(id); }
     });
   }
 
@@ -61,7 +68,7 @@ export class SolicitudesAccesoComponent implements OnInit {
     this.procesando.add(id);
     this.http.patch(`${this.API}/${id}/rechazar`, {}).subscribe({
       next: () => { this.procesando.delete(id); this.mostrarExito('Solicitud rechazada'); this.cargar(); },
-      error: ()  => { this.procesando.delete(id); }
+      error: () => { this.procesando.delete(id); }
     });
   }
 

@@ -23,12 +23,22 @@ import { environment } from '../../environments/environment';
 /** Estructura del cuerpo que se envía al hacer login */
 export interface LoginRequest    { email: string; password: string; }
 
-/** Estructura del cuerpo que se envía al registrarse */
 export interface RegisterRequest {
-  nombre: string; apellido: string;
-  email: string; password: string;
+  nombre: string;
+  apellido: string;
+  email: string;
+  password: string;
   telefono?: string;
-  rol?: string;   // 'atleta' | 'entrenador' | 'administrador'
+  rol?: string; // 'atleta' | 'entrenador' | 'administrador'
+  // Campos específicos de atleta
+  deporte_id?: number;
+  categoria_id?: number | null;
+  dni?: string;
+  numero_socio?: string;
+  posicion?: string;
+  // Campos específicos de entrenador
+  especialidad?: string;
+  licencia?: string;
 }
 
 /** Estructura de la respuesta del backend al autenticar exitosamente */

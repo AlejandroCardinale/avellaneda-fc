@@ -27,6 +27,25 @@ async function migrate() {
     } else {
       console.log('ℹ️ La columna entrenador_id ya existe en la tabla atletas.');
     }
+
+    // Verificar si la columna estado_registro ya existe en la tabla usuarios
+    const [colsUsers] = await connection.query(`
+      SELECT COLUMN_NAME
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'usuarios'
+        AND COLUMN_NAME = 'estado_registro'
+    `);
+
+    if (colsUsers.length === 0) {
+      await connection.query(`
+        ALTER TABLE usuarios
+          ADD COLUMN estado_registro ENUM('pendiente','aprobado','rechazado') NOT NULL DEFAULT 'aprobado'
+      `);
+      console.log('✅ Columna estado_registro añadida a tabla usuarios.');
+    } else {
+      console.log('ℹ️ La columna estado_registro ya existe en la tabla usuarios.');
+    }
   } catch (error) {
     console.error('❌ Error ejecutando la migración:', error.message);
     throw error;

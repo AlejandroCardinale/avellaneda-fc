@@ -90,7 +90,23 @@ const transporter = nodemailer.createTransport({
  * HTTP 500: Error de base de datos
  */
 router.post('/register', async (req, res) => {
-  const { nombre, apellido, email, password, telefono, rol } = req.body;
+  const {
+    nombre,
+    apellido,
+    email,
+    password,
+    telefono,
+    rol,
+    // Campos específicos para Atleta
+    deporte_id,
+    categoria_id,
+    dni,
+    numero_socio,
+    posicion,
+    // Campos específicos para Entrenador
+    especialidad,
+    licencia
+  } = req.body;
 
   // Validaciones básicas de entrada
   if (!nombre || !apellido || !email || !password) {
@@ -104,45 +120,91 @@ router.post('/register', async (req, res) => {
   const rolesPermitidos = ['atleta', 'entrenador', 'administrador'];
   const rolElegido = rolesPermitidos.includes(rol) ? rol : 'atleta';
 
+  const connection = await pool.getConnection();
+
   try {
+    await connection.beginTransaction();
+
     // Verificar si el email ya existe en la BD
-    const [existe] = await pool.execute(
-      'SELECT id FROM usuarios WHERE email = ?', [email]
+    const [existe] = await connection.execute(
+      'SELECT id FROM usuarios WHERE email = ?',
+      [email.toLowerCase().trim()]
     );
     if (existe.length > 0) {
-      return res.status(409).json({ message: 'Ya existe una cuenta con ese email.' });
+      await connection.rollback();
+      return res.status(409).json({ message: 'Ya existe una cuenta con ese correo electrónico.' });
     }
 
     /**
-     * Hashear contraseña con bcrypt.
-     * El "12" es el número de rondas (salt). A mayor número, más seguro pero más lento.
-     * Con salt 12, hashear una contraseña tarda ~300ms: seguro para usuarios, lento para atacantes.
+     * Hashear contraseña con bcrypt (salt 12)
      */
     const password_hash = await bcrypt.hash(password, 12);
 
     // Buscar el id del rol elegido en la tabla roles
-    const [roles] = await pool.execute(
+    const [roles] = await connection.execute(
       'SELECT id FROM roles WHERE nombre = ? LIMIT 1',
       [rolElegido]
     );
     const rol_id = roles[0]?.id ?? 3; // Fallback al id 3 (atleta)
 
-    // Insertar el nuevo usuario en la BD — activo=FALSE hasta que el admin apruebe
-    const [result] = await pool.execute(
+    // Insertar el nuevo usuario en la BD — activo=FALSE y estado_registro='pendiente'
+    const [resultUser] = await connection.execute(
       `INSERT INTO usuarios (rol_id, nombre, apellido, email, password_hash, telefono, activo, estado_registro)
        VALUES (?, ?, ?, ?, ?, ?, FALSE, 'pendiente')`,
-      [rol_id, nombre.trim(), apellido.trim(), email.toLowerCase().trim(), password_hash, telefono ?? null]
+      [rol_id, nombre.trim(), apellido.trim(), email.toLowerCase().trim(), password_hash, telefono ? String(telefono).trim() : null]
     );
 
-    // No iniciamos sesión automáticamente — el admin debe aprobar primero
+    const usuarioId = resultUser.insertId;
+
+    // Si es Atleta: Insertar simultáneamente en la tabla atletas dejando entrenador_id = NULL
+    if (rolElegido === 'atleta') {
+      const parsedDeporteId = Number(deporte_id) > 0 ? Number(deporte_id) : 1;
+      const parsedCategoriaId = Number(categoria_id) > 0 ? Number(categoria_id) : null;
+      const parsedDni = dni && String(dni).trim() !== '' ? String(dni).trim() : null;
+      const parsedNumeroSocio = numero_socio && String(numero_socio).trim() !== '' ? String(numero_socio).trim() : null;
+      const parsedPosicion = posicion && String(posicion).trim() !== '' ? String(posicion).trim() : null;
+
+      await connection.execute(
+        `INSERT INTO atletas (
+          usuario_id, deporte_id, categoria_id, dni, numero_socio, posicion, entrenador_id, estado_medico
+        ) VALUES (?, ?, ?, ?, ?, ?, NULL, 'pendiente')`,
+        [usuarioId, parsedDeporteId, parsedCategoriaId, parsedDni, parsedNumeroSocio, parsedPosicion]
+      );
+    }
+
+    // Si es Entrenador: Insertar simultáneamente en la tabla entrenadores
+    if (rolElegido === 'entrenador') {
+      const parsedDeporteId = Number(deporte_id) > 0 ? Number(deporte_id) : 1;
+      const parsedEspecialidad = especialidad && String(especialidad).trim() !== '' ? String(especialidad).trim() : 'General';
+      const parsedLicencia = licencia && String(licencia).trim() !== '' ? String(licencia).trim() : null;
+
+      await connection.execute(
+        `INSERT INTO entrenadores (
+          usuario_id, deporte_id, especialidad, licencia
+        ) VALUES (?, ?, ?, ?)`,
+        [usuarioId, parsedDeporteId, parsedEspecialidad, parsedLicencia]
+      );
+    }
+
+    // Si es Administrador: No requiere tabla adicional
+
+    await connection.commit();
+
     return res.status(201).json({
-      message: 'Tu solicitud fue enviada. El administrador revisará tu cuenta y recibirás acceso cuando sea aprobada.',
-      pendiente: true
+      message: 'Tu solicitud de registro fue enviada con éxito. El administrador revisará tu cuenta y recibirás acceso una vez que sea aprobada.',
+      pendiente: true,
+      usuarioId
     });
 
   } catch (err) {
+    await connection.rollback();
     console.error('[register]', err);
-    return res.status(500).json({ message: 'Error interno del servidor.' });
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ message: 'Ya existe un registro con esos datos (email, DNI o número de socio ya registrado).' });
+    }
+    return res.status(500).json({ message: 'Error interno del servidor al procesar el registro.' });
+  } finally {
+    connection.release();
   }
 });
 

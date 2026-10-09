@@ -20,85 +20,90 @@
   </div>
 
   <div class="table-panel">
-      <div class="table-header">
-        <div>
-          <p class="eyebrow tiny">Listado</p>
-          <h2>Atletas registrados</h2>
-        </div>
-        <span class="chip">{{ filteredAtletas.length }}</span>
+    <div class="table-header">
+      <div>
+        <p class="eyebrow tiny">Listado</p>
+        <h2>Atletas registrados</h2>
       </div>
+      <span class="chip">{{ filteredAtletas.length }}</span>
+    </div>
 
-      <div class="athlete-filters">
-        <label class="athlete-search">
-          <span aria-hidden="true">⌕</span>
-          <input type="search" [(ngModel)]="search" placeholder="Buscar por nombre o correo..." aria-label="Buscar atletas" />
-        </label>
-        <label class="sport-filter">
-          <span>Deporte</span>
-          <select [(ngModel)]="selectedDeporte" aria-label="Filtrar por deporte">
-            <option *ngFor="let sport of availableSports" [value]="sport">{{ sport === 'Todos' ? 'Todas las disciplinas' : sport }}</option>
-          </select>
-        </label>
-        <label class="order-filter">
-          <span>Ordenar por</span>
-          <select [(ngModel)]="selectedOrder" aria-label="Ordenar atletas">
-            <option value="nameAsc">Nombre A-Z</option>
-            <option value="nameDesc">Nombre Z-A</option>
-            <option value="newest">Más recientes</option>
-            <option value="oldest">Más antiguos</option>
-          </select>
-        </label>
-        <button type="button" class="clear-filter" (click)="clearFilters()" [disabled]="!search && selectedDeporte === 'Todos' && selectedOrder === 'nameAsc'">Limpiar</button>
-      </div>
+    <div class="athlete-filters">
+      <label class="athlete-search">
+        <span aria-hidden="true">⌕</span>
+        <input type="search" [(ngModel)]="search" placeholder="Buscar por nombre o correo..."
+          aria-label="Buscar atletas" />
+      </label>
+      <label class="sport-filter">
+        <span>Deporte</span>
+        <select [(ngModel)]="selectedDeporte" aria-label="Filtrar por deporte">
+          <option *ngFor="let sport of availableSports" [value]="sport">{{ sport === 'Todos' ? 'Todas las disciplinas' :
+            sport }}</option>
+        </select>
+      </label>
+      <label class="order-filter">
+        <span>Ordenar por</span>
+        <select [(ngModel)]="selectedOrder" aria-label="Ordenar atletas">
+          <option value="nameAsc">Nombre A-Z</option>
+          <option value="nameDesc">Nombre Z-A</option>
+          <option value="newest">Más recientes</option>
+          <option value="oldest">Más antiguos</option>
+        </select>
+      </label>
+      <button type="button" class="clear-filter" (click)="clearFilters()"
+        [disabled]="!search && selectedDeporte === 'Todos' && selectedOrder === 'nameAsc'">Limpiar</button>
+    </div>
 
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Correo</th>
-              <th>Deporte</th>
-              <th>Categoría</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Deporte</th>
+            <th>Categoría</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
 
-          <tbody *ngIf="!athletesLoading; else loadingRow">
-            <tr *ngFor="let atleta of filteredAtletas">
-              <td>{{ atleta.nombre }} {{ atleta.apellido }}</td>
-              <td>{{ atleta.email }}</td>
-              <td>{{ atleta.deporte || 'Sin deporte' }}</td>
-              <td>{{ atleta.categoria || 'Sin categoría' }}</td>
-              <td>
-                <span class="status-badge" [ngClass]="{ active: atleta.estado === 'apto' || atleta.estado === 'activo', pending: atleta.estado === 'pendiente', inactive: atleta.estado === 'inactivo' || atleta.estado === 'no_apto' }">
-                  {{ atleta.estado || 'Activo' }}
-                </span>
-              </td>
-              <td class="actions-cell">
-                <button type="button" class="mini-btn view" (click)="verAtleta(atleta)">Ver</button>
-                <button type="button" class="mini-btn edit" (click)="editarAtleta(atleta)">Editar</button>
-                <button type="button" class="mini-btn delete" (click)="pedirEliminacion(atleta)">Eliminar</button>
-              </td>
-            </tr>
-            <tr *ngIf="!filteredAtletas.length">
-              <td colspan="6" class="empty-state">No hay atletas que coincidan con los filtros.</td>
-            </tr>
-          </tbody>
-        </table>
+        <tbody *ngIf="!athletesLoading; else loadingRow">
+          <tr *ngFor="let atleta of filteredAtletas">
+            <td>{{ atleta.nombre }} {{ atleta.apellido }}</td>
+            <td>{{ atleta.email }}</td>
+            <td>{{ atleta.deporte || 'Sin deporte' }}</td>
+            <td>{{ atleta.categoria || 'Sin categoría' }}</td>
+            <td>
+              <span class="status-badge"
+                [ngClass]="{ active: atleta.estado === 'apto' || atleta.estado === 'activo', pending: atleta.estado === 'pendiente', inactive: atleta.estado === 'inactivo' || atleta.estado === 'no_apto' }">
+                {{ atleta.estado || 'Activo' }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button type="button" class="mini-btn view" (click)="verAtleta(atleta)">Ver</button>
+              <button type="button" class="mini-btn edit" (click)="editarAtleta(atleta)">Editar</button>
+              <button type="button" class="mini-btn delete" (click)="pedirEliminacion(atleta)">Eliminar</button>
+            </td>
+          </tr>
+          <tr *ngIf="!filteredAtletas.length">
+            <td colspan="6" class="empty-state">No hay atletas que coincidan con los filtros.</td>
+          </tr>
+        </tbody>
+      </table>
 
-        <ng-template #loadingRow>
-          <tbody>
-            <tr>
-              <td colspan="6" class="empty-state">Cargando atletas...</td>
-            </tr>
-          </tbody>
-        </ng-template>
-      </div>
+      <ng-template #loadingRow>
+        <tbody>
+          <tr>
+            <td colspan="6" class="empty-state">Cargando atletas...</td>
+          </tr>
+        </tbody>
+      </ng-template>
+    </div>
   </div>
 
   <div class="modal-backdrop" *ngIf="selectedAtleta" (click)="cerrarDetalle()">
-    <article class="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-modal-title" (click)="$event.stopPropagation()">
+    <article class="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-modal-title"
+      (click)="$event.stopPropagation()">
       <div class="modal-header">
         <div>
           <p class="eyebrow tiny">Ficha del atleta</p>
@@ -111,34 +116,47 @@
         <section class="detail-section">
           <h3>Información personal</h3>
           <div class="detail-grid">
-            <div class="detail-item"><span>Nombre completo</span><strong>{{ selectedAtleta.nombre }} {{ selectedAtleta.apellido }}</strong></div>
-            <div class="detail-item"><span>DNI / Documento</span><strong>{{ selectedAtleta.dni || 'No informado' }}</strong></div>
-            <div class="detail-item"><span>Fecha de nacimiento</span><strong>{{ selectedAtleta.fecha_nacimiento ? (selectedAtleta.fecha_nacimiento | date:'dd/MM/yyyy') : 'No informada' }}</strong></div>
-            <div class="detail-item"><span>Género</span><strong>{{ getDetalleValue(selectedAtleta, 'Género') }}</strong></div>
+            <div class="detail-item"><span>Nombre completo</span><strong>{{ selectedAtleta.nombre }} {{
+                selectedAtleta.apellido }}</strong></div>
+            <div class="detail-item"><span>DNI / Documento</span><strong>{{ selectedAtleta.dni || 'No informado'
+                }}</strong></div>
+            <div class="detail-item"><span>Fecha de nacimiento</span><strong>{{ selectedAtleta.fecha_nacimiento ?
+                (selectedAtleta.fecha_nacimiento | date:'dd/MM/yyyy') : 'No informada' }}</strong></div>
+            <div class="detail-item"><span>Género</span><strong>{{ getDetalleValue(selectedAtleta, 'Género') }}</strong>
+            </div>
           </div>
         </section>
 
         <section class="detail-section">
           <h3>Datos de contacto</h3>
           <div class="detail-grid">
-            <div class="detail-item"><span>Correo electrónico</span><strong>{{ selectedAtleta.email || 'No informado' }}</strong></div>
-            <div class="detail-item"><span>Teléfono</span><strong>{{ selectedAtleta.telefono || 'No informado' }}</strong></div>
-            <div class="detail-item detail-item-wide"><span>Dirección</span><strong>{{ getDetalleValue(selectedAtleta, 'Dirección') }}</strong></div>
+            <div class="detail-item"><span>Correo electrónico</span><strong>{{ selectedAtleta.email || 'No informado'
+                }}</strong></div>
+            <div class="detail-item"><span>Teléfono</span><strong>{{ selectedAtleta.telefono || 'No informado'
+                }}</strong></div>
+            <div class="detail-item detail-item-wide"><span>Dirección</span><strong>{{ getDetalleValue(selectedAtleta,
+                'Dirección') }}</strong></div>
           </div>
         </section>
 
         <section class="detail-section">
           <h3>Información deportiva</h3>
           <div class="detail-grid">
-            <div class="detail-item"><span>Deporte</span><strong>{{ selectedAtleta.deporte || 'No informado' }}</strong></div>
-            <div class="detail-item"><span>Categoría</span><strong>{{ selectedAtleta.categoria || 'Sin categoría' }}</strong></div>
-            <div class="detail-item"><span>Fecha de inscripción</span><strong>{{ selectedAtleta.fecha_inscripcion ? (selectedAtleta.fecha_inscripcion | date:'dd/MM/yyyy') : 'No informada' }}</strong></div>
-            <div class="detail-item"><span>Estado actual</span><strong class="status-badge" [ngClass]="{ active: selectedAtleta.estado === 'apto', pending: selectedAtleta.estado === 'pendiente', inactive: selectedAtleta.estado === 'no_apto' }">{{ getEstadoLabel(selectedAtleta.estado) }}</strong></div>
+            <div class="detail-item"><span>Deporte</span><strong>{{ selectedAtleta.deporte || 'No informado' }}</strong>
+            </div>
+            <div class="detail-item"><span>Categoría</span><strong>{{ selectedAtleta.categoria || 'Sin categoría'
+                }}</strong></div>
+            <div class="detail-item"><span>Fecha de inscripción</span><strong>{{ selectedAtleta.fecha_inscripcion ?
+                (selectedAtleta.fecha_inscripcion | date:'dd/MM/yyyy') : 'No informada' }}</strong></div>
+            <div class="detail-item"><span>Estado actual</span><strong class="status-badge"
+                [ngClass]="{ active: selectedAtleta.estado === 'apto', pending: selectedAtleta.estado === 'pendiente', inactive: selectedAtleta.estado === 'no_apto' }">{{
+                getEstadoLabel(selectedAtleta.estado) }}</strong></div>
           </div>
         </section>
       </div>
 
-      <div class="modal-footer"><button type="button" class="btn btn-secondary" (click)="cerrarDetalle()">Cerrar</button></div>
+      <div class="modal-footer"><button type="button" class="btn btn-secondary"
+          (click)="cerrarDetalle()">Cerrar</button></div>
     </article>
   </div>
 
@@ -157,32 +175,64 @@
           <div class="form-section">
             <h3>Información personal</h3>
             <div class="field-grid">
-              <div class="field"><label for="nombre">Nombre</label><input id="nombre" formControlName="nombre" placeholder="Ej: Mateo" /><small class="error-text" *ngIf="f['nombre'].touched && f['nombre'].invalid">El nombre es obligatorio.</small></div>
-              <div class="field"><label for="apellido">Apellido</label><input id="apellido" formControlName="apellido" placeholder="Ej: López" /><small class="error-text" *ngIf="f['apellido'].touched && f['apellido'].invalid">El apellido es obligatorio.</small></div>
-              <div class="field"><label for="dni">DNI / Documento</label><input id="dni" formControlName="dni" placeholder="Ej: 40.123.456" /><small class="error-text" *ngIf="f['dni'].touched && f['dni'].invalid">El documento es obligatorio.</small></div>
-              <div class="field"><label for="fecha_nacimiento">Fecha de nacimiento</label><input id="fecha_nacimiento" type="date" formControlName="fecha_nacimiento" /></div>
-              <div class="field"><label for="genero">Género</label><select id="genero" formControlName="genero"><option>Masculino</option><option>Femenino</option><option>No binario</option><option>Prefiero no decirlo</option></select></div>
+              <div class="field"><label for="nombre">Nombre</label><input id="nombre" formControlName="nombre"
+                  placeholder="Ej: Mateo" /><small class="error-text"
+                  *ngIf="f['nombre'].touched && f['nombre'].invalid">El nombre es obligatorio.</small></div>
+              <div class="field"><label for="apellido">Apellido</label><input id="apellido" formControlName="apellido"
+                  placeholder="Ej: López" /><small class="error-text"
+                  *ngIf="f['apellido'].touched && f['apellido'].invalid">El apellido es obligatorio.</small></div>
+              <div class="field"><label for="dni">DNI / Documento</label><input id="dni" formControlName="dni"
+                  placeholder="Ej: 40.123.456" /><small class="error-text"
+                  *ngIf="f['dni'].touched && f['dni'].invalid">El documento es obligatorio.</small></div>
+              <div class="field"><label for="fecha_nacimiento">Fecha de nacimiento</label><input id="fecha_nacimiento"
+                  type="date" formControlName="fecha_nacimiento" /></div>
+              <div class="field"><label for="genero">Género</label><select id="genero" formControlName="genero">
+                  <option>Masculino</option>
+                  <option>Femenino</option>
+                  <option>No binario</option>
+                  <option>Prefiero no decirlo</option>
+                </select></div>
             </div>
           </div>
           <div class="form-section">
             <h3>Datos de contacto</h3>
             <div class="field-grid">
-              <div class="field"><label for="email">Correo electrónico</label><input id="email" type="email" formControlName="email" placeholder="usuario@correo.com" /><small class="error-text" *ngIf="f['email'].touched && f['email'].invalid">Ingresa un correo válido.</small></div>
-              <div class="field"><label for="telefono">Teléfono</label><input id="telefono" formControlName="telefono" placeholder="Ej: 1122334455" /></div>
-              <div class="field field-full"><label for="direccion">Dirección</label><input id="direccion" formControlName="direccion" placeholder="Ej: Av. Mitre 2450, Avellaneda" /></div>
+              <div class="field"><label for="email">Correo electrónico</label><input id="email" type="email"
+                  formControlName="email" placeholder="usuario@correo.com" /><small class="error-text"
+                  *ngIf="f['email'].touched && f['email'].invalid">Ingresa un correo válido.</small></div>
+              <div class="field"><label for="telefono">Teléfono</label><input id="telefono" formControlName="telefono"
+                  placeholder="Ej: 1122334455" /></div>
+              <div class="field field-full"><label for="direccion">Dirección</label><input id="direccion"
+                  formControlName="direccion" placeholder="Ej: Av. Mitre 2450, Avellaneda" /></div>
             </div>
           </div>
           <div class="form-section">
             <h3>Información deportiva</h3>
             <div class="field-grid">
-              <div class="field"><label for="deporte_id">Deporte</label><select id="deporte_id" formControlName="deporte_id"><option *ngFor="let deporte of deportes" [ngValue]="deporte.id">{{ deporte.nombre }}</option></select></div>
-              <div class="field"><label for="categoria_id">Categoría</label><select id="categoria_id" formControlName="categoria_id"><option *ngFor="let categoria of categorias" [ngValue]="categoria.id">{{ categoria.nombre }}</option></select></div>
-              <div class="field"><label for="fecha_inscripcion">Fecha de inscripción</label><input id="fecha_inscripcion" type="date" formControlName="fecha_inscripcion" /></div>
-              <div class="field"><label for="estado_inicial">Estado</label><select id="estado_inicial" formControlName="estado_inicial"><option value="activo">Activo</option><option value="inactivo">Inactivo</option><option value="pendiente">Pendiente</option></select></div>
+              <div class="field"><label for="deporte_id">Deporte</label><select id="deporte_id"
+                  formControlName="deporte_id">
+                  <option *ngFor="let deporte of deportes" [ngValue]="deporte.id">{{ deporte.nombre }}</option>
+                </select></div>
+              <div class="field"><label for="categoria_id">Categoría</label><select id="categoria_id"
+                  formControlName="categoria_id">
+                  <option *ngFor="let categoria of categoriasFiltradas" [ngValue]="categoria.id">{{ categoria.nombre }}
+                  </option>
+                </select></div>
+              <div class="field"><label for="fecha_inscripcion">Fecha de inscripción</label><input
+                  id="fecha_inscripcion" type="date" formControlName="fecha_inscripcion" /></div>
+              <div class="field"><label for="estado_inicial">Estado</label><select id="estado_inicial"
+                  formControlName="estado_inicial">
+                  <option value="activo">Activo</option>
+                  <option value="inactivo">Inactivo</option>
+                  <option value="pendiente">Pendiente</option>
+                </select></div>
             </div>
           </div>
         </div>
-        <div class="modal-footer"><button type="button" class="btn btn-secondary" (click)="cerrarModal()">Cancelar</button><button type="submit" class="btn btn-primary" [disabled]="loading">{{ loading ? 'Guardando...' : (isEditMode ? 'Guardar cambios' : 'Registrar atleta') }}</button></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary"
+            (click)="cerrarModal()">Cancelar</button><button type="submit" class="btn btn-primary"
+            [disabled]="loading">{{ loading ? 'Guardando...' : (isEditMode ? 'Guardar cambios' : 'Registrar atleta')
+            }}</button></div>
       </form>
     </div>
   </div>
@@ -192,7 +242,9 @@
       <p class="eyebrow tiny">Confirmar eliminación</p>
       <h2>¿Seguro quiere eliminar a "{{ atletaToDelete?.nombre }} {{ atletaToDelete?.apellido }}"?</h2>
       <p>Esta acción eliminará también su usuario de acceso.</p>
-      <div class="modal-footer"><button type="button" class="btn btn-secondary" (click)="cancelarEliminacion()">Cancelar</button><button type="button" class="btn btn-danger" (click)="confirmarEliminacion()">Sí, eliminar</button></div>
+      <div class="modal-footer"><button type="button" class="btn btn-secondary"
+          (click)="cancelarEliminacion()">Cancelar</button><button type="button" class="btn btn-danger"
+          (click)="confirmarEliminacion()">Sí, eliminar</button></div>
     </div>
   </div>
 </section>

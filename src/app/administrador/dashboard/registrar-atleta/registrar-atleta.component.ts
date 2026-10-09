@@ -42,32 +42,38 @@ export class RegistrarAtletaComponent implements OnInit {
     { id: 8, nombre: 'Artes Marciales' }
   ];
 
-  categorias = [
-    { id: 1, nombre: 'Infantil' },
-    { id: 2, nombre: 'Sub-15' },
-    { id: 3, nombre: 'Sub-17' },
-    { id: 4, nombre: 'Primera División' },
-    { id: 5, nombre: 'Bebés' },
-    { id: 6, nombre: 'Niños' },
-    { id: 7, nombre: 'Adultos' },
-    { id: 8, nombre: 'Singles' },
-    { id: 9, nombre: 'Dobles' },
-    { id: 10, nombre: 'Sub-15' },
-    { id: 11, nombre: 'Sub-17' },
-    { id: 12, nombre: 'Primera Masculino' },
-    { id: 13, nombre: 'Primera Femenino' },
-    { id: 14, nombre: 'Masculino' },
-    { id: 15, nombre: 'Femenino' },
-    { id: 16, nombre: 'Judo' },
-    { id: 17, nombre: 'Karate' },
-    { id: 18, nombre: 'Taekwondo' }
+  todasLasCategorias = [
+    { id: 1, deporte_id: 1, nombre: 'Infantil' },
+    { id: 2, deporte_id: 1, nombre: 'Sub-15' },
+    { id: 3, deporte_id: 1, nombre: 'Sub-17' },
+    { id: 4, deporte_id: 1, nombre: 'Primera División' },
+    { id: 5, deporte_id: 2, nombre: 'Bebés' },
+    { id: 6, deporte_id: 2, nombre: 'Niños' },
+    { id: 7, deporte_id: 2, nombre: 'Adultos' },
+    { id: 8, deporte_id: 3, nombre: 'Singles' },
+    { id: 9, deporte_id: 3, nombre: 'Dobles' },
+    { id: 19, deporte_id: 4, nombre: 'Musculación' },
+    { id: 20, deporte_id: 4, nombre: 'Cardio y Fitness' },
+    { id: 10, deporte_id: 5, nombre: 'Sub-15' },
+    { id: 11, deporte_id: 5, nombre: 'Sub-17' },
+    { id: 12, deporte_id: 5, nombre: 'Primera Masculino' },
+    { id: 13, deporte_id: 5, nombre: 'Primera Femenino' },
+    { id: 14, deporte_id: 6, nombre: 'Masculino' },
+    { id: 15, deporte_id: 6, nombre: 'Femenino' },
+    { id: 21, deporte_id: 7, nombre: 'Velocidad y Pista' },
+    { id: 22, deporte_id: 7, nombre: 'Fondo y Medio Fondo' },
+    { id: 16, deporte_id: 8, nombre: 'Judo' },
+    { id: 17, deporte_id: 8, nombre: 'Karate' },
+    { id: 18, deporte_id: 8, nombre: 'Taekwondo' }
   ];
+
+  categorias = this.todasLasCategorias;
 
   constructor(
     private fb: FormBuilder,
     private registrarAtletaService: RegistrarAtletaService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const today = new Date().toISOString().split('T')[0];
@@ -87,11 +93,33 @@ export class RegistrarAtletaComponent implements OnInit {
       estado_inicial: ['activo', Validators.required]
     });
 
+    this.form.get('deporte_id')?.valueChanges.subscribe(deporteId => {
+      this.onDeporteChange(Number(deporteId));
+    });
+
     this.cargarAtletas();
   }
 
   get f() {
     return this.form.controls;
+  }
+
+  get categoriasFiltradas() {
+    const depId = Number(this.form?.get('deporte_id')?.value || 1);
+    const filtradas = this.todasLasCategorias.filter(c => c.deporte_id === depId);
+    return filtradas.length ? filtradas : [{ id: 0, deporte_id: depId, nombre: 'General' }];
+  }
+
+  onDeporteChange(deporteId: number): void {
+    const categorias = this.todasLasCategorias.filter(c => c.deporte_id === deporteId);
+    if (categorias.length > 0) {
+      const currentCat = Number(this.form.get('categoria_id')?.value);
+      if (!categorias.some(c => c.id === currentCat)) {
+        this.form.patchValue({ categoria_id: categorias[0].id });
+      }
+    } else {
+      this.form.patchValue({ categoria_id: null });
+    }
   }
 
   get filteredAtletas(): AtletaListado[] {
