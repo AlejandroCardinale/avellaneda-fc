@@ -72,15 +72,6 @@
             }}
           </h1>
         </div>
-        <div class="coach-identity" *ngIf="dashboard?.entrenador as coach">
-          <span class="identity-mark"
-            >{{ coach.nombre[0] }}{{ coach.apellido[0] }}</span
-          >
-          <span
-            ><strong>{{ coach.nombre }} {{ coach.apellido }}</strong
-            ><small>{{ coach.especialidad || "Entrenador" }}</small></span
-          >
-        </div>
       </header>
 
       <div class="notice error" *ngIf="errorMessage" role="alert">
@@ -140,7 +131,7 @@
             <div class="section-heading">
               <div>
                 <p class="overline">Agenda del equipo</p>
-                <h2>Próximos entrenamientos</h2>
+                <h2>Entrenamientos</h2>
               </div>
               <button
                 type="button"
@@ -153,11 +144,11 @@
             </div>
             <div
               class="session-list"
-              *ngIf="dashboard.proximosEntrenamientos.length; else noUpcoming"
+              *ngIf="dashboard.entrenamientos.length; else noUpcoming"
             >
               <article
                 class="upcoming-row"
-                *ngFor="let session of dashboard.proximosEntrenamientos"
+                *ngFor="let session of dashboard.entrenamientos"
               >
                 <div class="date-block">
                   <strong>{{ session.fecha_hora | date: "dd" }}</strong
@@ -218,7 +209,16 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let athlete of filteredAthletes">
+                <tr
+                  *ngFor="let athlete of filteredAthletes"
+                  class="athlete-row"
+                  role="button"
+                  tabindex="0"
+                  [attr.aria-label]="'Ver ficha de ' + athlete.nombre + ' ' + athlete.apellido"
+                  (click)="openAthleteDetails(athlete)"
+                  (keydown.enter)="openAthleteDetails(athlete)"
+                  (keydown.space)="$event.preventDefault(); openAthleteDetails(athlete)"
+                >
                   <td>
                     <strong
                       >{{ athlete.apellido }}, {{ athlete.nombre }}</strong
@@ -226,7 +226,7 @@
                   </td>
                   <td>{{ athlete.categoria || "Sin categoría" }}</td>
                   <td>
-                    <a [href]="'mailto:' + athlete.email">{{ athlete.email }}</a
+                    <a [href]="'mailto:' + athlete.email" (click)="$event.stopPropagation()">{{ athlete.email }}</a
                     ><small *ngIf="athlete.telefono">{{
                       athlete.telefono
                     }}</small>
@@ -425,10 +425,10 @@
                       class="mini-action"
                       (click)="openAttendance(session)"
                       [disabled]="session.estado === 'cancelada'"
-                      title="Pasar lista"
+                      [title]="session.estado === 'finalizada' ? 'Ver asistencia' : 'Pasar lista'"
                     >
                       <i class="fa-solid fa-list-check" aria-hidden="true"></i
-                      ><span>Asistencia</span>
+                      ><span>{{ session.estado === 'finalizada' ? 'Ver asistencia' : 'Asistencia' }}</span>
                     </button>
                     <button
                       type="button"
@@ -503,7 +503,7 @@
         >
           <header class="form-heading">
             <div>
-              <p class="overline">Control de asistencia</p>
+              <p class="overline">{{ attendanceReadOnly ? 'Asistencia finalizada' : 'Control de asistencia' }}</p>
               <h2 id="attendance-title">{{ attendanceSessionTitle }}</h2>
             </div>
             <button
@@ -522,21 +522,32 @@
           <div class="attendance-loading" *ngIf="attendanceLoading">
             Cargando plantel...
           </div>
+          <div class="notice error" *ngIf="attendanceError" role="alert">
+            {{ attendanceError }}
+          </div>
           <div class="attendance-list" *ngIf="!attendanceLoading">
             <div class="attendance-row" *ngFor="let row of attendance">
               <label class="attendance-check"
-                ><input type="checkbox" [(ngModel)]="row.presente" /><span
+                ><input
+                  type="checkbox"
+                  [ngModel]="row.presente"
+                  (ngModelChange)="onAttendancePresenceChange(row, $event)"
+                  [disabled]="attendanceReadOnly"
+                /><span
                   ><strong>{{ row.apellido }}, {{ row.nombre }}</strong
                   ><small>{{ row.categoria || "Sin categoría" }}</small></span
                 ></label
               >
-              <input
+              <select
+                *ngIf="!row.presente"
                 class="attendance-note"
                 [(ngModel)]="row.observacion"
-                maxlength="200"
-                [attr.aria-label]="'Observación para ' + row.nombre"
-                placeholder="Observación"
-              />
+                [disabled]="attendanceReadOnly"
+                [attr.aria-label]="'Motivo de ausencia para ' + row.nombre"
+              >
+                <option value="">Seleccionar motivo</option>
+                <option *ngFor="let reason of absenceReasons" [ngValue]="reason">{{ reason }}</option>
+              </select>
             </div>
             <div class="empty-state" *ngIf="!attendance.length">
               No hay atletas asignados a esta sesión.
@@ -550,6 +561,7 @@
             >
               Cerrar</button
             ><button
+              *ngIf="!attendanceReadOnly"
               type="button"
               class="button button-primary"
               (click)="saveAttendance()"
@@ -558,6 +570,83 @@
               {{ attendanceSaving ? "Guardando..." : "Guardar asistencia" }}
             </button>
           </footer>
+        </section>
+      </div>
+
+      <div
+        class="attendance-backdrop"
+        *ngIf="selectedAthlete as athlete"
+        (click)="closeAthleteDetails()"
+      >
+        <section
+          class="attendance-dialog athlete-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="athlete-details-title"
+          (click)="$event.stopPropagation()"
+        >
+          <header class="form-heading">
+            <div>
+              <p class="overline">Ficha del plantel</p>
+              <h2 id="athlete-details-title">{{ athlete.apellido }}, {{ athlete.nombre }}</h2>
+            </div>
+            <button
+              type="button"
+              class="icon-button"
+              aria-label="Cerrar ficha del atleta"
+              (click)="closeAthleteDetails()"
+            >
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+          </header>
+
+          <div class="attendance-loading" *ngIf="athleteDetailsLoading">
+            Cargando ficha...
+          </div>
+          <div class="notice error" *ngIf="athleteDetailsError" role="alert">
+            {{ athleteDetailsError }}
+          </div>
+
+          <ng-container *ngIf="athleteAttendance as summary">
+            <section class="athlete-profile form-grid" aria-label="Datos principales">
+              <label>Correo<strong>{{ athlete.email }}</strong></label>
+              <label>Teléfono<strong>{{ athlete.telefono || 'Sin registrar' }}</strong></label>
+              <label>Categoría<strong>{{ athlete.categoria || 'Sin categoría' }}</strong></label>
+              <label>Fecha de nacimiento<strong>{{ athlete.fecha_nacimiento ? (athlete.fecha_nacimiento | date: 'dd/MM/yyyy') : 'Sin registrar' }}</strong></label>
+              <label>Posición<strong>{{ athlete.posicion || 'Sin registrar' }}</strong></label>
+              <label>Estado médico<strong>{{ athlete.estado_medico === 'apto' ? 'Apto' : 'Pendiente' }}</strong></label>
+              <label>Fecha de alta<strong>{{ athlete.fecha_alta ? (athlete.fecha_alta | date: 'dd/MM/yyyy') : 'Sin registrar' }}</strong></label>
+            </section>
+
+            <section class="athlete-attendance-summary">
+              <div class="form-heading athlete-summary-heading">
+                <div><p class="overline">Registro acumulado</p><h3>Asistencia</h3></div>
+                <strong class="attendance-rate">{{ summary.porcentajeAsistencia }}%</strong>
+              </div>
+              <div class="metric-row athlete-stats">
+                <article class="metric"><span>Sesiones registradas</span><strong>{{ summary.totalSesiones }}</strong></article>
+                <article class="metric"><span>Presentes</span><strong>{{ summary.presentes }}</strong></article>
+                <article class="metric"><span>Ausencias</span><strong>{{ summary.ausencias }}</strong></article>
+                <article class="metric"><span>Justificadas</span><strong>{{ summary.justificadas }}</strong></article>
+                <article class="metric"><span>Sin justificar</span><strong>{{ summary.injustificadas }}</strong></article>
+              </div>
+              <p class="justification-note">Solo los motivos distintos de “Injustificado” cuentan como ausencia justificada.</p>
+            </section>
+
+            <section class="athlete-history">
+              <div class="form-heading"><div><p class="overline">Últimos registros</p><h3>Historial de asistencia</h3></div></div>
+              <div class="session-list" *ngIf="summary.registros.length; else noAthleteAttendance">
+                <article class="upcoming-row athlete-history-row" *ngFor="let record of summary.registros">
+                  <div class="upcoming-info"><strong>{{ record.titulo }}</strong><span>{{ record.fecha_hora | date: 'dd/MM/yyyy, HH:mm' }}</span></div>
+                  <span class="category-label">{{ !record.presente && record.observacion ? record.observacion : '' }}</span>
+                  <span class="state-dot" [class.programada]="record.presente" [class.en_curso]="!record.presente && record.observacion && record.observacion !== 'Injustificado'" [class.cancelada]="!record.presente && (!record.observacion || record.observacion === 'Injustificado')">
+                    {{ record.presente ? 'Presente' : record.observacion && record.observacion !== 'Injustificado' ? 'Justificada' : 'Injustificada' }}
+                  </span>
+                </article>
+              </div>
+              <ng-template #noAthleteAttendance><p class="empty-state">Todavía no hay asistencias registradas para este atleta.</p></ng-template>
+            </section>
+          </ng-container>
         </section>
       </div>
     </main>

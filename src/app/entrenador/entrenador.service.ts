@@ -20,7 +20,7 @@ export interface EntrenadorPerfil {
 export interface EntrenadorDashboard {
   entrenador: EntrenadorPerfil;
   resumen: { atletas: number; sesiones: number; proximas: number };
-  proximosEntrenamientos: Entrenamiento[];
+  entrenamientos: Entrenamiento[];
 }
 
 export interface AtletaEntrenador {
@@ -30,8 +30,29 @@ export interface AtletaEntrenador {
   email: string;
   telefono?: string;
   categoria?: string;
+  fecha_nacimiento?: string | null;
   fecha_alta?: string;
+  posicion?: string | null;
   estado_medico: string;
+}
+
+export interface RegistroAsistenciaAtleta {
+  sesion_id: number;
+  titulo: string;
+  fecha_hora: string;
+  estado: Entrenamiento['estado'];
+  presente: boolean;
+  observacion: string;
+}
+
+export interface ResumenAsistenciaAtleta {
+  totalSesiones: number;
+  presentes: number;
+  ausencias: number;
+  justificadas: number;
+  injustificadas: number;
+  porcentajeAsistencia: number;
+  registros: RegistroAsistenciaAtleta[];
 }
 
 export interface Entrenamiento {
@@ -79,6 +100,10 @@ export class EntrenadorService {
 
   listarAtletas(): Observable<AtletaEntrenador[]> {
     return this.http.get<AtletaEntrenador[]>(`${this.API}/atletas`);
+  }
+
+  resumenAsistenciaAtleta(id: number): Observable<ResumenAsistenciaAtleta> {
+    return this.http.get<ResumenAsistenciaAtleta>(`${this.API}/atletas/${id}/asistencia`);
   }
 
   catalogos(): Observable<{ categorias: { id: number; nombre: string }[]; instalaciones: { id: number; nombre: string }[] }> {

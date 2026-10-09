@@ -5,6 +5,7 @@ const requireEntrenador = require('../middleware/require-entrenador');
 
 const router = express.Router();
 router.use(auth, requireEntrenador);
+const absenceReasons = new Set(['Médico', 'Fuerza Mayor', 'Ausente con prev. aviso', 'Día de estudio', 'Otro', 'Injustificado']);
 
 async function findCoach(userId) {
   const [rows] = await pool.execute(`
@@ -107,11 +108,20 @@ router.get('/dashboard', async (req, res) => {
       WHERE s.entrenador_id = ? AND s.fecha_hora >= NOW() AND s.estado <> 'cancelada'
       ORDER BY s.fecha_hora LIMIT 5
     `, [coach.id]);
+    const [completed] = await pool.execute(`
+      SELECT s.id, s.titulo, s.fecha_hora, s.duracion_min, s.estado,
+             c.nombre AS categoria, i.nombre AS instalacion
+      FROM sesiones s
+      LEFT JOIN categorias c ON c.id = s.categoria_id
+      LEFT JOIN instalaciones i ON i.id = s.instalacion_id
+      WHERE s.entrenador_id = ? AND s.fecha_hora < NOW() AND s.estado = 'finalizada'
+      ORDER BY s.fecha_hora DESC LIMIT 5
+    `, [coach.id]);
 
     return res.json({
       entrenador: coach,
       resumen: { atletas: Number(athletes.total || 0), sesiones: Number(sessions.total || 0), proximas: Number(sessions.proximas || 0) },
-      proximosEntrenamientos: upcoming
+      entrenamientos: [...upcoming, ...completed]
     });
   } catch (error) {
     console.error('[entrenador dashboard]', error);
@@ -137,6 +147,67 @@ router.get('/atletas', async (req, res) => {
   } catch (error) {
     console.error('[entrenador atletas]', error);
     return res.status(500).json({ message: 'No se pudo cargar el plantel.' });
+  }
+});
+
+router.get('/atletas/:id/asistencia', async (req, res) => {
+  const coach = await findCoach(req.usuario.id).catch(() => null);
+  if (!coach) return res.status(404).json({ message: 'No se encontró el perfil de entrenador.' });
+  const athleteId = Number(req.params.id);
+  if (!Number.isInteger(athleteId) || athleteId <= 0) {
+    return res.status(400).json({ message: 'El identificador del atleta no es válido.' });
+  }
+
+  try {
+    const [athletes] = await pool.execute(`
+      SELECT a.id FROM atletas a
+      JOIN usuarios u ON u.id = a.usuario_id
+      WHERE a.id = ? AND a.deporte_id = ? AND a.estado_medico <> 'no_apto' AND u.activo = TRUE
+    `, [athleteId, coach.deporte_id]);
+    if (!athletes.length) return res.status(404).json({ message: 'Atleta no encontrado en tu plantel.' });
+
+    const [[counts]] = await pool.execute(`
+      SELECT COUNT(*) AS total_sesiones,
+             SUM(CASE WHEN a.presente = TRUE THEN 1 ELSE 0 END) AS presentes,
+             SUM(CASE WHEN a.presente = FALSE THEN 1 ELSE 0 END) AS ausencias,
+             SUM(CASE WHEN a.presente = FALSE AND NULLIF(TRIM(a.observacion), '') IS NOT NULL
+                       AND UPPER(TRIM(a.observacion)) <> 'INJUSTIFICADO' THEN 1 ELSE 0 END) AS justificadas,
+             SUM(CASE WHEN a.presente = FALSE AND (NULLIF(TRIM(a.observacion), '') IS NULL
+                       OR UPPER(TRIM(a.observacion)) = 'INJUSTIFICADO') THEN 1 ELSE 0 END) AS injustificadas
+      FROM asistencias a
+      JOIN sesiones s ON s.id = a.sesion_id
+      WHERE a.atleta_id = ? AND s.entrenador_id = ?
+        AND s.estado IN ('en_curso', 'finalizada')
+    `, [athleteId, coach.id]);
+    const [records] = await pool.execute(`
+      SELECT s.id AS sesion_id, s.titulo, s.fecha_hora, s.estado,
+             a.presente, a.observacion
+      FROM asistencias a
+      JOIN sesiones s ON s.id = a.sesion_id
+      WHERE a.atleta_id = ? AND s.entrenador_id = ?
+        AND s.estado IN ('en_curso', 'finalizada')
+      ORDER BY s.fecha_hora DESC
+      LIMIT 12
+    `, [athleteId, coach.id]);
+
+    const totalSesiones = Number(counts.total_sesiones || 0);
+    const presentes = Number(counts.presentes || 0);
+    return res.json({
+      totalSesiones,
+      presentes,
+      ausencias: Number(counts.ausencias || 0),
+      justificadas: Number(counts.justificadas || 0),
+      injustificadas: Number(counts.injustificadas || 0),
+      porcentajeAsistencia: totalSesiones ? Math.round((presentes / totalSesiones) * 100) : 0,
+      registros: records.map(record => ({
+        ...record,
+        presente: Boolean(record.presente),
+        observacion: record.observacion || ''
+      }))
+    });
+  } catch (error) {
+    console.error('[entrenador atleta asistencia GET]', error);
+    return res.status(500).json({ message: 'No se pudo cargar el detalle de asistencia.' });
   }
 });
 
@@ -241,6 +312,14 @@ router.patch('/sesiones/:id/estado', async (req, res) => {
     return res.status(400).json({ message: 'El estado indicado no es válido.' });
   }
   try {
+    const [sessions] = await pool.execute(
+      'SELECT estado FROM sesiones WHERE id = ? AND entrenador_id = ?',
+      [req.params.id, coach.id]
+    );
+    if (!sessions.length) return res.status(404).json({ message: 'Entrenamiento no encontrado.' });
+    if (sessions[0].estado === 'finalizada' && req.body.estado !== 'finalizada') {
+      return res.status(409).json({ message: 'No se puede reabrir un entrenamiento finalizado.' });
+    }
     const [result] = await pool.execute(
       'UPDATE sesiones SET estado = ? WHERE id = ? AND entrenador_id = ?',
       [req.body.estado, req.params.id, coach.id]
@@ -286,18 +365,23 @@ router.put('/sesiones/:id/asistencias', async (req, res) => {
   if (uniqueAthleteIds.some(id => !Number.isInteger(id) || id <= 0) || uniqueAthleteIds.length !== attendance.length) {
     return res.status(400).json({ message: 'Hay atletas duplicados o identificadores inválidos.' });
   }
-  if (attendance.some(item => typeof item.presente !== 'boolean' || String(item.observacion || '').length > 200)) {
+  if (attendance.some(item => typeof item.presente !== 'boolean'
+    || String(item.observacion || '').length > 200
+    || (!item.presente && !absenceReasons.has(String(item.observacion || '').trim())))) {
     return res.status(400).json({ message: 'Revisa los estados y observaciones de asistencia.' });
   }
 
   const connection = await pool.getConnection();
   try {
     const [sessionRows] = await connection.execute(
-      'SELECT id, deporte_id, categoria_id FROM sesiones WHERE id = ? AND entrenador_id = ?',
+      'SELECT id, deporte_id, categoria_id, estado FROM sesiones WHERE id = ? AND entrenador_id = ?',
       [req.params.id, coach.id]
     );
     if (!sessionRows.length) return res.status(404).json({ message: 'Entrenamiento no encontrado.' });
     const session = sessionRows[0];
+    if (session.estado === 'finalizada') {
+      return res.status(409).json({ message: 'No se puede editar la asistencia de un entrenamiento finalizado.' });
+    }
     if (uniqueAthleteIds.length) {
       const placeholders = uniqueAthleteIds.map(() => '?').join(',');
       const [athletes] = await connection.execute(`
@@ -317,7 +401,7 @@ router.put('/sesiones/:id/asistencias', async (req, res) => {
         INSERT INTO asistencias (sesion_id, atleta_id, presente, observacion)
         VALUES (?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE presente = VALUES(presente), observacion = VALUES(observacion), registrado_en = CURRENT_TIMESTAMP
-      `, [session.id, Number(item.atleta_id), item.presente, String(item.observacion || '').trim() || null]);
+      `, [session.id, Number(item.atleta_id), item.presente, item.presente ? null : String(item.observacion).trim()]);
     }
     await connection.commit();
     return res.json({ message: 'Asistencia guardada.' });
