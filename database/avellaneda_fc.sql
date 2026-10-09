@@ -172,6 +172,10 @@ CREATE TABLE entrenadores (
   CONSTRAINT fk_entrenador_deporte FOREIGN KEY (deporte_id) REFERENCES deportes(id)
 );
 
+ALTER TABLE atletas
+  ADD COLUMN IF NOT EXISTS entrenador_id INT UNSIGNED NULL,
+  ADD CONSTRAINT fk_atleta_entrenador FOREIGN KEY (entrenador_id) REFERENCES entrenadores(id) ON DELETE SET NULL;
+
 INSERT INTO entrenadores (usuario_id, deporte_id, especialidad, licencia) VALUES
   (2, 1, 'Futbol infantil y juvenil', 'LIC-001'),
   (3, 2, 'Natacion competitiva',      'LIC-002');

@@ -38,6 +38,106 @@ router.get('/', async (_req, res) => {
   }
 });
 
+router.get('/:id', async (req, res) => {
+  try {
+    const coachId = Number(req.params.id);
+    if (!Number.isInteger(coachId) || coachId <= 0) {
+      return res.status(400).json({ message: 'ID de entrenador inválido.' });
+    }
+
+    const [rows] = await pool.execute(`${listQuery} WHERE e.id = ?`, [coachId]);
+    if (!rows.length) {
+      return res.status(404).json({ message: 'Entrenador no encontrado.' });
+    }
+    return res.json(rows[0]);
+  } catch (error) {
+    console.error('[entrenadores GET /:id]', error);
+    return res.status(500).json({ message: 'Error al obtener entrenador.' });
+  }
+});
+
+router.get('/:id/atletas', async (req, res) => {
+  try {
+    const coachId = Number(req.params.id);
+    if (!Number.isInteger(coachId) || coachId <= 0) {
+      return res.status(400).json({ message: 'ID de entrenador inválido.' });
+    }
+
+    const [coach] = await pool.execute('SELECT id FROM entrenadores WHERE id = ?', [coachId]);
+    if (!coach.length) {
+      return res.status(404).json({ message: 'Entrenador no encontrado.' });
+    }
+
+    const [rows] = await pool.execute(`
+      SELECT
+        a.id,
+        a.usuario_id,
+        a.entrenador_id,
+        u.nombre,
+        u.apellido,
+        u.email,
+        u.avatar_url,
+        u.telefono,
+        a.dni,
+        a.deporte_id,
+        d.nombre AS deporte,
+        CASE WHEN u.activo = TRUE THEN 'activo' ELSE 'inactivo' END AS estado
+      FROM atletas a
+      JOIN usuarios u ON u.id = a.usuario_id
+      LEFT JOIN deportes d ON d.id = a.deporte_id
+      WHERE a.entrenador_id = ?
+      ORDER BY u.apellido, u.nombre
+    `, [coachId]);
+
+    return res.json(rows);
+  } catch (error) {
+    console.error('[entrenadores GET /:id/atletas]', error);
+    return res.status(500).json({ message: 'Error al listar atletas asignados.' });
+  }
+});
+
+router.get('/:id/atletas-disponibles', async (req, res) => {
+  try {
+    const coachId = Number(req.params.id);
+    if (!Number.isInteger(coachId) || coachId <= 0) {
+      return res.status(400).json({ message: 'ID de entrenador inválido.' });
+    }
+
+    const [coachRows] = await pool.execute('SELECT deporte_id FROM entrenadores WHERE id = ?', [coachId]);
+    if (!coachRows.length) {
+      return res.status(404).json({ message: 'Entrenador no encontrado.' });
+    }
+
+    const deporteId = coachRows[0].deporte_id;
+
+    const [rows] = await pool.execute(`
+      SELECT
+        a.id,
+        a.usuario_id,
+        a.entrenador_id,
+        u.nombre,
+        u.apellido,
+        u.email,
+        u.avatar_url,
+        u.telefono,
+        a.dni,
+        a.deporte_id,
+        d.nombre AS deporte,
+        CASE WHEN u.activo = TRUE THEN 'activo' ELSE 'inactivo' END AS estado
+      FROM atletas a
+      JOIN usuarios u ON u.id = a.usuario_id
+      LEFT JOIN deportes d ON d.id = a.deporte_id
+      WHERE a.deporte_id = ? AND a.entrenador_id IS NULL
+      ORDER BY u.apellido, u.nombre
+    `, [deporteId]);
+
+    return res.json(rows);
+  } catch (error) {
+    console.error('[entrenadores GET /:id/atletas-disponibles]', error);
+    return res.status(500).json({ message: 'Error al listar atletas disponibles.' });
+  }
+});
+
 router.post('/', async (req, res) => {
   const { nombre, apellido, email, telefono, deporte_id, especialidad, licencia, estado_inicial } = req.body;
 

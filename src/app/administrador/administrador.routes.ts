@@ -19,6 +19,10 @@ export const adminRoutes: Routes = [
     loadComponent: () => import('./dashboard/entrenadores/entrenadores.component').then(m => m.EntrenadoresComponent)
   },
   {
+    path: 'entrenadores/:id',
+    loadComponent: () => import('./dashboard/entrenador-detalle/entrenador-detalle.component').then(m => m.EntrenadorDetalleComponent)
+  },
+  {
     path: 'noticias',
     loadComponent: () => import('./dashboard/gestion-noticias/gestion-noticias.component').then(m => m.GestionNoticiasComponent)
   },

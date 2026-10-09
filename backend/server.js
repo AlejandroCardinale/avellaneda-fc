@@ -68,6 +68,7 @@ app.use('/api/auth',        require('./routes/auth'));        // Login, registro
 app.use('/api/admin',       require('./routes/admin'));       // Dashboard administrativo y métricas
 app.use('/api/usuarios',    require('./routes/usuarios'));    // Gestión de usuarios del panel administrativo
 app.use('/api/atletas',     require('./routes/atletas'));     // Alta y gestión de atletas
+app.use('/atletas',         require('./routes/atletas'));     // Alias sin /api
 app.use('/api/entrenadores', require('./routes/entrenadores')); // Alta y gestión de entrenadores
 app.use('/api/entrenador',  require('./routes/entrenador'));    // Portal del entrenador
 app.use('/api/deportes',     require('./routes/deportes'));     // Gestión administrativa de deportes
