@@ -9,7 +9,10 @@ export interface ReportResponse {
   metrics: { totalAtletas: number; promedioAsistencia: number; recursosEnUso: number; solicitudesResueltas: number };
   atletasPorDisciplina: { id: number; nombre: string; total: number }[];
   recursosMasSolicitados: { nombre: string; total: number }[];
-  asistenciaSemanal: { semana: number; porcentaje: number }[];
+  asistenciaSemanal: { periodo: string; porcentaje: number }[];
+  registrosPorPeriodo: { periodo: string; total: number }[];
+  asistenciasDetalle: { atleta: string; entrenamiento: string; fecha: string; presente: boolean }[];
+  actividadRecursos: { recurso: string; usuario: string; fecha: string; estado: string }[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -20,10 +23,6 @@ export class ReportesService {
 
   obtener(filters: ReportFilters): Observable<ReportResponse> {
     return this.http.get<ReportResponse>(this.api, { params: this.params(filters) });
-  }
-
-  exportar(filters: ReportFilters, formato: 'excel' | 'pdf'): Observable<Blob> {
-    return this.http.get(`${this.api}/export`, { params: this.params(filters).set('formato', formato), responseType: 'blob' });
   }
 
   private params(filters: ReportFilters): HttpParams {

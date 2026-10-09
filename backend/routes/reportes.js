@@ -29,7 +29,7 @@ async function buildReport(filters) {
   const attendanceParams = [];
   const attendanceWhere = ['1 = 1'];
   if (filters.disciplina) { attendanceWhere.push('a.deporte_id = ?'); attendanceParams.push(filters.disciplina); }
-  attendanceWhere.push(...whereDate('ae.fecha', filters, attendanceParams));
+  attendanceWhere.push(...whereDate('s.fecha_hora', filters, attendanceParams));
 
   const requestParams = [];
   const requestWhere = ["s.estado IN ('aprobada', 'entregada')"];
@@ -38,8 +38,9 @@ async function buildReport(filters) {
   const [[summary]] = await pool.execute(`
     SELECT
       (SELECT COUNT(*) FROM atletas a WHERE ${athleteWhere.join(' AND ')}) AS total_atletas,
-      (SELECT COALESCE(ROUND(100 * AVG(ae.presente), 0), 0)
-       FROM asistencias_entrenamiento ae JOIN atletas a ON a.id = ae.atleta_id
+      (SELECT COALESCE(ROUND(100 * AVG(x.presente), 0), 0)
+       FROM asistencias x JOIN sesiones s ON s.id = x.sesion_id
+       JOIN atletas a ON a.id = x.atleta_id
        WHERE ${attendanceWhere.join(' AND ')}) AS promedio_asistencia,
       (SELECT COALESCE(SUM(si.cantidad), 0)
        FROM solicitud_items si JOIN solicitudes s ON s.id = si.solicitud_id
@@ -62,16 +63,51 @@ async function buildReport(filters) {
     GROUP BY ci.id, ci.nombre ORDER BY total DESC, ci.nombre LIMIT 5
   `, requestParams);
 
-  const weekParams = [...attendanceParams];
   const [attendance] = await pool.execute(`
-    SELECT WEEK(ae.fecha, 1) AS semana, ROUND(100 * AVG(ae.presente), 0) AS porcentaje
-    FROM asistencias_entrenamiento ae JOIN atletas a ON a.id = ae.atleta_id
+    SELECT YEARWEEK(s.fecha_hora, 1) AS semana, DATE_FORMAT(MIN(s.fecha_hora), '%d/%m') AS periodo,
+           ROUND(100 * AVG(x.presente), 0) AS porcentaje
+    FROM asistencias x JOIN sesiones s ON s.id = x.sesion_id
+    JOIN atletas a ON a.id = x.atleta_id
     WHERE ${attendanceWhere.join(' AND ')}
-    GROUP BY WEEK(ae.fecha, 1) ORDER BY semana DESC LIMIT 8
-  `, weekParams);
+    GROUP BY YEARWEEK(s.fecha_hora, 1) ORDER BY semana DESC LIMIT 12
+  `, attendanceParams);
+
+  const [registrations] = await pool.execute(`
+    SELECT YEARWEEK(a.fecha_alta, 1) AS semana, DATE_FORMAT(MIN(a.fecha_alta), '%d/%m') AS periodo,
+           COUNT(*) AS total
+    FROM atletas a
+    WHERE ${athleteWhere.join(' AND ')}
+        GROUP BY YEARWEEK(a.fecha_alta, 1) ORDER BY semana DESC LIMIT 12
+  `, athleteParams);
+
+  const [attendanceDetails] = await pool.execute(`
+    SELECT CONCAT(u.nombre, ' ', u.apellido) AS atleta, s.titulo AS entrenamiento,
+           s.fecha_hora AS fecha, x.presente
+    FROM asistencias x
+    JOIN sesiones s ON s.id = x.sesion_id
+    JOIN atletas a ON a.id = x.atleta_id
+    JOIN usuarios u ON u.id = a.usuario_id
+    WHERE ${attendanceWhere.join(' AND ')}
+    ORDER BY s.fecha_hora DESC, u.apellido, u.nombre LIMIT 20
+  `, attendanceParams);
+
+  const [resourceActivity] = await pool.execute(`
+    SELECT ci.nombre AS recurso, CONCAT(u.nombre, ' ', u.apellido) AS usuario,
+           s.creado_en AS fecha, s.estado
+    FROM solicitudes s
+    JOIN usuarios u ON u.id = s.usuario_id
+    JOIN solicitud_items si ON si.solicitud_id = s.id
+    JOIN catalogo_items ci ON ci.id = si.item_id
+    WHERE ${requestWhere.join(' AND ').replace("s.estado IN ('aprobada', 'entregada')", '1 = 1')}
+    ORDER BY s.creado_en DESC LIMIT 20
+  `, requestParams);
 
   return {
-    filters,
+    filters: {
+      desde: filters.from || '',
+      hasta: filters.to || '',
+      disciplina: filters.disciplina ? String(filters.disciplina) : ''
+    },
     metrics: {
       totalAtletas: Number(summary.total_atletas || 0),
       promedioAsistencia: Number(summary.promedio_asistencia || 0),
@@ -80,7 +116,15 @@ async function buildReport(filters) {
     },
     atletasPorDisciplina: disciplines.map(row => ({ id: row.id, nombre: row.nombre, total: Number(row.total || 0) })),
     recursosMasSolicitados: requested.map(row => ({ nombre: row.nombre, total: Number(row.total || 0) })),
-    asistenciaSemanal: attendance.reverse().map((row, index) => ({ semana: index + 1, porcentaje: Number(row.porcentaje || 0) }))
+    asistenciaSemanal: attendance.reverse().map(row => ({ periodo: row.periodo, porcentaje: Number(row.porcentaje || 0) })),
+    registrosPorPeriodo: registrations.reverse().map(row => ({ periodo: row.periodo, total: Number(row.total || 0) })),
+    asistenciasDetalle: attendanceDetails.map(row => ({
+      atleta: row.atleta,
+      entrenamiento: row.entrenamiento,
+      fecha: row.fecha,
+      presente: Boolean(row.presente)
+    })),
+    actividadRecursos: resourceActivity
   };
 }
 
