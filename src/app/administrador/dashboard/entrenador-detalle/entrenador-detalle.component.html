@@ -1,0 +1,283 @@
+<section class="coach-detail-page">
+  <!-- Botón superior izquierdo: Volver a entrenadores -->
+  <div class="top-nav">
+    <button type="button" class="btn-back" (click)="volver()">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      <span>Volver a entrenadores</span>
+    </button>
+  </div>
+
+  <!-- Alertas de estado -->
+  <div class="alert alert-error" *ngIf="errorMessage">
+    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+    <span>{{ errorMessage }}</span>
+  </div>
+  <div class="alert alert-success" *ngIf="successMessage">
+    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+    <span>{{ successMessage }}</span>
+  </div>
+
+  <!-- Tarjeta superior: Información general del entrenador -->
+  <article class="coach-card" *ngIf="entrenador">
+    <div class="coach-avatar">
+      <span>{{ getIniciales(entrenador.nombre, entrenador.apellido) }}</span>
+    </div>
+
+    <div class="coach-info-main">
+      <div class="coach-header-row">
+        <div>
+          <h1 class="coach-name">{{ entrenador.nombre }} {{ entrenador.apellido }}</h1>
+          <p class="coach-email">
+            <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+            {{ entrenador.email }}
+          </p>
+        </div>
+
+        <div class="badges-row">
+          <span class="badge-role">
+            <i class="fa-solid fa-user-shield" aria-hidden="true"></i>
+            Entrenador
+          </span>
+          <span class="status-badge" [class.active]="entrenador.estado === 'activo'" [class.inactive]="entrenador.estado === 'inactivo'">
+            {{ entrenador.estado === 'activo' ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="coach-meta-grid">
+        <div class="meta-item">
+          <span class="meta-label">Disciplina</span>
+          <span class="meta-value">
+            <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+            {{ entrenador.deporte || 'No especificada' }}
+          </span>
+        </div>
+
+        <div class="meta-item">
+          <span class="meta-label">Especialidad</span>
+          <span class="meta-value">
+            <i class="fa-solid fa-award" aria-hidden="true"></i>
+            {{ entrenador.especialidad || 'Sin especialidad' }}
+          </span>
+        </div>
+
+        <div class="meta-item">
+          <span class="meta-label">Fecha de alta</span>
+          <span class="meta-value">
+            <i class="fa-regular fa-calendar-check" aria-hidden="true"></i>
+            {{ (entrenador.fecha_ingreso | date:'dd/MM/yyyy') || 'No informada' }}
+          </span>
+        </div>
+
+        <div class="meta-item" *ngIf="entrenador.licencia">
+          <span class="meta-label">Licencia</span>
+          <span class="meta-value">
+            <i class="fa-solid fa-id-card" aria-hidden="true"></i>
+            {{ entrenador.licencia }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Estado de carga del entrenador -->
+  <div class="loading-panel" *ngIf="loadingCoach && !entrenador">
+    <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+    <p>Cargando información del entrenador...</p>
+  </div>
+
+  <!-- Sección inferior: Atletas a Cargo -->
+  <section class="athletes-section">
+    <div class="athletes-section-header">
+      <div class="section-title-wrap">
+        <h2>Atletas a Cargo</h2>
+        <span class="counter-chip">{{ atletas.length }}</span>
+      </div>
+
+      <button type="button" class="btn btn-primary btn-assign" (click)="abrirModalAsignacion()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        <span>Asignar Atleta</span>
+      </button>
+    </div>
+
+    <!-- Tabla limpia de atletas asignados -->
+    <div class="table-container">
+      <table class="athletes-table">
+        <thead>
+          <tr>
+            <th>Avatar</th>
+            <th>Nombre completo</th>
+            <th>Email</th>
+            <th>Estado</th>
+            <th class="text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody *ngIf="!loadingAtletas; else loadingAtletasRow">
+          <tr *ngFor="let atleta of atletas">
+            <td class="avatar-cell">
+              <div class="athlete-mini-avatar">
+                {{ getIniciales(atleta.nombre, atleta.apellido) }}
+              </div>
+            </td>
+            <td class="name-cell">
+              <strong>{{ atleta.nombre }} {{ atleta.apellido }}</strong>
+              <small *ngIf="atleta.dni" class="sub-text">DNI: {{ atleta.dni }}</small>
+            </td>
+            <td class="email-cell">{{ atleta.email }}</td>
+            <td>
+              <span class="status-badge" [class.active]="atleta.estado === 'activo'" [class.inactive]="atleta.estado === 'inactivo'">
+                {{ atleta.estado === 'activo' ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td class="actions-cell text-right">
+              <button
+                type="button"
+                class="btn-quitar"
+                (click)="iniciarQuitarAtleta(atleta)"
+                title="Quitar atleta a cargo">
+                <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                <span>Quitar</span>
+              </button>
+            </td>
+          </tr>
+
+          <!-- Estado vacío si no hay atletas -->
+          <tr *ngIf="!atletas.length">
+            <td colspan="5" class="empty-state">
+              <div class="empty-state-content">
+                <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                <p>No hay atletas asignados a este entrenador actualmente.</p>
+                <button type="button" class="btn btn-secondary btn-sm" (click)="abrirModalAsignacion()">
+                  + Asignar primer atleta
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+
+        <ng-template #loadingAtletasRow>
+          <tbody>
+            <tr>
+              <td colspan="5" class="empty-state">
+                <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+                Cargando atletas a cargo...
+              </td>
+            </tr>
+          </tbody>
+        </ng-template>
+      </table>
+    </div>
+  </section>
+
+  <!-- Modal de Asignación de Atletas Disponibles -->
+  <div class="modal-backdrop" *ngIf="modalAsignarOpen" (click)="cerrarModalAsignacion()">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-assign-title" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow tiny">Asignación deportiva</p>
+          <h2 id="modal-assign-title">Asignar Atleta a Cargo</h2>
+          <p class="modal-subtitle" *ngIf="entrenador?.deporte">
+            Atletas de la disciplina <strong>{{ entrenador?.deporte }}</strong> sin entrenador asignado
+          </p>
+        </div>
+        <button type="button" class="close-btn" aria-label="Cerrar modal" (click)="cerrarModalAsignacion()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Buscador dentro del modal -->
+        <div class="modal-search">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          <input
+            type="search"
+            [(ngModel)]="filtroAtleta"
+            placeholder="Buscar por nombre, apellido, correo o DNI..."
+            aria-label="Buscar atleta disponible" />
+        </div>
+
+        <!-- Lista de atletas disponibles -->
+        <div class="available-list" *ngIf="!loadingDisponibles; else loadingDispTpl">
+          <div
+            *ngFor="let atleta of atletasDisponiblesFiltrados"
+            class="available-item"
+            [class.selected]="atletaSeleccionadoId === atleta.id"
+            (click)="seleccionarAtleta(atleta)">
+            <div class="available-item-main">
+              <div class="athlete-mini-avatar">
+                {{ getIniciales(atleta.nombre, atleta.apellido) }}
+              </div>
+              <div class="athlete-info">
+                <strong>{{ atleta.nombre }} {{ atleta.apellido }}</strong>
+                <span class="sub-text">{{ atleta.email }}</span>
+                <span class="sub-text" *ngIf="atleta.dni">• DNI: {{ atleta.dni }}</span>
+              </div>
+            </div>
+
+            <div class="available-item-action">
+              <span class="select-indicator" [class.checked]="atletaSeleccionadoId === atleta.id">
+                <i class="fa-solid fa-check" *ngIf="atletaSeleccionadoId === atleta.id" aria-hidden="true"></i>
+              </span>
+            </div>
+          </div>
+
+          <div class="empty-state" *ngIf="!atletasDisponiblesFiltrados.length">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <p *ngIf="atletasDisponibles.length === 0">
+              No hay atletas disponibles en la disciplina <strong>{{ entrenador?.deporte }}</strong> sin entrenador asignado.
+            </p>
+            <p *ngIf="atletasDisponibles.length > 0">
+              No se encontraron atletas que coincidan con la búsqueda.
+            </p>
+          </div>
+        </div>
+
+        <ng-template #loadingDispTpl>
+          <div class="empty-state">
+            <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+            <p>Buscando atletas disponibles...</p>
+          </div>
+        </ng-template>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarModalAsignacion()" [disabled]="submitting">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="confirmarAsignacion()"
+          [disabled]="!atletaSeleccionadoId || submitting">
+          <i class="fa-solid fa-check" *ngIf="!submitting" aria-hidden="true"></i>
+          <i class="fa-solid fa-spinner fa-spin" *ngIf="submitting" aria-hidden="true"></i>
+          <span>{{ submitting ? 'Asignando...' : 'Asignar Atleta' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Diálogo de Confirmación para Quitar Atleta -->
+  <div class="modal-backdrop" *ngIf="confirmQuitarOpen" (click)="cancelarQuitarAtleta()">
+    <div class="confirm-dialog" role="alertdialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <div class="confirm-icon">
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+      </div>
+      <h2>¿Quitar atleta a cargo?</h2>
+      <p>
+        Estás a punto de desvincular a <strong>{{ atletaAQuitar?.nombre }} {{ atletaAQuitar?.apellido }}</strong> del entrenador <strong>{{ entrenador?.nombre }} {{ entrenador?.apellido }}</strong>.
+      </p>
+      <p class="sub-text">
+        El atleta quedará sin entrenador asignado y pasará a estar disponible en su disciplina.
+      </p>
+      <div class="confirm-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancelarQuitarAtleta()" [disabled]="submitting">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-danger" (click)="confirmarQuitarAtleta()" [disabled]="submitting">
+          <i class="fa-solid fa-trash-can" *ngIf="!submitting" aria-hidden="true"></i>
+          <i class="fa-solid fa-spinner fa-spin" *ngIf="submitting" aria-hidden="true"></i>
+          <span>{{ submitting ? 'Quitando...' : 'Sí, quitar atleta' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
