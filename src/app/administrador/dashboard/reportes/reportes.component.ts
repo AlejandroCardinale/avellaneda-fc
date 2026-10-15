@@ -190,55 +190,169 @@ export class ReportesAdminComponent implements OnInit {
 
   private exportPdf(report: ReportResponse): void {
     const pages: string[][] = [[]];
-    const addText = (text: string, x: number, y: number, size: number, color: string, bold = false): void => {
-      pages[pages.length - 1].push(`${color} rg BT /${bold ? 'F2' : 'F1'} ${size} Tf ${x} ${y} Td (${this.pdfString(text)}) Tj ET`);
-    };
-    pages[0].push('0.09 0.25 0.46 rg 0 778 595 64 re f');
-    addText('AVELLANEDA FC', 40, 813, 19, '1 1 1', true);
-    addText('Reporte estadístico', 40, 793, 10, '1 1 1');
-    addText(`Período: ${report.filters.desde} al ${report.filters.hasta}`, 40, 759, 10, '0.18 0.24 0.27');
-    addText(`Disciplina: ${this.disciplineName(report.filters.disciplina)}`, 40, 744, 10, '0.18 0.24 0.27');
+    const P = pages;
 
-    const metrics = [
-      ['Total atletas', String(report.metrics.totalAtletas)],
-      ['Promedio asistencia', `${report.metrics.promedioAsistencia}%`],
-      ['Recursos en uso', String(report.metrics.recursosEnUso)],
+    // ── Helpers de dibujo PDF ─────────────────────────────────────
+    const newPage = () => { P.push([]); };
+    const cur = () => P[P.length - 1];
+
+    const rect = (x: number, y: number, w: number, h: number, r: number, g: number, b: number) =>
+      cur().push(`${r} ${g} ${b} rg ${x} ${y} ${w} ${h} re f`);
+
+    const line = (x1: number, y1: number, x2: number, y2: number, r: number, g: number, b: number, lw = 0.5) =>
+      cur().push(`${r} ${g} ${b} RG ${lw} w ${x1} ${y1} m ${x2} ${y2} l S`);
+
+    const txt = (text: string, x: number, y: number, size: number, r: number, g: number, b: number, bold = false) =>
+      cur().push(`${r} ${g} ${b} rg BT /${bold ? 'F2' : 'F1'} ${size} Tf ${x} ${y} Td (${this.pdfString(text)}) Tj ET`);
+
+    // ── PÁGINA 1 — CABECERA ───────────────────────────────────────
+    rect(0, 778, 595, 64, 0.09, 0.25, 0.46);
+    txt('AVELLANEDA FC', 40, 815, 18, 1, 1, 1, true);
+    txt('Reporte estadistico', 40, 795, 10, 1, 1, 1);
+    txt(`Periodo: ${report.filters.desde || '—'} al ${report.filters.hasta || '—'}`, 40, 761, 10, 0.18, 0.24, 0.27);
+    txt(`Disciplina: ${this.disciplineName(report.filters.disciplina)}`, 40, 746, 10, 0.18, 0.24, 0.27);
+    txt(`Generado: ${new Date().toLocaleString('es-AR')}`, 350, 761, 8, 0.5, 0.5, 0.5);
+
+    // ── MÉTRICAS (4 tarjetas) ─────────────────────────────────────
+    const cards = [
+      ['Total atletas',         String(report.metrics.totalAtletas)],
+      ['Asistencia promedio',   `${report.metrics.promedioAsistencia}%`],
+      ['Recursos en uso',       String(report.metrics.recursosEnUso)],
       ['Solicitudes resueltas', String(report.metrics.solicitudesResueltas)]
     ];
-    metrics.forEach(([label, value], index) => {
-      const x = 40 + (index % 2) * 265;
-      const y = 695 - Math.floor(index / 2) * 44;
-      pages[0].push(`0.95 0.97 0.97 rg ${x} ${y} 250 36 re f`);
-      addText(label, x + 10, y + 22, 9, '0.41 0.49 0.51');
-      addText(value, x + 10, y + 8, 12, '0.13 0.22 0.25', true);
+    cards.forEach(([label, value], i) => {
+      const cx = 40 + (i % 2) * 260, cy = 695 - Math.floor(i / 2) * 50;
+      rect(cx, cy, 245, 42, 0.94, 0.96, 0.98);
+      line(cx, cy + 42, cx, cy, 0.09, 0.25, 0.46, 3);
+      txt(label, cx + 10, cy + 28, 8, 0.41, 0.49, 0.51);
+      txt(value,  cx + 10, cy + 10, 13, 0.09, 0.25, 0.46, true);
     });
 
-    let y = 590;
-    y = this.appendPdfTable(pages, 'Atletas por disciplina', ['Disciplina', 'Atletas'], report.atletasPorDisciplina.map(item => [item.nombre, String(item.total)]), y, [365, 150], addText);
-    y = this.appendPdfTable(pages, 'Recursos más solicitados', ['Recurso', 'Cantidad'], report.recursosMasSolicitados.map(item => [item.nombre, String(item.total)]), y - 12, [365, 150], addText);
-    y = this.appendPdfTable(pages, 'Tendencia de registros', ['Semana', 'Atletas registrados'], report.registrosPorPeriodo.map(item => [item.periodo, String(item.total)]), y - 12, [240, 275], addText);
-    y = this.appendPdfTable(pages, 'Asistencia a entrenamientos', ['Atleta', 'Entrenamiento', 'Fecha', 'Estado'], report.asistenciasDetalle.map(item => [item.atleta, item.entrenamiento, this.formatDate(item.fecha), item.presente ? 'Presente' : 'Ausente']), y - 12, [130, 175, 120, 90], addText);
-    this.appendPdfTable(pages, 'Actividad de recursos', ['Recurso', 'Responsable', 'Fecha', 'Estado'], report.actividadRecursos.map(item => [item.recurso, item.usuario, this.formatDate(item.fecha), this.statusName(item.estado)]), y - 12, [130, 145, 135, 105], addText);
-
-    pages.forEach((page, index) => {
-      page.push(`0.48 0.53 0.55 rg BT /F1 8 Tf 40 24 Td (Avellaneda FC  |  Pagina ${index + 1} de ${pages.length}) Tj ET`);
+    // ── GRÁFICO 1: BARRAS HORIZONTALES — Atletas por disciplina ──
+    const chartColors = [
+      [0.03, 0.50, 0.55], [0.94, 0.63, 0.01], [0.14, 0.39, 0.67],
+      [0.48, 0.62, 0.23], [0.82, 0.29, 0.36], [0.39, 0.33, 0.50],
+      [0.32, 0.65, 0.46], [0.93, 0.42, 0.35]
+    ];
+    const disc = report.atletasPorDisciplina.filter(d => d.total > 0);
+    const maxDisc = Math.max(...disc.map(d => d.total), 1);
+    txt('Atletas por disciplina', 40, 582, 11, 0.09, 0.25, 0.46, true);
+    line(40, 576, 360, 576, 0.8, 0.85, 0.87);
+    disc.slice(0, 7).forEach((d, i) => {
+      const by = 558 - i * 22;
+      const bw = Math.max(4, (d.total / maxDisc) * 280);
+      const [cr, cg, cb] = chartColors[i % chartColors.length];
+      rect(40, by, bw, 14, cr, cg, cb);
+      txt(d.nombre, 40 + bw + 6, by + 3, 7.5, 0.2, 0.28, 0.32);
+      txt(String(d.total), 40 + bw + 6, by - 5, 6, 0.5, 0.5, 0.5);
     });
-    this.downloadBlob(this.createPdf(pages), this.fileName('pdf'));
+
+    // ── GRÁFICO 2: BARRAS VERTICALES — Asistencia semanal ────────
+    const att = report.asistenciaSemanal.slice(-8);
+    if (att.length > 0) {
+      txt('Tendencia de asistencia (%)', 370, 582, 11, 0.09, 0.25, 0.46, true);
+      line(370, 576, 555, 576, 0.8, 0.85, 0.87);
+      const barW = Math.floor(160 / (att.length + 1));
+      att.forEach((a, i) => {
+        const bx = 375 + i * (barW + 2);
+        const bh = Math.max(2, (a.porcentaje / 100) * 100);
+        const by = 468;
+        // Gradiente simulado con 2 rectángulos
+        rect(bx, by, barW, bh, 0.14, 0.39, 0.67);
+        rect(bx, by + bh - 4, barW, 4, 0.09, 0.25, 0.46);
+        txt(`${a.porcentaje}%`, bx, by + bh + 3, 5.5, 0.2, 0.28, 0.32);
+        txt(a.periodo, bx - 1, by - 8, 5.5, 0.5, 0.5, 0.5);
+      });
+      // Eje Y
+      [0, 25, 50, 75, 100].forEach(v => {
+        const vy = 468 + (v / 100) * 100;
+        line(370, vy, 555, vy, 0.88, 0.9, 0.92, 0.3);
+        txt(`${v}%`, 358, vy - 2, 5, 0.6, 0.6, 0.6);
+      });
+    }
+
+    // ── GRÁFICO 3: DONUT — Recursos más solicitados ───────────────
+    const res = report.recursosMasSolicitados.filter(r => r.total > 0);
+    if (res.length > 0) {
+      const totalRes = res.reduce((s, r) => s + r.total, 0);
+      txt('Recursos mas solicitados', 40, 460, 11, 0.09, 0.25, 0.46, true);
+      line(40, 454, 280, 454, 0.8, 0.85, 0.87);
+      // Donut con arcos SVG-like usando rectángulos de colores (simplificado)
+      let cx2 = 90;
+      res.slice(0, 5).forEach((r, i) => {
+        const w = Math.max(6, (r.total / totalRes) * 200);
+        const [cr, cg, cb] = chartColors[i % chartColors.length];
+        rect(cx2, 400, w, 28, cr, cg, cb);
+        txt(r.nombre.substring(0, 16), cx2, 393, 6, 0.2, 0.28, 0.32);
+        txt(`${r.total}`, cx2 + w / 2 - 4, 410, 7, 1, 1, 1, true);
+        cx2 += w + 3;
+      });
+    }
+
+    // ── PÁGINA 2 — TABLAS ─────────────────────────────────────────
+    newPage();
+    rect(0, 778, 595, 64, 0.09, 0.25, 0.46);
+    txt('AVELLANEDA FC — Detalle', 40, 815, 16, 1, 1, 1, true);
+    txt('Tablas de asistencia, actividad de recursos y ranking de atletas', 40, 797, 9, 1, 1, 1);
+
+    // Ranking de atletas (usa fn_porcentaje_asistencia vía SP)
+    if (report.rankingAtletas && report.rankingAtletas.length > 0) {
+      txt('Ranking de atletas por asistencia', 40, 754, 11, 0.09, 0.25, 0.46, true);
+      line(40, 748, 555, 748, 0.8, 0.85, 0.87);
+      rect(40, 728, 515, 17, 0.92, 0.95, 0.95);
+      txt('Atleta', 44, 732, 8, 0.2, 0.29, 0.32, true);
+      txt('Deporte', 220, 732, 8, 0.2, 0.29, 0.32, true);
+      txt('% Asistencia', 340, 732, 8, 0.2, 0.29, 0.32, true);
+      txt('Sesiones', 440, 732, 8, 0.2, 0.29, 0.32, true);
+      let ry = 714;
+      report.rankingAtletas.forEach((a, i) => {
+        if (i % 2 === 0) rect(40, ry - 4, 515, 16, 0.97, 0.98, 0.99);
+        txt(a.atleta, 44, ry, 8, 0.24, 0.31, 0.34);
+        txt(a.deporte, 220, ry, 8, 0.24, 0.31, 0.34);
+        // Mini barra de % asistencia
+        const bw = Math.max(2, (a.pctAsistencia / 100) * 80);
+        rect(340, ry - 1, bw, 8, 0.03, 0.50, 0.55);
+        txt(`${a.pctAsistencia}%`, 425, ry, 7.5, 0.2, 0.28, 0.32);
+        txt(String(a.sesTotales), 440, ry, 8, 0.24, 0.31, 0.34);
+        line(40, ry - 5, 555, ry - 5, 0.86, 0.90, 0.90, 0.4);
+        ry -= 16;
+      });
+    }
+
+    // Tabla asistencias detalle
+    let ty = pages.length === 1 ? 350 : Math.min((pages[pages.length - 1] as string[]).length > 0 ? 440 : 720, 440);
+    ty = this.appendPdfTable(
+      P, 'Asistencia a entrenamientos', ['Atleta', 'Entrenamiento', 'Fecha', 'Estado'],
+      report.asistenciasDetalle.map(i => [i.atleta, i.entrenamiento, this.formatDate(i.fecha), i.presente ? 'Presente' : 'Ausente']),
+      400, [130, 175, 120, 90], txt
+    );
+    this.appendPdfTable(
+      P, 'Actividad de recursos', ['Recurso', 'Responsable', 'Fecha', 'Estado'],
+      report.actividadRecursos.map(i => [i.recurso, i.usuario, this.formatDate(i.fecha), i.estado]),
+      ty - 16, [130, 145, 135, 105], txt
+    );
+
+    // ── PIE DE PÁGINA en cada hoja ────────────────────────────────
+    P.forEach((page, idx) => {
+      page.push(`0.48 0.53 0.55 rg BT /F1 8 Tf 40 24 Td (Avellaneda FC  |  Pagina ${idx + 1} de ${P.length}  |  Generado con sp_reporte_general + fn_porcentaje_asistencia) Tj ET`);
+    });
+
+    this.downloadBlob(this.createPdf(P), this.fileName('pdf'));
   }
 
-  private appendPdfTable(pages: string[][], title: string, headers: string[], rows: string[][], startY: number, widths: number[], addText: (text: string, x: number, y: number, size: number, color: string, bold?: boolean) => void): number {
+  private appendPdfTable(pages: string[][], title: string, headers: string[], rows: string[][], startY: number, widths: number[], addText: (text: string, x: number, y: number, size: number, r: number, g: number, b: number, bold?: boolean) => void): number {
     const x = 40;
     const tableWidth = widths.reduce((sum, width) => sum + width, 0);
     let y = startY;
     const addHeading = (continued: boolean): void => {
       if (y < 74) { pages.push([]); y = 790; }
       pages[pages.length - 1].push(`0.03 0.5 0.55 rg ${x} ${y - 17} ${tableWidth} 20 re f`);
-      addText(continued ? `${title} (continuacion)` : title, x + 8, y - 12, 10, '1 1 1', true);
+      addText(continued ? `${title} (continuacion)` : title, x + 8, y - 12, 10, 1, 1, 1, true);
       y -= 23;
       pages[pages.length - 1].push(`0.92 0.95 0.95 rg ${x} ${y - 16} ${tableWidth} 18 re f`);
       let columnX = x;
       headers.forEach((header, index) => {
-        addText(header, columnX + 5, y - 11, 8, '0.2 0.29 0.32', true);
+        addText(header, columnX + 5, y - 11, 8, 0.2, 0.29, 0.32, true);
         columnX += widths[index];
       });
       y -= 20;
@@ -252,7 +366,7 @@ export class ReportesAdminComponent implements OnInit {
       if (y - rowHeight < 42) { pages.push([]); y = 790; addHeading(true); }
       let columnX = x;
       cells.forEach((lines, index) => {
-        lines.forEach((line, lineIndex) => addText(line, columnX + 5, y - 10 - lineIndex * 10, 7, '0.24 0.31 0.34'));
+        lines.forEach((line, lineIndex) => addText(line, columnX + 5, y - 10 - lineIndex * 10, 7, 0.24, 0.31, 0.34));
         columnX += widths[index];
       });
       y -= rowHeight;
