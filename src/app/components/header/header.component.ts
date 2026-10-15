@@ -60,7 +60,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
     // Siempre cargamos los links base
     const links = [...this.BASE_LINKS];
 
-    // Entrenador o Admin: agrega Solicitud
+    // Atleta: agrega link a su panel
+    if (this.authService.isAtleta()) {
+      links.push({ label: 'Atleta', path: '/atleta' });
+    }
+
+    // Entrenador: agrega Solicitud y Panel entrenador
     if (this.authService.isEntrenador()) {
       links.push({ label: 'Solicitud', path: '/solicitud' });
     }

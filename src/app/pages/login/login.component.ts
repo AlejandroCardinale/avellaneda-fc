@@ -52,7 +52,9 @@ export class LoginComponent {
         this.loading = false;
         const destination = this.authService.isAdmin()
           ? '/administrador'
-          : this.authService.isEntrenador() ? '/entrenador' : '/inicio';
+          : this.authService.isEntrenador() ? '/entrenador'
+          : this.authService.isAtleta() ? '/atleta'
+          : '/inicio';
         this.router.navigate([destination]);
       },
       error: (err) => {
