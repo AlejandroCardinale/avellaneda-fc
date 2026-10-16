@@ -71,7 +71,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     // Solo Admin: agrega Reportes
     if (this.authService.isAdmin()) {
-      links.push({ label: 'Resumen', path: '/reportes' });
+      links.push({ label: 'Dashboard', path: '/reportes' });
     }
 
     this.navLinks = links;
