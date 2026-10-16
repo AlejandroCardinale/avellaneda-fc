@@ -42,6 +42,26 @@ export interface SolicitudAdmin {
   total_items: number;
 }
 
+export interface SolicitudAdminItem {
+  id: number;
+  item_id: number;
+  nombre: string;
+  categoria: RecursoCategoria;
+  cantidad: number;
+  talle: string | null;
+  numero_dorsal: number | null;
+  observacion: string | null;
+}
+
+export interface SolicitudAdminDetalle extends SolicitudAdmin {
+  rol: string;
+  equipo: string | null;
+  destino: string | null;
+  pasajeros: number | null;
+  observaciones: string | null;
+  items: SolicitudAdminItem[];
+}
+
 export interface RecursosResponse {
   data: RecursoDeportivo[];
   total: number;
@@ -85,6 +105,10 @@ export class RecursosDeportivosService {
 
   listarSolicitudes(): Observable<SolicitudAdmin[]> {
     return this.http.get<SolicitudAdmin[]>(`${this.api.replace('/recursos', '/solicitudes')}`);
+  }
+
+  obtenerDetalleSolicitud(id: number): Observable<SolicitudAdminDetalle> {
+    return this.http.get<SolicitudAdminDetalle>(`${this.api.replace('/recursos', '/solicitudes')}/${id}`);
   }
 
   actualizarEstadoSolicitud(id: number, estado: SolicitudAdmin['estado']): Observable<{ message: string }> {

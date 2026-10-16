@@ -45,11 +45,11 @@ interface FilaEquipamiento {
 }
 
 @Component({
-  selector: 'app-solicitud',
+  selector: 'app-entrenador-solicitudes',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './solicitud.component.html',
-  styleUrl: './solicitud.component.css'
+  templateUrl: './solicitudes.component.html',
+  styleUrl: './solicitudes.component.css'
 })
 export class SolicitudComponent implements OnInit {
   /** Pestaña actualmente visible: indumentaria / equipamiento / transporte */

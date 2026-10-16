@@ -97,10 +97,11 @@ router.post('/register', async (req, res) => {
     password,
     telefono,
     rol,
+    // DNI — obligatorio para todos los roles
+    dni,
     // Campos específicos para Atleta
     deporte_id,
     categoria_id,
-    dni,
     numero_socio,
     posicion,
     // Campos específicos para Entrenador
@@ -114,6 +115,12 @@ router.post('/register', async (req, res) => {
   }
   if (password.length < 6) {
     return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres.' });
+  }
+
+  // DNI obligatorio para todos
+  const parsedDni = dni && String(dni).trim() !== '' ? String(dni).trim() : null;
+  if (!parsedDni || parsedDni.length < 6) {
+    return res.status(400).json({ message: 'El DNI es obligatorio y debe tener al menos 6 caracteres.' });
   }
 
   // Validar que el rol sea válido
@@ -147,32 +154,40 @@ router.post('/register', async (req, res) => {
     );
     const rol_id = roles[0]?.id ?? 3; // Fallback al id 3 (atleta)
 
+    // Verificar DNI duplicado en usuarios
+    const [dniExiste] = await connection.execute(
+      'SELECT id FROM usuarios WHERE dni = ? LIMIT 1', [parsedDni]
+    );
+    if (dniExiste.length > 0) {
+      await connection.rollback();
+      return res.status(409).json({ message: 'Ya existe una cuenta registrada con ese DNI.' });
+    }
+
     // Insertar el nuevo usuario en la BD — activo=FALSE y estado_registro='pendiente'
     const [resultUser] = await connection.execute(
-      `INSERT INTO usuarios (rol_id, nombre, apellido, email, password_hash, telefono, activo, estado_registro)
-       VALUES (?, ?, ?, ?, ?, ?, FALSE, 'pendiente')`,
-      [rol_id, nombre.trim(), apellido.trim(), email.toLowerCase().trim(), password_hash, telefono ? String(telefono).trim() : null]
+      `INSERT INTO usuarios (rol_id, nombre, apellido, email, password_hash, telefono, dni, activo, estado_registro)
+       VALUES (?, ?, ?, ?, ?, ?, ?, FALSE, 'pendiente')`,
+      [rol_id, nombre.trim(), apellido.trim(), email.toLowerCase().trim(), password_hash, telefono ? String(telefono).trim() : null, parsedDni]
     );
 
     const usuarioId = resultUser.insertId;
 
-    // Si es Atleta: Insertar simultáneamente en la tabla atletas dejando entrenador_id = NULL
+    // Si es Atleta: insertar en tabla atletas
     if (rolElegido === 'atleta') {
       const parsedDeporteId = Number(deporte_id) > 0 ? Number(deporte_id) : 1;
       const parsedCategoriaId = Number(categoria_id) > 0 ? Number(categoria_id) : null;
-      const parsedDni = dni && String(dni).trim() !== '' ? String(dni).trim() : null;
       const parsedNumeroSocio = numero_socio && String(numero_socio).trim() !== '' ? String(numero_socio).trim() : null;
       const parsedPosicion = posicion && String(posicion).trim() !== '' ? String(posicion).trim() : null;
 
       await connection.execute(
         `INSERT INTO atletas (
-          usuario_id, deporte_id, categoria_id, dni, numero_socio, posicion, entrenador_id, estado_medico
-        ) VALUES (?, ?, ?, ?, ?, ?, NULL, 'pendiente')`,
+          usuario_id, deporte_id, categoria_id, dni, numero_socio, posicion, estado_medico
+        ) VALUES (?, ?, ?, ?, ?, ?, 'pendiente')`,
         [usuarioId, parsedDeporteId, parsedCategoriaId, parsedDni, parsedNumeroSocio, parsedPosicion]
       );
     }
 
-    // Si es Entrenador: Insertar simultáneamente en la tabla entrenadores
+    // Si es Entrenador: insertar en tabla entrenadores (con DNI)
     if (rolElegido === 'entrenador') {
       const parsedDeporteId = Number(deporte_id) > 0 ? Number(deporte_id) : 1;
       const parsedEspecialidad = especialidad && String(especialidad).trim() !== '' ? String(especialidad).trim() : 'General';
@@ -186,7 +201,17 @@ router.post('/register', async (req, res) => {
       );
     }
 
-    // Si es Administrador: No requiere tabla adicional
+    // Si es Administrador: insertar en tabla administradores
+    if (rolElegido === 'administrador') {
+      const parsedCargo = req.body.cargo && String(req.body.cargo).trim() !== ''
+        ? String(req.body.cargo).trim()
+        : 'Administrador General';
+
+      await connection.execute(
+        `INSERT INTO administradores (usuario_id, dni, cargo) VALUES (?, ?, ?)`,
+        [usuarioId, parsedDni, parsedCargo]
+      );
+    }
 
     await connection.commit();
 
@@ -490,4 +515,3 @@ router.post('/reset-password', async (req, res) => {
 });
 
 module.exports = router;
-

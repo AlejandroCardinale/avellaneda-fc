@@ -277,6 +277,14 @@ usuarios.rol_id -> roles.id
 Los perfiles de atletas y entrenadores se vinculan con esta tabla mediante
 usuario_id.
 
+El DNI se almacena tambien en usuarios para validar su unicidad entre roles.
+Para actualizar una base existente, desde backend/ ejecuta:
+
+    npm run migrate:all
+
+Esta migracion añade el DNI de usuarios y prepara las tablas y objetos de
+reportes y administradores. Ejecutala una vez antes de iniciar el servidor.
+
 8.3 deportes
 
 Contiene las disciplinas disponibles del club, por ejemplo Futbol, Natacion,

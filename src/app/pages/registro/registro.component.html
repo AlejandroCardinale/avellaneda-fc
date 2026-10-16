@@ -183,12 +183,12 @@
             </div>
           </div>
 
-          <!-- DNI / Documento -->
+          <!-- DNI / Documento (solo atleta: deporte+categoria también) -->
           <div class="form-group">
-            <label class="form-label" for="dni">DNI / Documento</label>
+            <label class="form-label" for="dni-atleta">DNI / Documento</label>
             <div class="input-wrapper">
               <i class="fa-solid fa-id-card input-icon"></i>
-              <input id="dni" type="text" class="form-control form-control-icon" placeholder="Ej: 38456789"
+              <input id="dni-atleta" type="text" class="form-control form-control-icon" placeholder="Ej: 38456789"
                 formControlName="dni" [class.is-invalid]="submitted && f['dni'].errors">
             </div>
             <span class="form-error" *ngIf="submitted && f['dni'].errors?.['required']">El DNI es obligatorio.</span>
@@ -204,6 +204,18 @@
               <h3 class="dynamic-title">Datos profesionales del Entrenador</h3>
               <p class="dynamic-subtitle">Disciplina a cargo, especialidad técnica y credenciales</p>
             </div>
+          </div>
+
+          <!-- DNI Entrenador -->
+          <div class="form-group">
+            <label class="form-label" for="dni-entrenador">DNI / Documento</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-id-card input-icon"></i>
+              <input id="dni-entrenador" type="text" class="form-control form-control-icon" placeholder="Ej: 38456789"
+                formControlName="dni" [class.is-invalid]="submitted && f['dni'].errors">
+            </div>
+            <span class="form-error" *ngIf="submitted && f['dni'].errors?.['required']">El DNI es obligatorio.</span>
+            <span class="form-error" *ngIf="submitted && f['dni'].errors?.['minlength']">Mínimo 6 caracteres.</span>
           </div>
 
           <!-- Selector de Deporte -->
@@ -245,6 +257,28 @@
                   formControlName="licencia">
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- SECCIÓN DINÁMICA: CAMPOS ESPECÍFICOS DE ADMINISTRADOR -->
+        <div class="dynamic-section" *ngIf="rolSeleccionado === 'administrador'">
+          <div class="dynamic-header">
+            <div class="dynamic-icon"><i class="fa-solid fa-gear"></i></div>
+            <div>
+              <h3 class="dynamic-title">Datos del Administrador</h3>
+              <p class="dynamic-subtitle">Identificación requerida para el acceso administrativo</p>
+            </div>
+          </div>
+          <!-- DNI Administrador -->
+          <div class="form-group">
+            <label class="form-label" for="dni-admin">DNI / Documento</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-id-card input-icon"></i>
+              <input id="dni-admin" type="text" class="form-control form-control-icon" placeholder="Ej: 38456789"
+                formControlName="dni" [class.is-invalid]="submitted && f['dni'].errors">
+            </div>
+            <span class="form-error" *ngIf="submitted && f['dni'].errors?.['required']">El DNI es obligatorio.</span>
+            <span class="form-error" *ngIf="submitted && f['dni'].errors?.['minlength']">Mínimo 6 caracteres.</span>
           </div>
         </div>
 

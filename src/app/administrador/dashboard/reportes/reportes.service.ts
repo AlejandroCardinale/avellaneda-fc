@@ -7,12 +7,13 @@ export interface ReportFilters { desde: string; hasta: string; disciplina: strin
 export interface ReportResponse {
   filters: ReportFilters;
   metrics: { totalAtletas: number; promedioAsistencia: number; recursosEnUso: number; solicitudesResueltas: number };
-  atletasPorDisciplina: { id: number; nombre: string; total: number }[];
+  atletasPorDisciplina: { id: number; nombre: string; total: number; pctAsistencia?: number }[];
   recursosMasSolicitados: { nombre: string; total: number }[];
   asistenciaSemanal: { periodo: string; porcentaje: number }[];
   registrosPorPeriodo: { periodo: string; total: number }[];
   asistenciasDetalle: { atleta: string; entrenamiento: string; fecha: string; presente: boolean }[];
   actividadRecursos: { recurso: string; usuario: string; fecha: string; estado: string }[];
+  rankingAtletas?: { atleta: string; deporte: string; pctAsistencia: number; sesTotales: number }[];
 }
 
 @Injectable({ providedIn: 'root' })

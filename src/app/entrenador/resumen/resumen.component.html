@@ -1,0 +1,96 @@
+<div class="notice error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</div>
+<div class="loading-state" *ngIf="loading"><span class="loader"></span><span>Cargando tu espacio...</span></div>
+<ng-container *ngIf="!loading && dashboard">
+<section *ngIf="view === 'inicio'" class="view-section">
+          <div class="welcome-band">
+            <div>
+              <p class="overline">Temporada deportiva</p>
+              <h2>Hola, {{ dashboard.entrenador.nombre }}.</h2>
+              <p>
+                Tu disciplina:
+                <strong>{{ dashboard.entrenador.deporte }}</strong
+                ><span *ngIf="dashboard.entrenador.especialidad">
+                  · {{ dashboard.entrenador.especialidad }}</span
+                >
+              </p>
+            </div>
+            <button
+              type="button"
+              class="button button-light"
+              (click)="newSession()"
+            >
+              <i class="fa-solid fa-plus" aria-hidden="true"></i> Programar
+              entrenamiento
+            </button>
+          </div>
+
+          <div class="metric-row">
+            <article class="metric">
+              <span>Atletas del plantel</span
+              ><strong>{{ dashboard.resumen.atletas }}</strong
+              ><small>Disciplina {{ dashboard.entrenador.deporte }}</small>
+            </article>
+            <article class="metric">
+              <span>Sesiones creadas</span
+              ><strong>{{ dashboard.resumen.sesiones }}</strong
+              ><small>En toda la temporada</small>
+            </article>
+            <article class="metric">
+              <span>Próximas sesiones</span
+              ><strong>{{ dashboard.resumen.proximas }}</strong
+              ><small>Entrenamientos programados</small>
+            </article>
+          </div>
+
+          <section class="data-section">
+            <div class="section-heading">
+              <div>
+                <p class="overline">Agenda del equipo</p>
+                <h2>Entrenamientos</h2>
+              </div>
+              <button
+                type="button"
+                class="text-action"
+                (click)="setView('entrenamientos')"
+              >
+                Ver agenda
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div
+              class="session-list"
+              *ngIf="dashboard.entrenamientos.length; else noUpcoming"
+            >
+              <article
+                class="upcoming-row"
+                *ngFor="let session of dashboard.entrenamientos"
+              >
+                <div class="date-block">
+                  <strong>{{ session.fecha_hora | date: "dd" }}</strong
+                  ><span>{{ session.fecha_hora | date: "MMM" }}</span>
+                </div>
+                <div class="upcoming-info">
+                  <strong>{{ session.titulo }}</strong
+                  ><span
+                    >{{ formatDate(session.fecha_hora) }} ·
+                    {{ session.duracion_min }} min</span
+                  >
+                </div>
+                <span class="category-label">{{
+                  session.categoria || "Todas las categorías"
+                }}</span>
+                <span
+                  class="state-dot"
+                  [class]="'state-dot ' + session.estado"
+                  >{{ estadoLabel(session.estado) }}</span
+                >
+              </article>
+            </div>
+            <ng-template #noUpcoming
+              ><div class="empty-state">
+                Todavía no hay entrenamientos próximos en la agenda.
+              </div></ng-template
+            >
+          </section>
+        </section>
+</ng-container>

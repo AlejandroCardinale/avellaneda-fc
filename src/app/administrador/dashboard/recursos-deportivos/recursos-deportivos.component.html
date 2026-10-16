@@ -79,8 +79,7 @@
             <td>{{ solicitud.total_items }}</td>
             <td><span class="request-status" [class]="'request-' + solicitud.estado">{{ solicitud.estado | titlecase }}</span></td>
             <td class="request-actions">
-              <button type="button" class="approve-btn" *ngIf="solicitud.estado === 'pendiente'" (click)="changeRequestStatus(solicitud, 'aprobada')">Aprobar</button>
-              <button type="button" class="reject-btn" *ngIf="solicitud.estado === 'pendiente'" (click)="changeRequestStatus(solicitud, 'rechazada')">Rechazar</button>
+              <button type="button" class="view-request-btn" (click)="openRequestDetails(solicitud)">Ver solicitud</button>
             </td>
           </tr>
           <tr *ngIf="!filteredSolicitudes.length"><td colspan="6" class="empty-state">No hay solicitudes para mostrar.</td></tr>
@@ -89,6 +88,74 @@
     </div>
     <ng-template #requestsLoading><div class="loading-state">Cargando solicitudes...</div></ng-template>
   </section>
+
+  <div class="modal-backdrop request-detail-backdrop" *ngIf="requestDetailOpen" (click)="closeRequestDetails()">
+    <section class="resource-modal request-detail-modal" role="dialog" aria-modal="true" aria-labelledby="request-detail-title" (click)="$event.stopPropagation()">
+      <header class="modal-heading">
+        <div>
+          <p class="eyebrow">Solicitud #{{ selectedRequest?.id }}</p>
+          <h2 id="request-detail-title">Detalle de solicitud</h2>
+        </div>
+        <button type="button" class="close-btn" (click)="closeRequestDetails()" [disabled]="requestUpdating" aria-label="Cerrar">×</button>
+      </header>
+
+      <div class="request-detail-error" *ngIf="requestDetailError" role="alert">{{ requestDetailError }}</div>
+      <div class="loading-state" *ngIf="requestDetailLoading">Cargando detalle de la solicitud...</div>
+
+      <ng-container *ngIf="selectedRequest as solicitud">
+        <div class="request-detail-content" *ngIf="!requestDetailLoading">
+          <section class="request-detail-section">
+            <h3>Datos del solicitante</h3>
+            <dl class="request-detail-grid">
+              <div><dt>Nombre</dt><dd>{{ solicitud.solicitante }}</dd></div>
+              <div><dt>Email</dt><dd>{{ solicitud.email }}</dd></div>
+              <div><dt>Rol</dt><dd>{{ solicitud.rol ? (solicitud.rol | titlecase) : 'Sin rol informado' }}</dd></div>
+              <div><dt>Equipo / disciplina</dt><dd>{{ solicitud.equipo || 'Sin equipo informado' }}</dd></div>
+            </dl>
+          </section>
+
+          <section class="request-detail-section">
+            <h3>Pedido</h3>
+            <dl class="request-detail-grid">
+              <div><dt>Tipo</dt><dd>{{ categoryLabel(solicitud.tipo) }}</dd></div>
+              <div><dt>Fecha de necesidad</dt><dd>{{ solicitud.fecha_necesidad | date:'dd/MM/yyyy' }}</dd></div>
+              <div><dt>Estado</dt><dd><span class="request-status" [class]="'request-' + solicitud.estado">{{ solicitud.estado | titlecase }}</span></dd></div>
+              <div *ngIf="solicitud.tipo === 'transporte'"><dt>Destino</dt><dd>{{ solicitud.destino || 'No informado' }}</dd></div>
+              <div *ngIf="solicitud.tipo === 'transporte'"><dt>Pasajeros</dt><dd>{{ solicitud.pasajeros ?? 'No informado' }}</dd></div>
+              <div class="detail-wide"><dt>Observaciones / aclaraciones</dt><dd>{{ solicitud.observaciones || 'Sin observaciones' }}</dd></div>
+            </dl>
+          </section>
+
+          <section class="request-detail-section">
+            <h3>Ítems solicitados</h3>
+            <div class="request-items-wrapper" *ngIf="solicitud.items.length; else noRequestItems">
+              <table class="request-items-table">
+                <thead><tr><th>Prenda / material</th><th>Talle</th><th>Dorsal</th><th>Cantidad</th><th>Observación</th></tr></thead>
+                <tbody>
+                  <tr *ngFor="let item of solicitud.items">
+                    <td>{{ item.nombre }}</td>
+                    <td>{{ item.talle || '—' }}</td>
+                    <td>{{ item.numero_dorsal ?? '—' }}</td>
+                    <td>{{ item.cantidad }}</td>
+                    <td>{{ item.observacion || '—' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <ng-template #noRequestItems><p class="request-detail-muted">Esta solicitud no tiene ítems cargados.</p></ng-template>
+          </section>
+        </div>
+      </ng-container>
+
+      <footer class="request-detail-footer">
+        <button type="button" class="btn btn-ghost" (click)="closeRequestDetails()" [disabled]="requestUpdating">Cerrar</button>
+        <ng-container *ngIf="selectedRequest?.estado === 'pendiente'">
+          <button type="button" class="reject-btn" (click)="updateSelectedRequestStatus('rechazada')" [disabled]="requestUpdating || requestDetailLoading || !!requestDetailError">{{ requestUpdating ? 'Actualizando...' : 'Rechazar solicitud' }}</button>
+          <button type="button" class="approve-btn" (click)="updateSelectedRequestStatus('aprobada')" [disabled]="requestUpdating || requestDetailLoading || !!requestDetailError">{{ requestUpdating ? 'Actualizando...' : 'Aprobar solicitud' }}</button>
+        </ng-container>
+      </footer>
+    </section>
+  </div>
 
   <div class="modal-backdrop" *ngIf="modalOpen" (click)="closeEditor()">
     <form class="resource-modal" [formGroup]="form" (ngSubmit)="save()" (click)="$event.stopPropagation()">

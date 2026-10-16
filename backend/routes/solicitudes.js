@@ -245,6 +245,58 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ─── GET /api/solicitudes/:id ───────────────────────────────────────────────
+// Devuelve los datos completos de una solicitud para el modal de administración.
+router.get('/:id', async (req, res) => {
+  if (req.usuario.rol !== 'administrador') {
+    return res.status(403).json({ message: 'Acceso denegado.' });
+  }
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id < 1) {
+    return res.status(400).json({ message: 'El identificador de la solicitud no es válido.' });
+  }
+  try {
+    const [rows] = await pool.execute(
+      `SELECT s.id, s.tipo, s.estado, s.fecha_necesidad, s.creado_en,
+              s.destino, s.pasajeros, s.observaciones,
+              CONCAT(u.nombre, ' ', u.apellido) AS solicitante, u.email,
+              r.nombre AS rol,
+              CASE
+                WHEN LOWER(r.nombre) = 'atleta' THEN NULLIF(CONCAT_WS(' · ', d_a.nombre, c.nombre), '')
+                WHEN LOWER(r.nombre) = 'entrenador' THEN d_e.nombre
+                ELSE NULL
+              END AS equipo,
+              (SELECT COUNT(*) FROM solicitud_items si WHERE si.solicitud_id = s.id) AS total_items
+       FROM solicitudes s
+       JOIN usuarios u ON u.id = s.usuario_id
+       JOIN roles r ON r.id = u.rol_id
+       LEFT JOIN atletas a ON a.usuario_id = u.id
+       LEFT JOIN categorias c ON c.id = a.categoria_id
+       LEFT JOIN deportes d_a ON d_a.id = a.deporte_id
+       LEFT JOIN entrenadores e ON e.usuario_id = u.id
+       LEFT JOIN deportes d_e ON d_e.id = e.deporte_id
+       WHERE s.id = ?`,
+      [id]
+    );
+    if (!rows.length) {
+      return res.status(404).json({ message: 'No se encontró la solicitud.' });
+    }
+    const [items] = await pool.execute(
+      `SELECT si.id, si.item_id, ci.nombre, ci.categoria,
+              si.cantidad, si.talle, si.numero_dorsal, si.observacion
+       FROM solicitud_items si
+       LEFT JOIN catalogo_items ci ON ci.id = si.item_id
+       WHERE si.solicitud_id = ?
+       ORDER BY si.id`,
+      [id]
+    );
+    return res.json({ ...rows[0], items });
+  } catch (err) {
+    console.error('[solicitudes GET detail]', err);
+    return res.status(500).json({ message: 'No se pudo cargar el detalle de la solicitud.' });
+  }
+});
+
 // ─── PATCH /api/solicitudes/:id/estado ─────────────────────────────────────
 /**
  * Permite al administrador cambiar el estado de una solicitud.

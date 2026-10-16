@@ -21,6 +21,21 @@ async function findCoach(userId) {
   return rows[0] || null;
 }
 
+async function getCoachOrRespond(req, res) {
+  try {
+    const coach = await findCoach(req.usuario.id);
+    if (!coach) {
+      res.status(404).json({ message: 'No se encontró el perfil de entrenador.' });
+      return null;
+    }
+    return coach;
+  } catch (error) {
+    console.error('[entrenador perfil]', error);
+    res.status(500).json({ message: 'No se pudo cargar el perfil de entrenador.' });
+    return null;
+  }
+}
+
 function normalizeDateTime(value) {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) return null;
   const date = new Date(value);
@@ -151,8 +166,8 @@ router.get('/atletas', async (req, res) => {
 });
 
 router.get('/atletas/:id/asistencia', async (req, res) => {
-  const coach = await findCoach(req.usuario.id).catch(() => null);
-  if (!coach) return res.status(404).json({ message: 'No se encontró el perfil de entrenador.' });
+  const coach = await getCoachOrRespond(req, res);
+  if (!coach) return;
   const athleteId = Number(req.params.id);
   if (!Number.isInteger(athleteId) || athleteId <= 0) {
     return res.status(400).json({ message: 'El identificador del atleta no es válido.' });
@@ -254,13 +269,14 @@ router.get('/sesiones', async (req, res) => {
 });
 
 router.post('/sesiones', async (req, res) => {
-  const coach = await findCoach(req.usuario.id).catch(() => null);
-  if (!coach) return res.status(404).json({ message: 'No se encontró el perfil de entrenador.' });
+  const coach = await getCoachOrRespond(req, res);
+  if (!coach) return;
   const validation = validateSession(req.body, coach.deporte_id);
   if (validation.error) return res.status(400).json({ message: validation.error });
   const values = validation.values;
-  const connection = await pool.getConnection();
+  let connection;
   try {
+    connection = await pool.getConnection();
     const relationError = await validateSessionRelations(connection, values);
     if (relationError) return res.status(400).json({ message: relationError });
     const [result] = await connection.execute(`
@@ -272,18 +288,19 @@ router.post('/sesiones', async (req, res) => {
     console.error('[entrenador sesiones POST]', error);
     return res.status(500).json({ message: 'No se pudo crear el entrenamiento.' });
   } finally {
-    connection.release();
+    if (connection) connection.release();
   }
 });
 
 router.put('/sesiones/:id', async (req, res) => {
-  const coach = await findCoach(req.usuario.id).catch(() => null);
-  if (!coach) return res.status(404).json({ message: 'No se encontró el perfil de entrenador.' });
+  const coach = await getCoachOrRespond(req, res);
+  if (!coach) return;
   const validation = validateSession(req.body, coach.deporte_id);
   if (validation.error) return res.status(400).json({ message: validation.error });
   const values = validation.values;
-  const connection = await pool.getConnection();
+  let connection;
   try {
+    connection = await pool.getConnection();
     const [owned] = await connection.execute(
       'SELECT id FROM sesiones WHERE id = ? AND entrenador_id = ?',
       [req.params.id, coach.id]
@@ -300,13 +317,13 @@ router.put('/sesiones/:id', async (req, res) => {
     console.error('[entrenador sesiones PUT]', error);
     return res.status(500).json({ message: 'No se pudo actualizar el entrenamiento.' });
   } finally {
-    connection.release();
+    if (connection) connection.release();
   }
 });
 
 router.patch('/sesiones/:id/estado', async (req, res) => {
-  const coach = await findCoach(req.usuario.id).catch(() => null);
-  if (!coach) return res.status(404).json({ message: 'No se encontró el perfil de entrenador.' });
+  const coach = await getCoachOrRespond(req, res);
+  if (!coach) return;
   const allowedStates = ['en_curso', 'finalizada', 'cancelada'];
   if (!allowedStates.includes(req.body.estado)) {
     return res.status(400).json({ message: 'El estado indicado no es válido.' });
@@ -333,8 +350,8 @@ router.patch('/sesiones/:id/estado', async (req, res) => {
 });
 
 router.get('/sesiones/:id/asistencias', async (req, res) => {
-  const coach = await findCoach(req.usuario.id).catch(() => null);
-  if (!coach) return res.status(404).json({ message: 'No se encontró el perfil de entrenador.' });
+  const coach = await getCoachOrRespond(req, res);
+  if (!coach) return;
   try {
     const session = await findOwnedSession(req.params.id, coach.id);
     if (!session) return res.status(404).json({ message: 'Entrenamiento no encontrado.' });
@@ -357,8 +374,8 @@ router.get('/sesiones/:id/asistencias', async (req, res) => {
 });
 
 router.put('/sesiones/:id/asistencias', async (req, res) => {
-  const coach = await findCoach(req.usuario.id).catch(() => null);
-  if (!coach) return res.status(404).json({ message: 'No se encontró el perfil de entrenador.' });
+  const coach = await getCoachOrRespond(req, res);
+  if (!coach) return;
   const attendance = req.body.asistencias;
   if (!Array.isArray(attendance)) return res.status(400).json({ message: 'La lista de asistencias no es válida.' });
   const uniqueAthleteIds = [...new Set(attendance.map(item => Number(item.atleta_id)))];
@@ -371,8 +388,10 @@ router.put('/sesiones/:id/asistencias', async (req, res) => {
     return res.status(400).json({ message: 'Revisa los estados y observaciones de asistencia.' });
   }
 
-  const connection = await pool.getConnection();
+  let connection;
+  let transactionStarted = false;
   try {
+    connection = await pool.getConnection();
     const [sessionRows] = await connection.execute(
       'SELECT id, deporte_id, categoria_id, estado FROM sesiones WHERE id = ? AND entrenador_id = ?',
       [req.params.id, coach.id]
@@ -396,6 +415,7 @@ router.put('/sesiones/:id/asistencias', async (req, res) => {
     }
 
     await connection.beginTransaction();
+    transactionStarted = true;
     for (const item of attendance) {
       await connection.execute(`
         INSERT INTO asistencias (sesion_id, atleta_id, presente, observacion)
@@ -404,13 +424,14 @@ router.put('/sesiones/:id/asistencias', async (req, res) => {
       `, [session.id, Number(item.atleta_id), item.presente, item.presente ? null : String(item.observacion).trim()]);
     }
     await connection.commit();
+    transactionStarted = false;
     return res.json({ message: 'Asistencia guardada.' });
   } catch (error) {
-    await connection.rollback();
+    if (connection && transactionStarted) await connection.rollback();
     console.error('[entrenador asistencias PUT]', error);
     return res.status(500).json({ message: 'No se pudo guardar la asistencia.' });
   } finally {
-    connection.release();
+    if (connection) connection.release();
   }
 });
 

@@ -20,7 +20,7 @@
  *   /contacto        → Formulario de contacto
  *   /login           → Inicio de sesión
  *   /registro        → Registro de nuevo usuario
- *   /solicitud       → Módulo de solicitudes (requiere login)
+ *   /entrenador/solicitudes → Pedidos del equipo desde el panel de entrenador
  *   /reportes        → Módulo de reportes (solo administrador)
  *   /recuperar-contrasena → Formulario para solicitar recuperación por email
  *   /nueva-contrasena    → Formulario para ingresar la nueva contraseña (usa ?token=)
@@ -77,10 +77,7 @@ export const routes: Routes = [
     path: 'login',
     loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent)
   },
-  {
-    path: 'solicitud',
-    loadComponent: () => import('./pages/solicitud/solicitud.component').then(m => m.SolicitudComponent)
-  },
+  { path: 'solicitud', redirectTo: '/entrenador/solicitudes', pathMatch: 'full' },
   {
     path: 'reportes',
     loadComponent: () => import('./pages/reportes/reportes.component').then(m => m.ReportesComponent)
@@ -101,7 +98,17 @@ export const routes: Routes = [
   },
   {
     path: 'entrenador',
-    loadComponent: () => import('./entrenador/entrenador.component').then(m => m.EntrenadorComponent)
+    loadComponent: () => import('./entrenador/entrenador.component').then(m => m.EntrenadorComponent),
+    children: [
+      {
+        path: '',
+        loadChildren: () => import('./entrenador/entrenador-route').then(m => m.entrenadorRoutes)
+      }
+    ]
+  },
+  {
+    path: 'atleta',
+    loadComponent: () => import('./atleta/atleta.component').then(m => m.AtletaComponent)
   },
   {
     path: 'registro',

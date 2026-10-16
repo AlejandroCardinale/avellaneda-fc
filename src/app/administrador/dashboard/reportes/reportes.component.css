@@ -134,3 +134,245 @@ tbody tr:hover { background:#fbfcfc; }
 	.registration-bars { gap:4px; }
 	.registration-column small { font-size:9px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ESTILOS DE IMPRESIÓN — window.print() / Guardar como PDF
+   Preserva: donut chart (conic-gradient), barras, colores, tablas
+   Oculta: sidebar, nav, filtros, botones
+   ══════════════════════════════════════════════════════════════════════════ */
+@media print {
+
+  /* ── Forzar impresión de colores exactos ── */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* ── Ocultar todo excepto el reporte ── */
+  app-header,
+  .sidebar,
+  .admin-shell > .sidebar,
+  .content-area > :not(app-reportes-admin),
+  .page-header .header-actions,
+  .header-actions,
+  .filters-panel,
+  .range-group,
+  .loading-state { display: none !important; }
+
+  /* ── Configuración de página A4 ── */
+  @page { margin: 14mm 12mm; size: A4 portrait; }
+
+  body {
+    background: #fff !important;
+    font-size: 10pt;
+    margin: 0;
+  }
+
+  /* ── Layout del reporte ── */
+  #reportes-print-area {
+    display: block !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* ── Cabecera ── */
+  .page-header {
+    border-bottom: 2px solid #173f76;
+    display: flex !important;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    page-break-inside: avoid;
+  }
+  .page-header h1   { color: #173f76 !important; font-size: 18pt; margin: 4px 0; }
+  .eyebrow          { color: #2167a5 !important; display: block !important; }
+  .subtitle         { display: block !important; }
+
+  /* ── Tarjetas de métricas ── */
+  .metrics-grid {
+    display: flex !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+    page-break-inside: avoid;
+  }
+  .metric-card {
+    border: 1px solid #c5d5d8 !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    flex: 1 !important;
+    page-break-inside: avoid;
+    padding: 10px !important;
+  }
+  .metric-card strong { font-size: 18pt !important; }
+  .metric-card small  { font-size: 8pt !important; color: #555 !important; }
+  .metric-note        { display: none; }
+
+  /* Acento de color izquierdo de cada tarjeta */
+  .metric-athletes   { border-left: 4px solid #087f8c !important; }
+  .metric-attendance { border-left: 4px solid #f0a202 !important; }
+  .metric-resources  { border-left: 4px solid #2364aa !important; }
+  .metric-requests   { border-left: 4px solid #7b9e3b !important; }
+
+  /* Íconos numéricos 01–04 */
+  .metric-icon {
+    background: #eef3f8 !important;
+    color: #173f76 !important;
+    display: flex !important;
+    font-size: 10pt !important;
+    font-weight: 800;
+  }
+
+  /* ── Grid de gráficos ── */
+  .reports-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    margin-bottom: 10px !important;
+    page-break-inside: avoid;
+  }
+  .report-card {
+    border: 1px solid #c5d5d8 !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    padding: 10px !important;
+  }
+
+  /* ── DONUT chart — preservar conic-gradient ── */
+  .donut {
+    border-radius: 50% !important;
+    height: 130px !important;
+    width:  130px !important;
+    /* El background (conic-gradient) se aplica inline desde el TS y se preserva con print-color-adjust */
+  }
+  .donut > div {
+    background: #fff !important;
+    border-radius: 50%;
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 72px;
+    width:  72px;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+  }
+  .donut > div strong { font-size: 14pt !important; color: #173f76 !important; }
+  .donut > div small  { font-size: 7pt !important; color: #555 !important; }
+
+  .distribution-content {
+    align-items: center !important;
+    display: flex !important;
+    gap: 12px !important;
+  }
+  .discipline-list { flex: 1; }
+  .discipline-row  { margin-bottom: 5px !important; }
+  .discipline-copy > div:first-child { font-size: 8pt !important; }
+
+  /* Barras de disciplinas */
+  .discipline-track {
+    background: #eef0f2 !important;
+    border-radius: 4px;
+    height: 6px !important;
+    overflow: hidden;
+    width: 100%;
+  }
+  .discipline-track span {
+    border-radius: 4px;
+    display: block;
+    height: 100% !important;
+    /* background se aplica inline */
+  }
+
+  /* ── Barras de tendencia de registros ── */
+  .registration-chart { height: 130px !important; }
+  .registration-bars  { align-items: flex-end !important; display: flex !important; gap: 3px !important; height: 100px !important; }
+  .registration-column {
+    align-items: center !important;
+    display: flex !important;
+    flex: 1 !important;
+    flex-direction: column !important;
+    justify-content: flex-end !important;
+    min-width: 0 !important;
+  }
+  .registration-column strong { font-size: 6pt !important; }
+  .registration-column small  { font-size: 6pt !important; }
+  .registration-bar {
+    background: linear-gradient(to top, #087f8c, #26b5c4) !important;
+    border-radius: 3px 3px 0 0 !important;
+    display: block !important;
+    width: 100% !important;
+  }
+  .chart-axis { display: none !important; }
+  .chart-caption { font-size: 8pt !important; margin-top: 6px; }
+
+  /* ── Tablas ── */
+  .data-card, .resource-card {
+    border: 1px solid #c5d5d8 !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    margin-bottom: 10px;
+    padding: 10px !important;
+    page-break-inside: avoid;
+  }
+  table {
+    border-collapse: collapse !important;
+    font-size: 8pt !important;
+    width: 100% !important;
+  }
+  th {
+    background: #173f76 !important;
+    color: #fff !important;
+    font-size: 8pt !important;
+    padding: 5px 7px !important;
+    text-align: left;
+  }
+  td { border-bottom: 1px solid #e0e8ea !important; padding: 4px 7px !important; font-size: 8pt !important; }
+  tr:nth-child(even) td { background: #f5f8fa !important; }
+
+  /* Status badges */
+  .status {
+    border-radius: 4px !important;
+    font-size: 7pt !important;
+    font-weight: 700;
+    padding: 2px 6px !important;
+  }
+  .status-present { background: #dcfce7 !important; color: #166534 !important; }
+  .status-absent  { background: #fee2e2 !important; color: #991b1b !important; }
+  .status-aprobada, .status-entregada { background: #dcfce7 !important; color: #166534 !important; }
+  .status-pendiente  { background: #fef9c3 !important; color: #854d0e !important; }
+  .status-rechazada  { background: #fee2e2 !important; color: #991b1b !important; }
+
+  /* ── Top recursos (sidebar derecho) ── */
+  .resource-layout {
+    display: grid !important;
+    grid-template-columns: 2fr 1fr !important;
+    gap: 10px !important;
+  }
+  .top-resources h3 { font-size: 10pt !important; margin-top: 0; }
+  .top-resource-row {
+    align-items: center;
+    display: flex !important;
+    font-size: 8pt !important;
+    gap: 6px !important;
+    margin-bottom: 4px;
+    padding: 3px 0;
+  }
+  .top-resource-row .rank {
+    background: #173f76 !important;
+    border-radius: 4px;
+    color: #fff !important;
+    font-size: 7pt !important;
+    font-weight: 800;
+    min-width: 18px;
+    padding: 1px 4px;
+    text-align: center;
+  }
+
+  /* ── Headings ── */
+  h2 { font-size: 11pt !important; }
+  .card-heading small { font-size: 8pt !important; color: #555 !important; }
+  .heading-icon, .trend-icon { display: none; }
+  .table-count { font-size: 8pt !important; }
+}

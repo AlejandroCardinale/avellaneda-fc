@@ -7,7 +7,8 @@ import {
   RecursoPayload,
   RecursoEstado,
   RecursosDeportivosService,
-  SolicitudAdmin
+  SolicitudAdmin,
+  SolicitudAdminDetalle
 } from './recursos-deportivos.service';
 
 @Component({
@@ -25,6 +26,11 @@ export class RecursosDeportivosComponent implements OnInit {
   activeTab: 'inventario' | 'solicitudes' = 'inventario';
   solicitudes: SolicitudAdmin[] = [];
   solicitudesLoading = false;
+  selectedRequest: SolicitudAdminDetalle | null = null;
+  requestDetailOpen = false;
+  requestDetailLoading = false;
+  requestDetailError = '';
+  requestUpdating = false;
   requestStatus = 'todas';
   listLoading = false;
   saving = false;
@@ -120,10 +126,64 @@ export class RecursosDeportivosComponent implements OnInit {
     return this.requestStatus === 'todas' ? this.solicitudes : this.solicitudes.filter(item => item.estado === this.requestStatus);
   }
 
+  openRequestDetails(request: SolicitudAdmin): void {
+    this.selectedRequest = {
+      ...request,
+      rol: '',
+      equipo: null,
+      destino: null,
+      pasajeros: null,
+      observaciones: null,
+      items: []
+    };
+    this.requestDetailOpen = true;
+    this.requestDetailLoading = true;
+    this.requestDetailError = '';
+    this.service.obtenerDetalleSolicitud(request.id).subscribe({
+      next: detail => {
+        if (this.selectedRequest?.id !== request.id) return;
+        this.selectedRequest = detail;
+        this.requestDetailLoading = false;
+      },
+      error: error => {
+        if (this.selectedRequest?.id !== request.id) return;
+        this.requestDetailError = error?.error?.message || 'No se pudo cargar el detalle de la solicitud.';
+        this.requestDetailLoading = false;
+      }
+    });
+  }
+
+  closeRequestDetails(): void {
+    if (this.requestUpdating) return;
+    this.requestDetailOpen = false;
+    this.selectedRequest = null;
+    this.requestDetailError = '';
+  }
+
+  updateSelectedRequestStatus(estado: 'aprobada' | 'rechazada'): void {
+    if (this.selectedRequest) this.changeRequestStatus(this.selectedRequest, estado);
+  }
+
   changeRequestStatus(request: SolicitudAdmin, estado: SolicitudAdmin['estado']): void {
+    if (request.estado !== 'pendiente' || this.requestUpdating) return;
+    this.requestUpdating = true;
     this.service.actualizarEstadoSolicitud(request.id, estado).subscribe({
-      next: (response) => { this.successMessage = response.message; this.loadSolicitudes(); },
-      error: (error) => { this.errorMessage = error?.error?.message || 'No se pudo actualizar la solicitud.'; }
+      next: response => {
+        this.solicitudes = this.solicitudes.map(item =>
+          item.id === request.id ? { ...item, estado } : item
+        );
+        if (this.selectedRequest?.id === request.id) {
+          this.selectedRequest = { ...this.selectedRequest, estado };
+        }
+        this.requestUpdating = false;
+        this.requestDetailOpen = false;
+        this.selectedRequest = null;
+        this.successMessage = response.message || `Solicitud ${estado === 'aprobada' ? 'aprobada' : 'rechazada'} correctamente.`;
+      },
+      error: error => {
+        this.requestUpdating = false;
+        this.requestDetailError = error?.error?.message || 'No se pudo actualizar la solicitud.';
+      }
     });
   }
 

@@ -1,0 +1,453 @@
+<div class="atleta-shell" *ngIf="!loading; else loadingTpl">
+
+  <!-- ── Sidebar (mismo estilo que admin) ──────────────────── -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <i class="fa-solid fa-person-running"></i>
+      </div>
+      <div>
+        <strong>Avellaneda FC</strong>
+        <small>Panel Atleta</small>
+      </div>
+    </div>
+
+    <!-- Badge de usuario -->
+    <div class="user-chip" *ngIf="perfil">
+      <div class="user-avatar">{{ perfil.nombre[0] }}{{ perfil.apellido[0] }}</div>
+      <div class="user-info">
+        <span class="user-name">{{ perfil.nombre }} {{ perfil.apellido }}</span>
+        <span class="user-badge">Atleta</span>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <button class="nav-btn" [class.active]="view === 'inicio'" (click)="setView('inicio')">
+        <i class="fa-solid fa-house" aria-hidden="true"></i>
+        <span>Inicio</span>
+      </button>
+      <button class="nav-btn" [class.active]="view === 'entrenamientos'" (click)="setView('entrenamientos')">
+        <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+        <span>Mis Entrenamientos</span>
+      </button>
+      <button class="nav-btn" [class.active]="view === 'asistencias'" (click)="setView('asistencias')">
+        <i class="fa-solid fa-chart-bar" aria-hidden="true"></i>
+        <span>Mis Asistencias</span>
+      </button>
+      <button class="nav-btn" [class.active]="view === 'perfil'" (click)="setView('perfil')">
+        <i class="fa-solid fa-user-pen" aria-hidden="true"></i>
+        <span>Mi Perfil</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" (click)="logout()">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Cerrar sesión</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Contenido principal ──────────────────────────────── -->
+  <main class="content-area">
+
+    <!-- Mensajes globales -->
+    <div class="alert alert-error" *ngIf="errorMessage">
+      <i class="fa-solid fa-circle-exclamation"></i> {{ errorMessage }}
+    </div>
+    <div class="alert alert-success" *ngIf="successMessage">
+      <i class="fa-solid fa-circle-check"></i> {{ successMessage }}
+    </div>
+
+    <!-- ── VISTA: INICIO ──────────────────────────────────── -->
+    <section *ngIf="view === 'inicio'">
+      <div class="page-header">
+        <div>
+          <p class="eyebrow">Panel de atleta</p>
+          <h1>Bienvenido, {{ perfil?.nombre }} 👋</h1>
+        </div>
+        <span class="role-badge">
+          <i class="fa-solid fa-person-running"></i> Atleta
+        </span>
+      </div>
+
+      <div class="stats-grid" *ngIf="asistencias">
+        <article class="stat-card">
+          <div class="stat-icon blue"><i class="fa-solid fa-calendar-days"></i></div>
+          <div class="stat-body">
+            <span class="stat-tag">total asignados</span>
+            <h2>{{ entrenamientos.length }}</h2>
+            <p>Entrenamientos</p>
+          </div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="stat-body">
+            <span class="stat-tag">{{ asistencias.presentes }}/{{ asistencias.totalSesiones }} sesiones</span>
+            <h2>{{ asistencias.porcentajeAsistencia }}%</h2>
+            <p>Asistencia</p>
+          </div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-icon orange"><i class="fa-solid fa-circle-xmark"></i></div>
+          <div class="stat-body">
+            <span class="stat-tag">{{ asistencias.justificadas }} justificadas</span>
+            <h2>{{ asistencias.ausencias }}</h2>
+            <p>Ausencias</p>
+          </div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-icon purple"><i class="fa-solid fa-person-running"></i></div>
+          <div class="stat-body">
+            <span class="stat-tag">programados</span>
+            <h2>{{ proximosEntrenamientos.length }}</h2>
+            <p>Próximos</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="panels-grid">
+        <!-- Información del atleta -->
+        <section class="panel" *ngIf="perfil">
+          <div class="panel-header">
+            <div>
+              <h3>Mi información</h3>
+              <small>Datos del perfil deportivo</small>
+            </div>
+            <button class="link-btn" (click)="setView('perfil')">Editar →</button>
+          </div>
+          <div class="info-list">
+            <div class="info-row">
+              <span class="info-label"><i class="fa-solid fa-trophy"></i> Deporte</span>
+              <span class="info-value">{{ perfil.deporte || '—' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label"><i class="fa-solid fa-tag"></i> Categoría</span>
+              <span class="info-value">{{ perfil.categoria || '—' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label"><i class="fa-solid fa-clipboard-user"></i> Entrenador</span>
+              <span class="info-value">{{ perfil.entrenador_nombre || 'Sin asignar' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label"><i class="fa-solid fa-heart-pulse"></i> Estado médico</span>
+              <span class="badge-status" [ngClass]="'status-' + perfil.estado_medico">
+                {{ estadoMedicoLabel(perfil.estado_medico) }}
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="info-label"><i class="fa-solid fa-id-card"></i> DNI</span>
+              <span class="info-value">{{ perfil.dni || '—' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label"><i class="fa-solid fa-phone"></i> Teléfono</span>
+              <span class="info-value">{{ perfil.telefono || '—' }}</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Próximos entrenamientos -->
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>Próximos entrenamientos</h3>
+              <small>Sesiones programadas</small>
+            </div>
+            <button class="link-btn" (click)="setView('entrenamientos')">Ver todos →</button>
+          </div>
+          <div *ngIf="proximosEntrenamientos.length; else noProximos">
+            <article class="list-item" *ngFor="let e of proximosEntrenamientos">
+              <div class="list-bullet"><i class="fa-solid fa-calendar-check"></i></div>
+              <div class="list-copy">
+                <h4>{{ e.titulo }}</h4>
+                <div class="meta-row">
+                  <span>{{ formatDate(e.fecha_hora) }}</span>
+                  <span class="pill pill-blue">Programada</span>
+                </div>
+                <small *ngIf="e.instalacion">
+                  <i class="fa-solid fa-location-dot"></i> {{ e.instalacion }}
+                </small>
+              </div>
+            </article>
+          </div>
+          <ng-template #noProximos>
+            <p class="empty-msg">No hay entrenamientos programados próximamente.</p>
+          </ng-template>
+        </section>
+      </div>
+    </section>
+
+    <!-- ── VISTA: ENTRENAMIENTOS ──────────────────────────── -->
+    <section *ngIf="view === 'entrenamientos'">
+      <div class="page-header">
+        <div>
+          <p class="eyebrow">Mi actividad</p>
+          <h1>Mis Entrenamientos</h1>
+        </div>
+        <span class="role-badge">
+          <i class="fa-solid fa-person-running"></i> Atleta
+        </span>
+      </div>
+
+      <div class="filter-bar">
+        <button class="filter-pill" [class.active]="filtroEstado === 'todos'" (click)="filtroEstado = 'todos'">Todos</button>
+        <button class="filter-pill" [class.active]="filtroEstado === 'programada'" (click)="filtroEstado = 'programada'">Programados</button>
+        <button class="filter-pill" [class.active]="filtroEstado === 'en_curso'" (click)="filtroEstado = 'en_curso'">En curso</button>
+        <button class="filter-pill" [class.active]="filtroEstado === 'finalizada'" (click)="filtroEstado = 'finalizada'">Finalizados</button>
+      </div>
+
+      <div class="table-card" *ngIf="entrenamientosFiltrados.length; else noSessions">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Entrenamiento</th>
+              <th>Fecha y hora</th>
+              <th>Duración</th>
+              <th>Instalación</th>
+              <th>Estado</th>
+              <th>Mi asistencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of entrenamientosFiltrados">
+              <td>
+                <strong>{{ e.titulo }}</strong>
+                <small *ngIf="e.categoria" class="sub-text">{{ e.categoria }}</small>
+              </td>
+              <td>{{ formatDate(e.fecha_hora) }}</td>
+              <td>{{ e.duracion_min }} min</td>
+              <td>{{ e.instalacion || '—' }}</td>
+              <td><span class="pill" [ngClass]="'pill-' + e.estado">{{ estadoLabel(e.estado) }}</span></td>
+              <td>
+                <span *ngIf="e.presente === true" class="asist-ok"><i class="fa-solid fa-check"></i> Presente</span>
+                <span *ngIf="e.presente === false" class="asist-no"><i class="fa-solid fa-xmark"></i> Ausente<span *ngIf="e.observacion" class="obs-text"> · {{ e.observacion }}</span></span>
+                <span *ngIf="e.presente === null && (e.estado === 'finalizada' || e.estado === 'en_curso')" class="asist-pending"><i class="fa-solid fa-clock"></i> Sin registrar</span>
+                <span *ngIf="e.estado === 'programada'" class="asist-pending">—</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #noSessions>
+        <p class="empty-msg" *ngIf="entrenamientosLoading">Cargando entrenamientos...</p>
+        <p class="empty-msg" *ngIf="!entrenamientosLoading && entrenamientosError">{{ entrenamientosError }}</p>
+        <p class="empty-msg" *ngIf="!entrenamientosLoading && !entrenamientosError">No hay entrenamientos con ese filtro.</p>
+      </ng-template>
+    </section>
+
+    <!-- ── VISTA: ASISTENCIAS ─────────────────────────────── -->
+    <section *ngIf="view === 'asistencias'">
+      <div class="page-header">
+        <div>
+          <p class="eyebrow">Mi historial</p>
+          <h1>Mis Asistencias</h1>
+        </div>
+        <span class="role-badge">
+          <i class="fa-solid fa-person-running"></i> Atleta
+        </span>
+      </div>
+
+      <div *ngIf="asistencias">
+        <!-- Tarjetas resumen -->
+        <div class="stats-grid">
+          <article class="stat-card">
+            <div class="stat-icon blue"><i class="fa-solid fa-calendar-check"></i></div>
+            <div class="stat-body">
+              <span class="stat-tag">sesiones totales</span>
+              <h2>{{ asistencias.totalSesiones }}</h2>
+              <p>Total sesiones</p>
+            </div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="stat-body">
+              <span class="stat-tag">presencias</span>
+              <h2>{{ asistencias.presentes }}</h2>
+              <p>Asistí</p>
+            </div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-icon orange"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div class="stat-body">
+              <span class="stat-tag">{{ asistencias.justificadas }} justificadas</span>
+              <h2>{{ asistencias.ausencias }}</h2>
+              <p>Ausencias</p>
+            </div>
+          </article>
+          <article class="stat-card accent-highlight">
+            <div class="stat-icon highlight"><i class="fa-solid fa-percent"></i></div>
+            <div class="stat-body">
+              <span class="stat-tag">porcentaje global</span>
+              <h2>{{ asistencias.porcentajeAsistencia }}%</h2>
+              <p>Asistencia</p>
+            </div>
+          </article>
+        </div>
+
+        <!-- Barra de progreso -->
+        <div class="panel progress-panel">
+          <div class="progress-header">
+            <span>Porcentaje de asistencia</span>
+            <strong>{{ asistencias.porcentajeAsistencia }}%</strong>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" [style.width.%]="asistencias.porcentajeAsistencia"></div>
+          </div>
+          <p class="progress-sub">{{ asistencias.presentes }} de {{ asistencias.totalSesiones }} sesiones asistidas</p>
+        </div>
+
+        <!-- Historial en tabla -->
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>Historial reciente</h3>
+              <small>Últimas {{ asistencias.registros.length }} sesiones registradas</small>
+            </div>
+          </div>
+          <div class="table-card" *ngIf="asistencias.registros.length; else noReg">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Sesión</th>
+                  <th>Fecha</th>
+                  <th>Asistencia</th>
+                  <th>Observación</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let r of asistencias.registros">
+                  <td><strong>{{ r.titulo }}</strong></td>
+                  <td>{{ formatDate(r.fecha_hora) }}</td>
+                  <td>
+                    <span *ngIf="r.presente === true" class="asist-ok"><i class="fa-solid fa-check"></i> Presente</span>
+                    <span *ngIf="r.presente === false" class="asist-no"><i class="fa-solid fa-xmark"></i> Ausente</span>
+                    <span *ngIf="r.presente === null" class="asist-pending"><i class="fa-solid fa-clock"></i> Pendiente</span>
+                  </td>
+                  <td class="obs-cell">{{ r.observacion || '—' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #noReg>
+            <p class="empty-msg">Aún no hay registros de asistencia.</p>
+          </ng-template>
+        </section>
+      </div>
+
+      <p *ngIf="!asistencias" class="empty-msg">
+        {{ asistenciasLoading ? 'Cargando estadísticas...' : (asistenciasError || 'No se pudo cargar el historial de asistencias.') }}
+      </p>
+    </section>
+
+    <!-- ── VISTA: PERFIL ──────────────────────────────────── -->
+    <section *ngIf="view === 'perfil'">
+      <div class="page-header">
+        <div>
+          <p class="eyebrow">Configuración</p>
+          <h1>Mi Perfil</h1>
+        </div>
+        <span class="role-badge">
+          <i class="fa-solid fa-person-running"></i> Atleta
+        </span>
+      </div>
+
+      <div class="perfil-layout">
+        <!-- Card info no editable -->
+        <div class="panel perfil-card" *ngIf="perfil">
+          <div class="perfil-avatar">{{ perfil.nombre[0] }}{{ perfil.apellido[0] }}</div>
+          <h3>{{ perfil.nombre }} {{ perfil.apellido }}</h3>
+          <p class="perfil-email">{{ perfil.email }}</p>
+          <div class="perfil-chips">
+            <span class="chip">{{ perfil.deporte || 'Sin deporte' }}</span>
+            <span class="chip">{{ perfil.categoria || 'Sin categoría' }}</span>
+          </div>
+          <div class="info-list" style="margin-top: 1rem;">
+            <div class="info-row">
+              <span class="info-label">DNI</span>
+              <span class="info-value">{{ perfil.dni || '—' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Alta</span>
+              <span class="info-value">{{ perfil.fecha_alta ? formatDateOnly(perfil.fecha_alta) : '—' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Entrenador</span>
+              <span class="info-value">{{ perfil.entrenador_nombre || 'Sin asignar' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Estado médico</span>
+              <span class="badge-status" [ngClass]="'status-' + perfil.estado_medico">
+                {{ estadoMedicoLabel(perfil.estado_medico) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formulario de edición -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>Editar información</h3>
+              <small>Actualizá tus datos personales</small>
+            </div>
+          </div>
+          <form (ngSubmit)="guardarPerfil()">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="pf-nombre">Nombre *</label>
+                <input id="pf-nombre" type="text" [(ngModel)]="perfilForm.nombre" name="nombre"
+                       placeholder="Tu nombre" required>
+              </div>
+              <div class="form-group">
+                <label for="pf-apellido">Apellido *</label>
+                <input id="pf-apellido" type="text" [(ngModel)]="perfilForm.apellido" name="apellido"
+                       placeholder="Tu apellido" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="pf-telefono">Teléfono</label>
+              <input id="pf-telefono" type="tel" [(ngModel)]="perfilForm.telefono" name="telefono"
+                     placeholder="Ej: +54 9 11 1234-5678">
+            </div>
+
+            <div class="form-check-row">
+              <label class="check-label">
+                <input type="checkbox" [(ngModel)]="cambiandoPassword" name="cambiandoPassword">
+                Cambiar contraseña
+              </label>
+            </div>
+
+            <div *ngIf="cambiandoPassword" class="password-box">
+              <div class="form-group">
+                <label for="pf-pwd-actual">Contraseña actual *</label>
+                <input id="pf-pwd-actual" type="password" [(ngModel)]="perfilForm.password_actual"
+                       name="password_actual" placeholder="Tu contraseña actual">
+              </div>
+              <div class="form-group">
+                <label for="pf-pwd-nueva">Nueva contraseña *</label>
+                <input id="pf-pwd-nueva" type="password" [(ngModel)]="perfilForm.password_nueva"
+                       name="password_nueva" placeholder="Mínimo 6 caracteres">
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" [disabled]="saving">
+                <i class="fa-solid fa-floppy-disk"></i>
+                {{ saving ? 'Guardando...' : 'Guardar cambios' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="loading-screen">
+    <i class="fa-solid fa-spinner fa-spin"></i>
+    <span>Cargando tu panel...</span>
+  </div>
+</ng-template>

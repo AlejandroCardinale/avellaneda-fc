@@ -1,0 +1,42 @@
+<section class="coach-page">
+  <div class="coach-layout">
+    <aside class="coach-sidebar" aria-label="Navegación del panel">
+      <a class="club-mark" routerLink="/inicio" aria-label="Avellaneda FC, inicio">
+        <img src="images/logo.png" alt="" />
+        <span><strong>AVELLANEDA FC</strong><small>Área de entrenador</small></span>
+      </a>
+
+      <nav class="coach-nav">
+        <a routerLink="resumen" routerLinkActive="active">
+          <i class="fa-solid fa-house" aria-hidden="true"></i><span>Resumen</span>
+        </a>
+        <a routerLink="plantel" routerLinkActive="active">
+          <i class="fa-solid fa-people-group" aria-hidden="true"></i><span>Plantel</span>
+        </a>
+        <a routerLink="entrenamientos" routerLinkActive="active">
+          <i class="fa-regular fa-calendar" aria-hidden="true"></i><span>Entrenamientos</span>
+        </a>
+        <a routerLink="solicitudes" routerLinkActive="active">
+          <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i><span>Solicitudes</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <a routerLink="/inicio"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Sitio del club</a>
+        <button type="button" (click)="logout()">
+          <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Cerrar sesión
+        </button>
+      </div>
+    </aside>
+
+    <main class="coach-main">
+      <header class="topbar">
+        <div>
+          <p class="overline">Avellaneda FC</p>
+          <h1>Panel del entrenador</h1>
+        </div>
+      </header>
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</section>

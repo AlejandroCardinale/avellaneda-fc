@@ -19,16 +19,35 @@ import { environment } from '../../../environments/environment';
           </div>
         </div>
 
-        <nav class="nav-menu">
-          <a routerLink="/administrador/home" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Inicio</span></a>
-          <a routerLink="/administrador/usuarios" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-users" aria-hidden="true"></i><span>Usuarios</span></a>
-          <a routerLink="/administrador/registrar-atleta" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-person-running" aria-hidden="true"></i><span>Atletas</span></a>
-          <a routerLink="/administrador/entrenadores" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-clipboard-user" aria-hidden="true"></i><span>Entrenadores</span></a>
-          <a routerLink="/administrador/deportes" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-trophy" aria-hidden="true"></i><span>Deportes</span></a>
-          <a routerLink="/administrador/noticias" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>Noticias</span></a>
-          <a routerLink="/administrador/recursos" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-dumbbell" aria-hidden="true"></i><span>Recursos Deportivos</span></a>
-          <a routerLink="/administrador/solicitudes" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-file-circle-check" aria-hidden="true"></i><span>Solicitudes</span></a>
-          <a routerLink="/administrador/reportes" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-chart-column" aria-hidden="true"></i><span>Reportes</span></a>
+        <nav class="nav-menu" aria-label="Navegación de administración">
+          <section class="nav-section">
+            <h2 class="nav-section-title">Principal</h2>
+            <a routerLink="/administrador/home" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Inicio</span></a>
+            <a routerLink="/administrador/reportes" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-chart-column" aria-hidden="true"></i><span>Reportes</span></a>
+          </section>
+
+          <section class="nav-section">
+            <h2 class="nav-section-title">Personas</h2>
+            <a routerLink="/administrador/usuarios" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-users" aria-hidden="true"></i><span>Usuarios</span></a>
+            <a routerLink="/administrador/registrar-atleta" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-person-running" aria-hidden="true"></i><span>Atletas</span></a>
+            <a routerLink="/administrador/entrenadores" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-clipboard-user" aria-hidden="true"></i><span>Entrenadores</span></a>
+          </section>
+
+          <section class="nav-section">
+            <h2 class="nav-section-title">Club</h2>
+            <a routerLink="/administrador/deportes" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-trophy" aria-hidden="true"></i><span>Deportes</span></a>
+          </section>
+
+          <section class="nav-section">
+            <h2 class="nav-section-title">Operativo</h2>
+            <a routerLink="/administrador/noticias" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>Noticias</span></a>
+            <a routerLink="/administrador/recursos" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-dumbbell" aria-hidden="true"></i><span>Recursos Deportivos</span></a>
+            <a routerLink="/administrador/solicitudes" routerLinkActive="active" ariaCurrentWhenActive="page">
+              <i class="fa-solid fa-file-circle-check" aria-hidden="true"></i>
+              <span>Solicitudes</span>
+              <span class="nav-badge" *ngIf="pendientesCount > 0" [attr.aria-label]="pendientesCount + ' solicitudes pendientes'">{{ pendientesCount }}</span>
+            </a>
+          </section>
         </nav>
 
       </aside>
@@ -78,7 +97,25 @@ import { environment } from '../../../environments/environment';
       .nav-menu {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 18px;
+      }
+      .nav-section {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .nav-section + .nav-section {
+        border-top: 1px solid rgba(255,255,255,0.14);
+        padding-top: 13px;
+      }
+      .nav-section-title {
+        color: #9bb7ce;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .12em;
+        margin: 0 0 4px;
+        padding: 0 13px;
+        text-transform: uppercase;
       }
       .nav-menu a {
         position: relative;
@@ -129,7 +166,6 @@ import { environment } from '../../../environments/environment';
         .admin-shell { grid-template-columns: 1fr; }
         .sidebar { padding-bottom: 10px; }
       }
-      .nav-item-highlight { position: relative; }
       .nav-badge {
         margin-left: auto;
         background: #f59e0b;

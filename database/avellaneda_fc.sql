@@ -35,6 +35,7 @@ CREATE TABLE usuarios (
   email          VARCHAR(120)     NOT NULL UNIQUE,
   password_hash  VARCHAR(255)     NOT NULL,
   telefono       VARCHAR(20),
+  dni            VARCHAR(20)      UNIQUE,
   avatar_url     VARCHAR(255),
   activo         BOOLEAN          NOT NULL DEFAULT TRUE,
   creado_en      DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -57,13 +58,13 @@ CREATE INDEX idx_usuario_rol   ON usuarios(rol_id);
 --   entrenador1@avellanedafc.com → Entrenador1!
 --   entrenador2@avellanedafc.com → Entrenador2!
 --   atleta1/2/3@avellanedafc.com → Atleta1234!
-INSERT INTO usuarios (rol_id, nombre, apellido, email, password_hash, telefono, activo, estado_registro) VALUES
-  (1, 'Carlos',  'Gomez',     'admin@avellanedafc.com',       '$2b$12$gcsQuOePQSO/6qbB3rpeYuP.NyBc1WWN3j4HWeXV.Omr6edpnuWOS', '1122334455', TRUE, 'aprobado'),
-  (2, 'Martin',  'Rodriguez', 'entrenador1@avellanedafc.com', '$2b$12$MIJ22SZbaiaBzBIZDC0BFOo4vSajZBUrR32HqqUTlBZeBADgXL4X.', '1133445566', TRUE, 'aprobado'),
-  (2, 'Lucia',   'Fernandez', 'entrenador2@avellanedafc.com', '$2b$12$rEcfrRPMKwHwnqrXoTA1EOJn6rZV9psKrRsEmc7A3Ni7vXFwwocNi', '1144556677', TRUE, 'aprobado'),
-  (3, 'Juan',    'Perez',     'atleta1@avellanedafc.com',     '$2b$12$a6kziXiNfPDl.HmPsrfipOk5K7qnktLSx3rt6s7.pXpraveJ6cKe2', '1155667788', TRUE, 'aprobado'),
-  (3, 'Sofia',   'Lopez',     'atleta2@avellanedafc.com',     '$2b$12$sYEEGzXZuqG0azmFBGry2..c/XvZjWbpGJZzAVESXIu5Ohu52yfU.', '1166778899', TRUE, 'aprobado'),
-  (3, 'Tomas',   'Garcia',    'atleta3@avellanedafc.com',     '$2b$12$nOLx.wLQgsc2bYD3wf/PD.lrQpZOTTlpobdGIIPzw8KK79V.DFLky', '1177889900', TRUE, 'aprobado');
+INSERT INTO usuarios (rol_id, nombre, apellido, email, password_hash, telefono, dni, activo, estado_registro) VALUES
+  (1, 'Carlos',  'Gomez',     'admin@avellanedafc.com',       '$2b$12$gcsQuOePQSO/6qbB3rpeYuP.NyBc1WWN3j4HWeXV.Omr6edpnuWOS', '1122334455', '30000001', TRUE, 'aprobado'),
+  (2, 'Martin',  'Rodriguez', 'entrenador1@avellanedafc.com', '$2b$12$MIJ22SZbaiaBzBIZDC0BFOo4vSajZBUrR32HqqUTlBZeBADgXL4X.', '1133445566', '30000002', TRUE, 'aprobado'),
+  (2, 'Lucia',   'Fernandez', 'entrenador2@avellanedafc.com', '$2b$12$rEcfrRPMKwHwnqrXoTA1EOJn6rZV9psKrRsEmc7A3Ni7vXFwwocNi', '1144556677', '30000003', TRUE, 'aprobado'),
+  (3, 'Juan',    'Perez',     'atleta1@avellanedafc.com',     '$2b$12$a6kziXiNfPDl.HmPsrfipOk5K7qnktLSx3rt6s7.pXpraveJ6cKe2', '1155667788', '35000001', TRUE, 'aprobado'),
+  (3, 'Sofia',   'Lopez',     'atleta2@avellanedafc.com',     '$2b$12$sYEEGzXZuqG0azmFBGry2..c/XvZjWbpGJZzAVESXIu5Ohu52yfU.', '1166778899', '35000002', TRUE, 'aprobado'),
+  (3, 'Tomas',   'Garcia',    'atleta3@avellanedafc.com',     '$2b$12$nOLx.wLQgsc2bYD3wf/PD.lrQpZOTTlpobdGIIPzw8KK79V.DFLky', '1177889900', '35000003', TRUE, 'aprobado');
 
 -- Cuentas de acceso confirmadas solicitadas para pruebas.
 INSERT INTO usuarios (rol_id, nombre, apellido, email, password_hash, telefono, activo, estado_registro)
@@ -481,4 +482,3 @@ JOIN usuarios u ON u.id = s.usuario_id
 JOIN roles    r ON r.id = u.rol_id
 LEFT JOIN solicitud_items si ON si.solicitud_id = s.id
 GROUP BY s.id;
-
