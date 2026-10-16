@@ -109,6 +109,11 @@ export class ReportesAdminComponent implements OnInit {
 
   generate(): void { this.loadReport(); }
 
+  /** Imprime la página exactamente como se ve — captura donut, barras y todos los gráficos CSS */
+  printReport(): void {
+    window.print();
+  }
+
   maxDiscipline(): number { return Math.max(...(this.report?.atletasPorDisciplina || []).map(item => item.total), 1); }
   maxRegistrations(): number { return Math.max(...(this.report?.registrosPorPeriodo || []).map(item => item.total), 1); }
   totalDiscipline(): number { return (this.report?.atletasPorDisciplina || []).reduce((total, item) => total + item.total, 0); }
@@ -271,21 +276,43 @@ export class ReportesAdminComponent implements OnInit {
       });
     }
 
-    // ── GRÁFICO 3: DONUT — Recursos más solicitados ───────────────
+    // ── GRÁFICO 3: TORTA / DONUT — Atletas por disciplina ───────────
+    const disc2 = report.atletasPorDisciplina.filter(d => d.total > 0);
+    if (disc2.length > 0) {
+      const total2 = disc2.reduce((s, d) => s + d.total, 0);
+      txt('Distribucion por disciplina (torta)', 370, 460, 11, 0.09, 0.25, 0.46, true);
+      line(370, 454, 555, 454, 0.8, 0.85, 0.87);
+
+      // Centro y radio del donut
+      const cx2 = 440, cy2 = 360, R = 60, r2 = 30;
+      this.drawPdfDonut(cur(), cx2, cy2, R, r2, disc2.map((d, i) => ({
+        value: d.total,
+        total: total2,
+        color: chartColors[i % chartColors.length] as [number,number,number]
+      })));
+
+      // Leyenda al lado
+      disc2.slice(0, 8).forEach((d, i) => {
+        const ly = 435 - i * 14;
+        const [cr, cg, cb] = chartColors[i % chartColors.length];
+        rect(371, ly, 8, 8, cr, cg, cb);
+        txt(`${d.nombre} (${d.total})`, 384, ly + 1, 6.5, 0.2, 0.28, 0.32);
+      });
+    }
+
+    // ── RECURSOS MÁS SOLICITADOS — barras horizontales ───────────
     const res = report.recursosMasSolicitados.filter(r => r.total > 0);
     if (res.length > 0) {
       const totalRes = res.reduce((s, r) => s + r.total, 0);
       txt('Recursos mas solicitados', 40, 460, 11, 0.09, 0.25, 0.46, true);
-      line(40, 454, 280, 454, 0.8, 0.85, 0.87);
-      // Donut con arcos SVG-like usando rectángulos de colores (simplificado)
-      let cx2 = 90;
+      line(40, 454, 330, 454, 0.8, 0.85, 0.87);
       res.slice(0, 5).forEach((r, i) => {
-        const w = Math.max(6, (r.total / totalRes) * 200);
+        const by2 = 436 - i * 18;
+        const bw2 = Math.max(4, (r.total / totalRes) * 240);
         const [cr, cg, cb] = chartColors[i % chartColors.length];
-        rect(cx2, 400, w, 28, cr, cg, cb);
-        txt(r.nombre.substring(0, 16), cx2, 393, 6, 0.2, 0.28, 0.32);
-        txt(`${r.total}`, cx2 + w / 2 - 4, 410, 7, 1, 1, 1, true);
-        cx2 += w + 3;
+        rect(40, by2, bw2, 12, cr, cg, cb);
+        txt(r.nombre.substring(0, 22), 40 + bw2 + 5, by2 + 2, 7, 0.2, 0.28, 0.32);
+        txt(String(r.total), 40 + bw2 + 5, by2 - 5, 6, 0.5, 0.5, 0.5);
       });
     }
 
@@ -373,6 +400,120 @@ export class ReportesAdminComponent implements OnInit {
       pages[pages.length - 1].push(`0.86 0.9 0.9 RG 0.5 w ${x} ${y} m ${x + tableWidth} ${y} l S`);
     });
     return y;
+  }
+
+  /**
+   * Dibuja un gráfico de torta/donut en el PDF usando curvas de Bézier.
+   * PDF no tiene un operador arc nativo, por eso se aproxima con Bézier cúbicas.
+   * Se usa la fórmula k = (4/3)*tan(θ/4) para los puntos de control.
+   *
+   * @param page   - Array de comandos de la página actual
+   * @param cx     - Centro X del donut en coordenadas PDF
+   * @param cy     - Centro Y del donut en coordenadas PDF
+   * @param R      - Radio exterior
+   * @param rInner - Radio interior (agujero del donut). 0 = torta sólida
+   * @param slices - Array de { value, total, color }
+   */
+  private drawPdfDonut(
+    page: string[],
+    cx: number, cy: number,
+    R: number, rInner: number,
+    slices: { value: number; total: number; color: [number, number, number] }[]
+  ): void {
+    const TAU = 2 * Math.PI;
+
+    // Convierte un ángulo y radio a coordenadas cartesianas PDF
+    const pt = (angle: number, radius: number) => ({
+      x: cx + Math.cos(angle) * radius,
+      y: cy + Math.sin(angle) * radius
+    });
+
+    // Aproxima un arco con una serie de curvas de Bézier cúbicas (máx 90° por segmento)
+    const arcPath = (startAngle: number, endAngle: number, radius: number): string => {
+      const segments: string[] = [];
+      const steps = Math.ceil(Math.abs(endAngle - startAngle) / (Math.PI / 2));
+      const step = (endAngle - startAngle) / steps;
+
+      for (let s = 0; s < steps; s++) {
+        const a0 = startAngle + s * step;
+        const a1 = a0 + step;
+        const k = (4 / 3) * Math.tan(step / 4);
+
+        const p0 = pt(a0, radius);
+        const p3 = pt(a1, radius);
+
+        // Puntos de control tangentes al círculo
+        const p1 = {
+          x: p0.x - Math.sin(a0) * radius * k,
+          y: p0.y + Math.cos(a0) * radius * k
+        };
+        const p2 = {
+          x: p3.x + Math.sin(a1) * radius * k,
+          y: p3.y - Math.cos(a1) * radius * k
+        };
+
+        const fmt = (n: number) => n.toFixed(3);
+        segments.push(
+          `${fmt(p1.x)} ${fmt(p1.y)} ${fmt(p2.x)} ${fmt(p2.y)} ${fmt(p3.x)} ${fmt(p3.y)} c`
+        );
+      }
+      return segments.join(' ');
+    };
+
+    let startAngle = -Math.PI / 2; // Empieza desde arriba (12 en punto)
+
+    slices.forEach(slice => {
+      if (slice.value <= 0) return;
+      const angle = (slice.value / slice.total) * TAU;
+      const endAngle = startAngle + angle;
+      const [r, g, b] = slice.color;
+
+      const start = pt(startAngle, R);
+      const fmt = (n: number) => n.toFixed(3);
+
+      // Color del sector
+      page.push(`${r} ${g} ${b} rg`);
+
+      // Path: mueve al borde exterior, dibuja arco exterior, línea al centro (o radio interior)
+      if (rInner > 0) {
+        // Donut: arco exterior → arco interior (en sentido inverso)
+        const innerStart = pt(endAngle, rInner);
+        const innerEnd   = pt(startAngle, rInner);
+
+        page.push([
+          `${fmt(start.x)} ${fmt(start.y)} m`,           // Mueve a inicio del arco exterior
+          arcPath(startAngle, endAngle, R),               // Arco exterior
+          `${fmt(innerStart.x)} ${fmt(innerStart.y)} l`,  // Línea al radio interior
+          arcPath(endAngle, startAngle, rInner),          // Arco interior (inverso)
+          `${fmt(innerEnd.x)} ${fmt(innerEnd.y)} l`,      // Cierra al inicio
+          'f'                                             // Rellena
+        ].join(' '));
+      } else {
+        // Torta sólida: desde el centro
+        page.push([
+          `${fmt(cx)} ${fmt(cy)} m`,
+          `${fmt(start.x)} ${fmt(start.y)} l`,
+          arcPath(startAngle, endAngle, R),
+          'f'
+        ].join(' '));
+      }
+
+      // Etiqueta: % en el centro de cada sector (solo si el sector es suficientemente grande)
+      const pct = Math.round((slice.value / slice.total) * 100);
+      if (pct >= 5) {
+        const midAngle = startAngle + angle / 2;
+        const labelRadius = rInner > 0 ? (R + rInner) / 2 : R * 0.6;
+        const lp = pt(midAngle, labelRadius);
+        const fontSize = pct >= 10 ? 6 : 5;
+        page.push(`1 1 1 rg BT /F2 ${fontSize} Tf ${fmt(lp.x - 6)} ${fmt(lp.y - 3)} Td (${pct}%) Tj ET`);
+      }
+
+      startAngle = endAngle;
+    });
+
+    // Borde exterior del donut (stroke fino)
+    const startOuter = pt(-Math.PI / 2, R);
+    page.push(`0.8 0.85 0.87 RG 0.5 w ${startOuter.x.toFixed(3)} ${startOuter.y.toFixed(3)} m ${arcPath(-Math.PI / 2, TAU - Math.PI / 2, R)} s`);
   }
 
   private createXlsx(sheets: { name: string; rows: unknown[][] }[]): Blob {
