@@ -90,8 +90,8 @@ router.get('/dashboard', async (req, res) => {
 
     const [[athletes]] = await pool.execute(
       `SELECT COUNT(*) AS total FROM atletas a JOIN usuarios u ON u.id = a.usuario_id
-       WHERE a.deporte_id = ? AND a.estado_medico <> 'no_apto' AND u.activo = TRUE`,
-      [coach.deporte_id]
+       WHERE a.entrenador_id = ? AND a.estado_medico <> 'no_apto' AND u.activo = TRUE`,
+      [coach.id]
     );
     const [[sessions]] = await pool.execute(
       `SELECT COUNT(*) AS total,
@@ -140,9 +140,9 @@ router.get('/atletas', async (req, res) => {
       FROM atletas a
       JOIN usuarios u ON u.id = a.usuario_id
       LEFT JOIN categorias c ON c.id = a.categoria_id
-      WHERE a.deporte_id = ? AND a.estado_medico <> 'no_apto' AND u.activo = TRUE
+      WHERE a.entrenador_id = ? AND a.estado_medico <> 'no_apto' AND u.activo = TRUE
       ORDER BY c.nombre, u.apellido, u.nombre
-    `, [coach.deporte_id]);
+    `, [coach.id]);
     return res.json(rows);
   } catch (error) {
     console.error('[entrenador atletas]', error);
@@ -162,8 +162,8 @@ router.get('/atletas/:id/asistencia', async (req, res) => {
     const [athletes] = await pool.execute(`
       SELECT a.id FROM atletas a
       JOIN usuarios u ON u.id = a.usuario_id
-      WHERE a.id = ? AND a.deporte_id = ? AND a.estado_medico <> 'no_apto' AND u.activo = TRUE
-    `, [athleteId, coach.deporte_id]);
+      WHERE a.id = ? AND a.entrenador_id = ? AND a.estado_medico <> 'no_apto' AND u.activo = TRUE
+    `, [athleteId, coach.id]);
     if (!athletes.length) return res.status(404).json({ message: 'Atleta no encontrado en tu plantel.' });
 
     const [[counts]] = await pool.execute(`
