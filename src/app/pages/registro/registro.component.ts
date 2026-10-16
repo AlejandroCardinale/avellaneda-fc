@@ -134,21 +134,21 @@ export class RegistroComponent implements OnInit {
     const dniCtrl          = this.form.get('dni');
     const especialidadCtrl = this.form.get('especialidad');
 
+    // DNI siempre obligatorio para todos los roles
+    dniCtrl?.setValidators([Validators.required, Validators.minLength(6)]);
+
     if (rol === 'atleta') {
       deporteCtrl?.setValidators([Validators.required]);
       categoriaCtrl?.setValidators([]);
-      dniCtrl?.setValidators([Validators.required, Validators.minLength(6)]);
       especialidadCtrl?.clearValidators();
     } else if (rol === 'entrenador') {
       deporteCtrl?.setValidators([Validators.required]);
       especialidadCtrl?.setValidators([Validators.required, Validators.minLength(3)]);
       categoriaCtrl?.clearValidators();
-      dniCtrl?.clearValidators();
     } else {
-      // Administrador: no requiere campos extra
+      // Administrador: no requiere campos deportivos
       deporteCtrl?.clearValidators();
       categoriaCtrl?.clearValidators();
-      dniCtrl?.clearValidators();
       especialidadCtrl?.clearValidators();
     }
 
@@ -179,10 +179,12 @@ export class RegistroComponent implements OnInit {
       rol:      v.rol
     };
 
+    // DNI siempre incluido
+    data.dni = v.dni ? String(v.dni).trim() : undefined;
+
     if (v.rol === 'atleta') {
       data.deporte_id   = Number(v.deporte_id);
       data.categoria_id = v.categoria_id ? Number(v.categoria_id) : null;
-      data.dni          = v.dni ? String(v.dni).trim() : undefined;
     } else if (v.rol === 'entrenador') {
       data.deporte_id   = Number(v.deporte_id);
       data.especialidad = v.especialidad ? String(v.especialidad).trim() : undefined;
