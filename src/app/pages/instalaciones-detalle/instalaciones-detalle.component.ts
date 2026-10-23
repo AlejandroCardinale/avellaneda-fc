@@ -13,6 +13,7 @@ import { FacilitiesService, Facility } from '../../services/facilities.service';
 export class InstalacionesDetalleComponent implements OnInit {
   facility: Facility | undefined;
   notFound = false;
+  loading = false;
   relatedFacilities: Facility[] = [];
 
   constructor(
@@ -24,16 +25,43 @@ export class InstalacionesDetalleComponent implements OnInit {
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
       const idParam = params.get('id');
-      if (!idParam) { this.notFound = true; return; }
+      if (!idParam) {
+        this.notFound = true;
+        return;
+      }
 
       const id = parseInt(idParam, 10);
-      this.facility = this.facilitiesService.getById(id);
+      if (isNaN(id)) {
+        this.notFound = true;
+        return;
+      }
 
-      if (!this.facility) { this.notFound = true; return; }
+      this.loading = true;
+      this.notFound = false;
 
-      this.relatedFacilities = this.facilitiesService.getAll()
-        .filter(f => f.id !== id)
-        .slice(0, 3);
+      this.facilitiesService.getById(id).subscribe({
+        next: (facility) => {
+          this.facility = facility;
+          this.notFound = !facility;
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Error al cargar detalle de instalación:', err);
+          this.notFound = true;
+          this.loading = false;
+        }
+      });
+
+      this.facilitiesService.getAll().subscribe({
+        next: (all) => {
+          this.relatedFacilities = all
+            .filter(f => f.id !== id)
+            .slice(0, 3);
+        },
+        error: (err) => {
+          console.error('Error al cargar instalaciones relacionadas:', err);
+        }
+      });
     });
   }
 

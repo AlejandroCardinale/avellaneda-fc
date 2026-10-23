@@ -1,0 +1,433 @@
+<section class="events-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Panel de administración</p>
+      <h1>Gestión de Eventos</h1>
+      <p class="subtitle">Administra la agenda deportiva, torneos y peñas folklóricas del club sincronizadas con MySQL.</p>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="openNew()">
+      <i class="fa-solid fa-plus"></i> Nuevo evento
+    </button>
+  </header>
+
+  <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+
+  <!-- Metric Cards -->
+  <div class="metrics-grid">
+    <article class="metric-card">
+      <div class="metric-icon"><i class="fa-solid fa-calendar-days"></i></div>
+      <div class="metric-info">
+        <strong>{{ totalEvents }}</strong>
+        <small>Eventos en agenda</small>
+      </div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-icon text-green"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="metric-info">
+        <strong>{{ publishedCount }}</strong>
+        <small>Eventos publicados</small>
+      </div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-icon text-blue"><i class="fa-solid fa-clock"></i></div>
+      <div class="metric-info">
+        <strong>{{ upcomingCount }}</strong>
+        <small>Próximos a celebrarse</small>
+      </div>
+    </article>
+    <article class="metric-card">
+      <div class="metric-icon text-amber"><i class="fa-solid fa-guitar"></i></div>
+      <div class="metric-info">
+        <strong>{{ folkloricCount }}</strong>
+        <small>Peñas folklóricas</small>
+      </div>
+    </article>
+  </div>
+
+  <!-- Listing Section -->
+  <section class="listing-section">
+    <div class="listing-toolbar">
+      <label class="search-box">
+        <span aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
+        <input type="search" [(ngModel)]="search" (keyup.enter)="onSearch()" placeholder="Buscar evento por título, lugar, disciplina...">
+      </label>
+
+      <select [(ngModel)]="selectedCategoria" (change)="load()" aria-label="Filtrar por categoría">
+        <option value="todas">Todas las categorías</option>
+        <option *ngFor="let cat of categoriasDisponibles" [value]="cat">{{ cat }}</option>
+      </select>
+
+      <select [(ngModel)]="publicadoFiltro" (change)="load()" aria-label="Filtrar por publicación">
+        <option value="todos">Todos los estados</option>
+        <option value="1">Solo publicados</option>
+        <option value="0">Solo borradores</option>
+      </select>
+
+      <button type="button" class="btn btn-search" (click)="onSearch()">Filtrar</button>
+
+      <div class="view-toggle" role="group" aria-label="Modo de vista">
+        <button type="button" class="toggle-btn" [class.active]="viewMode === 'grid'" (click)="viewMode = 'grid'" title="Vista de cuadrícula">
+          <i class="fa-solid fa-grip"></i>
+        </button>
+        <button type="button" class="toggle-btn" [class.active]="viewMode === 'table'" (click)="viewMode = 'table'" title="Vista de tabla">
+          <i class="fa-solid fa-table-list"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="listLoading">
+      <i class="fa-solid fa-spinner fa-spin"></i> Cargando eventos desde la base de datos MySQL...
+    </div>
+
+    <!-- Events Grid View -->
+    <div class="events-grid" *ngIf="!listLoading && viewMode === 'grid'">
+      <article class="event-card" *ngFor="let ev of events">
+        <div class="cover">
+          <img [src]="ev.image || ev.imagen_url || 'images/football_pitch.png'" [alt]="ev.title || ev.titulo">
+          <span class="category-badge">{{ ev.category || ev.categoria || 'Sociales' }}</span>
+          <span class="status-badge" [class.draft]="ev.publicado === false">
+            {{ ev.publicado !== false ? 'Publicado' : 'Borrador' }}
+          </span>
+          <div class="date-tag">
+            <span class="day">{{ ev.day }}</span>
+            <span class="month">{{ ev.month }}</span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="discipline-tag">
+            <i class="fa-solid fa-tag"></i> {{ ev.discipline || ev.disciplina || 'Social' }}
+          </div>
+          <h2>{{ ev.title || ev.titulo }}</h2>
+          <p class="description">{{ ev.description || ev.descripcion }}</p>
+
+          <div class="event-meta">
+            <span><i class="fa-regular fa-clock"></i> {{ ev.time }} <span *ngIf="ev.endTime || ev.hora_fin">a {{ ev.endTime || ev.hora_fin }}</span></span>
+            <span><i class="fa-solid fa-location-dot"></i> {{ ev.location || ev.lugar }}</span>
+            <span *ngIf="ev.inscription.open || ev.inscripcion_abierta" class="text-green">
+              <i class="fa-solid fa-user-check"></i> Inscripción habilitada
+            </span>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <button type="button" class="view" (click)="view(ev)">Ver</button>
+          <button type="button" class="edit" (click)="edit(ev)">Editar</button>
+          <button type="button" class="delete" (click)="askDelete(ev)">Eliminar</button>
+        </div>
+      </article>
+
+      <div class="empty-state" *ngIf="!events.length">
+        <i class="fa-regular fa-calendar-xmark text-muted" style="font-size:36px; display:block; margin-bottom:12px"></i>
+        No se encontraron eventos registrados con los filtros seleccionados.
+      </div>
+    </div>
+
+    <!-- Events Table View -->
+    <div class="table-container" *ngIf="!listLoading && viewMode === 'table'">
+      <table class="admin-table" *ngIf="events.length; else emptyTableState">
+        <thead>
+          <tr>
+            <th style="width: 50px;">ID</th>
+            <th style="width: 60px;">Portada</th>
+            <th>Título del Evento</th>
+            <th>Disciplina</th>
+            <th>Categoría</th>
+            <th>Fecha y Horario</th>
+            <th>Lugar</th>
+            <th>Inscripción</th>
+            <th>Estado</th>
+            <th style="text-align: right; width: 140px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ev of events">
+            <td class="text-muted">#{{ ev.id }}</td>
+            <td>
+              <img [src]="ev.image || ev.imagen_url || 'images/football_pitch.png'" [alt]="ev.title || ev.titulo" class="table-thumb">
+            </td>
+            <td>
+              <strong class="table-title">{{ ev.title || ev.titulo }}</strong>
+              <small class="table-desc">{{ ev.description || ev.descripcion }}</small>
+            </td>
+            <td>
+              <span class="table-tag"><i class="fa-solid fa-tag"></i> {{ ev.discipline || ev.disciplina }}</span>
+            </td>
+            <td>
+              <span class="category-pill">{{ ev.category || ev.categoria }}</span>
+            </td>
+            <td>
+              <div class="date-cell">
+                <strong><i class="fa-regular fa-calendar text-blue"></i> {{ ev.date }}</strong>
+                <small class="text-muted"><i class="fa-regular fa-clock"></i> {{ ev.time }}</small>
+              </div>
+            </td>
+            <td>
+              <span><i class="fa-solid fa-location-dot text-blue"></i> {{ ev.location || ev.lugar }}</span>
+            </td>
+            <td>
+              <span class="badge-status" [class.status-open]="ev.inscription.open || ev.inscripcion_abierta" [class.status-closed]="!(ev.inscription.open || ev.inscripcion_abierta)">
+                <i class="fa-solid" [ngClass]="(ev.inscription.open || ev.inscripcion_abierta) ? 'fa-check' : 'fa-xmark'"></i>
+                {{ (ev.inscription.open || ev.inscripcion_abierta) ? 'Abierta' : 'Cerrada' }}
+              </span>
+            </td>
+            <td>
+              <span class="status-badge-sm" [class.draft]="ev.publicado === false">
+                {{ ev.publicado !== false ? 'Publicado' : 'Borrador' }}
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <div class="table-actions">
+                <button type="button" class="btn-action view" (click)="view(ev)" title="Ver detalle">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                <button type="button" class="btn-action edit" (click)="edit(ev)" title="Editar evento">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="btn-action delete" (click)="askDelete(ev)" title="Eliminar evento">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <ng-template #emptyTableState>
+        <div class="empty-state">
+          <i class="fa-regular fa-calendar-xmark text-muted" style="font-size:36px; display:block; margin-bottom:12px"></i>
+          No se encontraron eventos registrados con los filtros seleccionados.
+        </div>
+      </ng-template>
+    </div>
+  </section>
+
+  <!-- Modal Form (Crear / Editar) -->
+  <div class="modal-backdrop" *ngIf="modalOpen" (click)="closeModal()">
+    <form class="modal" [formGroup]="form" (ngSubmit)="save()" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">{{ editing ? 'Edición de Evento' : 'Nuevo Registro' }}</p>
+          <h2>{{ editing ? 'Editar evento en MySQL' : 'Dar de alta nuevo evento en MySQL' }}</h2>
+        </div>
+        <button type="button" class="close" (click)="closeModal()">×</button>
+      </div>
+
+      <div class="form-grid">
+        <label class="wide">
+          Título del evento *
+          <input formControlName="titulo" placeholder="Ej: Gran Peña Folklórica de Primavera">
+          <small *ngIf="f['titulo'].touched && f['titulo'].invalid">El título del evento es obligatorio.</small>
+        </label>
+
+        <label>
+          Categoría *
+          <select formControlName="categoria">
+            <option *ngFor="let cat of categoriasDisponibles" [value]="cat">{{ cat }}</option>
+          </select>
+        </label>
+
+        <label>
+          Disciplina deportiva o actividad *
+          <input formControlName="disciplina" list="disciplinas-list" placeholder="Ej: Social, Fútbol, Tenis...">
+          <datalist id="disciplinas-list">
+            <option *ngFor="let d of disciplinasComunes" [value]="d"></option>
+          </datalist>
+        </label>
+
+        <label>
+          Fecha del evento *
+          <input type="date" formControlName="fecha">
+          <small *ngIf="f['fecha'].touched && f['fecha'].invalid">La fecha es obligatoria.</small>
+        </label>
+
+        <label>
+          Hora de inicio *
+          <input type="time" formControlName="hora">
+        </label>
+
+        <label>
+          Hora estimada de finalización
+          <input formControlName="hora_fin" placeholder="Ej: 21:00 hs o 02:00 hs">
+        </label>
+
+        <label>
+          Lugar / Instalación *
+          <input formControlName="lugar" placeholder="Ej: Quincho Principal, Polideportivo Cubierto">
+          <small *ngIf="f['lugar'].touched && f['lugar'].invalid">El lugar es obligatorio.</small>
+        </label>
+
+        <label class="wide">
+          Detalle de acceso / Ubicación específica
+          <input formControlName="lugar_detalle" placeholder="Ej: Sector parrillas y carpa climatizada. Acceso libre por portón central.">
+        </label>
+
+        <label class="wide">
+          Descripción breve (para tarjetas y listados) *
+          <textarea rows="2" formControlName="descripcion" placeholder="Resumen atractivo del evento"></textarea>
+          <small *ngIf="f['descripcion'].touched && f['descripcion'].invalid">La descripción es obligatoria.</small>
+        </label>
+
+        <label class="wide">
+          Descripción completa / Sobre el evento
+          <textarea rows="3" formControlName="descripcion_larga" placeholder="Detalle completo de la jornada, invitados, actividades y propósitos."></textarea>
+        </label>
+
+        <label class="wide">
+          Cronograma del evento (una actividad por línea, formato: HH:mm - Actividad)
+          <textarea rows="3" formControlName="cronograma" placeholder="21:30 - Apertura de puertas y recepción&#10;22:30 - Espectáculo folklórico en vivo&#10;01:00 - Cierre"></textarea>
+        </label>
+
+        <label class="wide">
+          Categorías y participantes convocados (uno por línea)
+          <textarea rows="2" formControlName="categorias_participantes" placeholder="Abierto a toda la comunidad&#10;Socios y familias"></textarea>
+        </label>
+
+        <label class="wide">
+          Reglas y consideraciones (una por línea)
+          <textarea rows="2" formControlName="reglas" placeholder="Ambiente familiar y de convivencia&#10;Cuidar las instalaciones del club"></textarea>
+        </label>
+
+        <label class="wide">
+          Premios o reconocimientos (uno por línea)
+          <textarea rows="2" formControlName="premios" placeholder="Menciones especiales a los participantes&#10;Sorteos de indumentaria"></textarea>
+        </label>
+
+        <label>
+          Límite de inscripción
+          <input formControlName="inscripcion_limite" placeholder="Ej: Mismo día del evento, 48 hs antes">
+        </label>
+
+        <label>
+          Contacto para inscripciones / informes
+          <input formControlName="inscripcion_contacto" placeholder="eventos@avellanedafc.com">
+        </label>
+
+        <label class="wide">
+          Imagen ilustrativa del evento
+          <input type="file" accept="image/*" (change)="onImageSelected($event)">
+          <small>Formatos aceptados: PNG, JPG o WEBP. Máximo 5 MB.</small>
+        </label>
+
+        <div class="checkboxes-row wide">
+          <label class="check">
+            <input type="checkbox" formControlName="inscripcion_abierta"> Inscripción habilitada
+          </label>
+
+          <label class="check">
+            <input type="checkbox" formControlName="publicado"> Publicado en la web oficial
+          </label>
+
+          <label class="check">
+            <input type="checkbox" formControlName="destacado"> Destacar en agenda
+          </label>
+        </div>
+      </div>
+
+      <img class="preview" *ngIf="imagePreview" [src]="imagePreview" alt="Vista previa de imagen">
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" (click)="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="loading">
+          {{ loading ? 'Sincronizando con MySQL...' : (editing ? 'Actualizar evento' : 'Guardar evento en MySQL') }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-backdrop" *ngIf="detailOpen" (click)="closeDetail()">
+    <article class="modal detail-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <span class="category-badge">{{ selected?.category || selected?.categoria }}</span>
+          <h2>{{ selected?.title || selected?.titulo }}</h2>
+        </div>
+        <button type="button" class="close" (click)="closeDetail()">×</button>
+      </div>
+
+      <img class="detail-image" [src]="selected?.image || selected?.imagen_url || 'images/football_pitch.png'" [alt]="selected?.title || selected?.titulo">
+
+      <div class="detail-content">
+        <p class="lead-text">{{ selected?.longDescription || selected?.descripcion_larga || selected?.description }}</p>
+
+        <div class="detail-section">
+          <h3><i class="fa-regular fa-calendar-days text-blue"></i> Fecha, Horario y Lugar</h3>
+          <ul class="bullet-list">
+            <li><strong>Fecha:</strong> {{ selected?.date }} ({{ selected?.isoDate }})</li>
+            <li><strong>Horario:</strong> {{ selected?.time }} <span *ngIf="selected?.endTime">hasta las {{ selected?.endTime }}</span></li>
+            <li><strong>Lugar:</strong> {{ selected?.location || selected?.lugar }}</li>
+            <li *ngIf="selected?.locationDetail || selected?.lugar_detalle">
+              <strong>Acceso:</strong> {{ selected?.locationDetail || selected?.lugar_detalle }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="detail-section" *ngIf="selected?.schedule?.length">
+          <h3><i class="fa-solid fa-list-check text-blue"></i> Cronograma de actividades</h3>
+          <div class="schedule-timeline">
+            <div *ngFor="let item of selected?.schedule" class="timeline-row">
+              <span class="timeline-time">{{ item.time }}</span>
+              <span class="timeline-act">{{ item.activity }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section" *ngIf="selected?.categories?.length">
+          <h3><i class="fa-solid fa-layer-group text-blue"></i> Participantes convocados</h3>
+          <ul class="chips-list">
+            <li *ngFor="let cat of selected?.categories">{{ cat }}</li>
+          </ul>
+        </div>
+
+        <div class="detail-section" *ngIf="selected?.rules?.length">
+          <h3><i class="fa-solid fa-clipboard-check text-blue"></i> Reglas y consideraciones</h3>
+          <ul class="bullet-list">
+            <li *ngFor="let rule of selected?.rules">{{ rule }}</li>
+          </ul>
+        </div>
+
+        <div class="detail-section" *ngIf="selected?.prizes?.length">
+          <h3><i class="fa-solid fa-trophy text-blue"></i> Premios y reconocimientos</h3>
+          <ul class="bullet-list">
+            <li *ngFor="let prize of selected?.prizes">{{ prize }}</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <h3><i class="fa-solid fa-user-check text-blue"></i> Estado de inscripción</h3>
+          <p>
+            {{ selected?.inscription?.open ? 'Inscripción abierta.' : 'Inscripción cerrada o sin cupo.' }}
+            <span *ngIf="selected?.inscription?.deadline">Límite: {{ selected?.inscription?.deadline }}.</span>
+            <span *ngIf="selected?.inscription?.contact">Contacto: {{ selected?.inscription?.contact }}</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" (click)="closeDetail()">Cerrar</button>
+        <button type="button" class="btn btn-primary" (click)="closeDetail(); edit(selected!)">Editar evento</button>
+      </div>
+    </article>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-backdrop" *ngIf="confirmOpen" (click)="cancelDelete()">
+    <article class="modal confirm-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>¿Eliminar evento?</h2>
+        <button type="button" class="close" (click)="cancelDelete()">×</button>
+      </div>
+      <p>
+        ¿Estás seguro de que deseas eliminar permanentemente de MySQL el evento
+        <strong>"{{ deleting?.title || deleting?.titulo }}"</strong>?
+      </p>
+      <p class="text-muted" style="font-size:12px;">Esta acción impactará de inmediato en la base de datos y en las vistas públicas del club.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" (click)="cancelDelete()">Cancelar</button>
+        <button type="button" class="btn btn-danger" (click)="confirmDelete()">Eliminar de MySQL</button>
+      </div>
+    </article>
+  </div>
+</section>

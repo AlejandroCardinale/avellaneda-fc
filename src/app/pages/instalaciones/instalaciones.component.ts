@@ -13,6 +13,7 @@ import { FacilitiesService, Facility } from '../../services/facilities.service';
 export class InstalacionesComponent implements OnInit {
   facilities: Facility[] = [];
   services: any[] = [];
+  loading = false;
 
   stats = [
     { icon: 'fa-building', value: '10+', label: 'Instalaciones deportivas' },
@@ -25,7 +26,17 @@ export class InstalacionesComponent implements OnInit {
   constructor(private facilitiesService: FacilitiesService) {}
 
   ngOnInit() {
-    this.facilities = this.facilitiesService.getAll();
+    this.loading = true;
+    this.facilitiesService.getAll().subscribe({
+      next: (data) => {
+        this.facilities = data;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar instalaciones:', err);
+        this.loading = false;
+      }
+    });
     this.services = this.facilitiesService.getServices();
   }
 }

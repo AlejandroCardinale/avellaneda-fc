@@ -36,6 +36,8 @@ import { environment } from '../../../environments/environment';
           <section class="nav-section">
             <h2 class="nav-section-title">Club</h2>
             <a routerLink="/administrador/deportes" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-trophy" aria-hidden="true"></i><span>Deportes</span></a>
+            <a routerLink="/administrador/instalaciones" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-building" aria-hidden="true"></i><span>Instalaciones</span></a>
+            <a routerLink="/administrador/eventos" routerLinkActive="active" ariaCurrentWhenActive="page"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i><span>Eventos</span></a>
           </section>
 
           <section class="nav-section">

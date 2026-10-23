@@ -31,13 +31,169 @@
     <ng-template #loadingState><div class="loading-state">Cargando deportes...</div></ng-template>
   </section>
 
-  <div class="modal-backdrop" *ngIf="modalOpen" (click)="closeModal()"><form class="modal" [formGroup]="form" (ngSubmit)="save()" (click)="$event.stopPropagation()">
-    <div class="modal-header"><div><p class="eyebrow">{{ editing ? 'Edición' : 'Nuevo registro' }}</p><h2>{{ editing ? 'Editar deporte' : 'Registrar deporte' }}</h2></div><button type="button" class="close" (click)="closeModal()">×</button></div>
-    <div class="form-grid"><label>Nombre del deporte<input formControlName="nombre" placeholder="Ej: Fútbol"><small *ngIf="f['nombre'].touched && f['nombre'].invalid">El nombre es obligatorio.</small></label><label>Categoría<input formControlName="categoria" placeholder="Ej: Deportes de equipo"><small *ngIf="f['categoria'].touched && f['categoria'].invalid">La categoría es obligatoria.</small></label><label class="wide">Descripción<textarea rows="4" formControlName="descripcion"></textarea></label><label>Icono<input formControlName="icono" placeholder="fa-futbol"></label><label>Imagen de portada<input type="file" accept="image/*" (change)="onImageSelected($event)"><small>PNG, JPG o WEBP. Máximo 5 MB.</small></label><label class="check"><input type="checkbox" formControlName="activo"> Activo</label></div>
-    <img class="preview" *ngIf="imagePreview" [src]="imagePreview" alt="Vista previa del deporte"><div class="modal-actions"><button type="button" class="btn btn-ghost" (click)="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary" [disabled]="loading">{{ loading ? 'Guardando...' : (editing ? 'Guardar cambios' : 'Crear deporte') }}</button></div>
-  </form></div>
+  <div class="modal-backdrop" *ngIf="modalOpen" (click)="closeModal()">
+    <form class="modal" [formGroup]="form" (ngSubmit)="save()" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">{{ editing ? 'Edición de Disciplina' : 'Nuevo Registro' }}</p>
+          <h2>{{ editing ? 'Editar deporte' : 'Registrar deporte' }}</h2>
+        </div>
+        <button type="button" class="close" (click)="closeModal()">×</button>
+      </div>
 
-  <div class="modal-backdrop" *ngIf="detailOpen" (click)="closeDetail()"><article class="modal detail-modal" (click)="$event.stopPropagation()"><div class="modal-header"><div><p class="eyebrow">Detalle</p><h2>{{ selected?.nombre }}</h2></div><button type="button" class="close" (click)="closeDetail()">×</button></div><img class="detail-image" [src]="selected?.imagen_url || 'images/football_pitch.png'" [alt]="selected?.nombre"><div class="detail-content"><p>{{ selected?.descripcion }}</p><strong>Categoría: {{ selected?.categoria || 'Sin categoría' }}</strong><span>{{ selected?.atletas }} atletas · {{ selected?.entrenadores }} entrenadores</span></div><div class="modal-actions"><button type="button" class="btn btn-ghost" (click)="closeDetail()">Cerrar</button></div></article></div>
+      <div class="form-grid">
+        <label>
+          Nombre del deporte
+          <input formControlName="nombre" placeholder="Ej: Fútbol">
+          <small *ngIf="f['nombre'].touched && f['nombre'].invalid">El nombre es obligatorio.</small>
+        </label>
 
-  <div class="modal-backdrop" *ngIf="confirmOpen" (click)="cancelDelete()"><article class="modal confirm-modal" (click)="$event.stopPropagation()"><p class="eyebrow">Confirmar eliminación</p><h2>¿Seguro quiere eliminar a "{{ deleting?.nombre }}"?</h2><p>El deporte quedará inactivo en el inventario.</p><div class="modal-actions"><button type="button" class="btn btn-ghost" (click)="cancelDelete()">Cancelar</button><button type="button" class="btn btn-danger" (click)="confirmDelete()">Sí, eliminar</button></div></article></div>
+        <label>
+          Categoría principal
+          <input formControlName="categoria" placeholder="Ej: Deportes de equipo">
+          <small *ngIf="f['categoria'].touched && f['categoria'].invalid">La categoría es obligatoria.</small>
+        </label>
+
+        <label>
+          Tipo de disciplina
+          <input formControlName="tipo" placeholder="Ej: Deportes">
+        </label>
+
+        <label>
+          Capacidad estimada (atletas)
+          <input type="number" formControlName="capacidad" placeholder="Ej: 500">
+        </label>
+
+        <label>
+          Ícono FontAwesome
+          <input formControlName="icono" placeholder="fa-futbol">
+        </label>
+
+        <label>
+          Horario de práctica
+          <input formControlName="horario" placeholder="Ej: Lunes a Viernes 17:00 - 21:00">
+        </label>
+
+        <label>
+          Atletas asignados
+          <input type="number" formControlName="atletas" placeholder="Ej: 450">
+        </label>
+
+        <label>
+          Entrenadores
+          <input type="number" formControlName="entrenadores" placeholder="Ej: 12">
+        </label>
+
+        <label class="wide">
+          Descripción breve (resumen en tarjeta)
+          <textarea rows="2" formControlName="descripcion" placeholder="Resumen corto de la disciplina..."></textarea>
+          <small *ngIf="f['descripcion'].touched && f['descripcion'].invalid">La descripción es obligatoria.</small>
+        </label>
+
+        <label class="wide">
+          Descripción extendida / Historia
+          <textarea rows="3" formControlName="descripcion_larga" placeholder="Historia, detalles completos y presentación del deporte..."></textarea>
+        </label>
+
+        <label class="wide">
+          Categorías disponibles (una por línea)
+          <textarea rows="3" formControlName="categorias" placeholder="Primera División&#10;Reserva&#10;Juveniles (Sub-17 / Sub-15)&#10;Infantiles"></textarea>
+        </label>
+
+        <label class="wide">
+          Instalaciones y beneficios (una por línea)
+          <textarea rows="3" formControlName="caracteristicas" placeholder="Cancha principal reglamentaria FIFA&#10;Canchas auxiliares de césped sintético&#10;Gimnasio de alto rendimiento&#10;Cuerpo médico y kinesiológico"></textarea>
+        </label>
+
+        <label class="wide">
+          Especificaciones técnicas (Formato Clave: Valor, una por línea)
+          <textarea rows="3" formControlName="especificaciones_tecnicas" placeholder="Superficie: Césped natural y sintético&#10;Dimensiones: 105 x 68 m&#10;Iluminación: LED profesional"></textarea>
+        </label>
+
+        <label class="wide">
+          Equipamiento provisto (uno por línea)
+          <textarea rows="2" formControlName="equipamiento" placeholder="Pelotas oficiales de entrenamiento y partido&#10;Conos, vallas y elementos de coordinación"></textarea>
+        </label>
+
+        <label class="wide">
+          Reglamento y normativas (una por línea)
+          <textarea rows="2" formControlName="normativas" placeholder="Apto médico obligatorio al inicio de temporada&#10;Uso de canilleras obligatorio"></textarea>
+        </label>
+
+        <label class="wide">
+          Imagen de portada
+          <input type="file" accept="image/*" (change)="onImageSelected($event)">
+          <small>PNG, JPG o WEBP. Máximo 5 MB.</small>
+        </label>
+
+        <label class="check wide">
+          <input type="checkbox" formControlName="activo"> Disciplina activa y visible para socios
+        </label>
+      </div>
+
+      <img class="preview" *ngIf="imagePreview" [src]="imagePreview" alt="Vista previa del deporte">
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" (click)="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="loading">
+          {{ loading ? 'Guardando en BD...' : (editing ? 'Guardar cambios' : 'Crear deporte') }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="detailOpen" (click)="closeDetail()">
+    <article class="modal detail-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">Detalle de Disciplina</p>
+          <h2>{{ selected?.nombre }}</h2>
+        </div>
+        <button type="button" class="close" (click)="closeDetail()">×</button>
+      </div>
+
+      <img class="detail-image" [src]="selected?.imagen_url || selected?.image || 'images/football_pitch.png'" [alt]="selected?.nombre">
+
+      <div class="detail-content" style="margin-top: 14px;">
+        <p style="font-size: 0.95rem; line-height: 1.6; color: #334155;">{{ selected?.descripcion_larga || selected?.longDescription || selected?.descripcion }}</p>
+
+        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin: 10px 0; font-size: 0.85rem; color: #475569;">
+          <span><strong>Categoría:</strong> {{ selected?.categoria || 'General' }}</span>
+          <span><strong>Horario:</strong> {{ selected?.horario || selected?.schedule || 'A convenir' }}</span>
+          <span><strong>Atletas:</strong> {{ selected?.atletas || selected?.atletas_count || 0 }}</span>
+          <span><strong>Entrenadores:</strong> {{ selected?.entrenadores || selected?.entrenadores_count || 0 }}</span>
+        </div>
+
+        <div *ngIf="selected?.caracteristicas?.length" style="margin-top: 8px;">
+          <strong style="font-size: 0.85rem; color: #1e293b;">Beneficios e Instalaciones:</strong>
+          <ul style="margin: 6px 0 0 18px; padding: 0; font-size: 0.82rem; color: #475569;">
+            <li *ngFor="let feat of selected?.caracteristicas">{{ feat }}</li>
+          </ul>
+        </div>
+
+        <div *ngIf="selected?.categorias?.length" style="margin-top: 8px;">
+          <strong style="font-size: 0.85rem; color: #1e293b;">Categorías:</strong>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
+            <span *ngFor="let cat of selected?.categorias" style="background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">{{ cat }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" (click)="closeDetail()">Cerrar</button>
+      </div>
+    </article>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="confirmOpen" (click)="cancelDelete()">
+    <article class="modal confirm-modal" (click)="$event.stopPropagation()">
+      <p class="eyebrow">Confirmar desactivación</p>
+      <h2>¿Seguro quiere desactivar "{{ deleting?.nombre }}"?</h2>
+      <p>El deporte quedará inactivo en el inventario y no será visible para los socios.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" (click)="cancelDelete()">Cancelar</button>
+        <button type="button" class="btn btn-danger" (click)="confirmDelete()">Sí, desactivar</button>
+      </div>
+    </article>
+  </div>
 </section>

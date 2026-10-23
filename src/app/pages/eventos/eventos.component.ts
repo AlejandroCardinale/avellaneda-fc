@@ -26,11 +26,21 @@ export class EventosComponent implements OnInit {
   constructor(private eventsService: EventsService) {}
 
   ngOnInit() {
-    // Obtenemos los eventos y los ordenamos cronológicamente
-    this.events = this.eventsService.getAll().sort((a,b) => new Date(a.isoDate).getTime() - new Date(b.isoDate).getTime());
-    this.filteredEvents = [...this.events];
     this.categories = this.eventsService.getCategories();
     this.buildCalendar();
+    this.loadEvents();
+  }
+
+  loadEvents() {
+    this.eventsService.getAll().subscribe({
+      next: (events) => {
+        this.events = events.sort((a, b) => new Date(a.isoDate).getTime() - new Date(b.isoDate).getTime());
+        this.applyFilters();
+      },
+      error: (err) => {
+        console.error('Error al cargar eventos:', err);
+      }
+    });
   }
 
   filterBy(cat: string) {

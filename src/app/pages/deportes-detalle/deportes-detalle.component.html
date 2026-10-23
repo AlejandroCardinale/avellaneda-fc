@@ -122,7 +122,7 @@
           </div>
 
           <!-- Categorías -->
-          <div class="detail-card">
+          <div class="detail-card" *ngIf="sport.categories?.length">
             <h2 class="detail-section-title mb-24">
               <i class="fa-solid fa-layer-group text-blue" style="margin-right: 10px;"></i>
               Categorías Disponibles
@@ -133,6 +133,50 @@
                 <span>{{ cat }}</span>
               </div>
             </div>
+          </div>
+
+          <!-- Especificaciones Técnicas -->
+          <div class="detail-card" *ngIf="sport.technicalSpecs?.length">
+            <h2 class="detail-section-title mb-24">
+              <i class="fa-solid fa-ruler-combined text-blue" style="margin-right: 10px;"></i>
+              Especificaciones Técnicas
+            </h2>
+            <div class="tech-specs-grid">
+              <div *ngFor="let spec of sport.technicalSpecs" class="spec-item">
+                <span class="spec-key">{{ spec.key }}</span>
+                <span class="spec-value">{{ spec.value }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Equipamiento Provisto -->
+          <div class="detail-card" *ngIf="sport.equipment?.length">
+            <h2 class="detail-section-title mb-24">
+              <i class="fa-solid fa-toolbox text-blue" style="margin-right: 10px;"></i>
+              Equipamiento Provisto
+            </h2>
+            <ul class="equipment-list">
+              <li *ngFor="let eq of sport.equipment" class="equipment-item">
+                <div class="equip-check">
+                  <i class="fa-solid fa-check"></i>
+                </div>
+                <span>{{ eq }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Reglamento y Normativas -->
+          <div class="detail-card regulations-card" *ngIf="sport.regulations?.length">
+            <h2 class="detail-section-title mb-24">
+              <i class="fa-solid fa-clipboard-list text-blue" style="margin-right: 10px;"></i>
+              Reglamento y Normativas
+            </h2>
+            <ul class="regulations-list">
+              <li *ngFor="let reg of sport.regulations; let i = index" class="regulation-item">
+                <div class="reg-number">{{ i + 1 }}</div>
+                <span>{{ reg }}</span>
+              </li>
+            </ul>
           </div>
 
         </div>

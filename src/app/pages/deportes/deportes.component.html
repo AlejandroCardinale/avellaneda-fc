@@ -60,14 +60,14 @@
         <div class="sidebar-card">
           <h3>Próximos Eventos Deportivos</h3>
           <div class="sidebar-events">
-            <div class="sidebar-event-item" *ngFor="let ev of events">
+            <div class="sidebar-event-item" *ngFor="let ev of events" [routerLink]="['/eventos', ev.id]" style="cursor: pointer;">
               <div class="event-date-box">
                 <span class="event-day">{{ ev.day }}</span>
                 <span class="event-month">{{ ev.month }}</span>
               </div>
               <div>
-                <p class="event-name">{{ ev.title }}</p>
-                <span class="event-sport"><i class="fa-solid fa-tag"></i> {{ ev.discipline }}</span>
+                <p class="event-name">{{ ev.title || ev.titulo }}</p>
+                <span class="event-sport"><i class="fa-solid fa-tag"></i> {{ ev.discipline || ev.disciplina }}</span>
               </div>
             </div>
           </div>

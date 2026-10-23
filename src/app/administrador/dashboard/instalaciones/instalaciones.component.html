@@ -1,0 +1,255 @@
+<section class="facilities-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Panel de administración</p>
+      <h1>Gestión de Instalaciones</h1>
+      <p class="subtitle">Administra los espacios, canchas y complejos deportivos del club.</p>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="openNew()">+ Nueva instalación</button>
+  </header>
+
+  <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+
+  <!-- Metric Cards -->
+  <div class="metrics-grid">
+    <article class="metric-card">
+      <strong>{{ facilities.length }}</strong>
+      <small>Espacios registrados</small>
+    </article>
+    <article class="metric-card">
+      <strong>{{ totalCapacity }}</strong>
+      <small>Capacidad total de socios</small>
+    </article>
+    <article class="metric-card">
+      <strong>{{ activeFacilitiesCount }}</strong>
+      <small>Instalaciones operativas</small>
+    </article>
+  </div>
+
+  <!-- Listing Section -->
+  <section class="listing-section">
+    <div class="listing-toolbar">
+      <label class="search-box">
+        <span aria-hidden="true">⌕</span>
+        <input type="search" [(ngModel)]="search" (keyup.enter)="onSearch()" placeholder="Buscar instalación por nombre...">
+      </label>
+
+      <select [(ngModel)]="selectedTipo" (change)="load()" aria-label="Filtrar por tipo">
+        <option value="todas">Todos los tipos</option>
+        <option value="Deportiva">Deportiva</option>
+        <option value="Acuática">Acuática</option>
+        <option value="Fitness">Fitness</option>
+      </select>
+
+      <select [(ngModel)]="activo" (change)="load()" aria-label="Filtrar por estado">
+        <option value="todos">Todos los estados</option>
+        <option value="true">Activas</option>
+        <option value="false">Inactivas</option>
+      </select>
+
+      <button type="button" class="btn btn-search" (click)="onSearch()">Buscar</button>
+    </div>
+
+    <!-- Facilities Grid -->
+    <div class="facilities-grid" *ngIf="!listLoading; else loadingState">
+      <article class="facility-card" *ngFor="let f of facilities">
+        <div class="cover">
+          <img [src]="f.image || f.imagen_url || 'images/football_pitch.png'" [alt]="f.name || f.nombre">
+          <span class="type-badge">{{ f.label || f.tipo || 'Deportiva' }}</span>
+          <span class="status" [class.inactive]="f.activa === false">
+            {{ f.activa !== false ? 'Activa' : 'Inactiva' }}
+          </span>
+        </div>
+
+        <div class="card-body">
+          <div class="card-icon-title">
+            <i class="fa-solid" [ngClass]="f.icon || f.icono || 'fa-building'"></i>
+            <h2>{{ f.name || f.nombre }}</h2>
+          </div>
+          <p>{{ f.description || f.descripcion }}</p>
+          <div class="facility-meta">
+            <span><i class="fa-solid fa-users"></i> Capacidad: {{ f.capacidad || 0 }} pers.</span>
+            <span><i class="fa-solid fa-clock"></i> {{ f.schedule || f.horario || 'Consultar horarios' }}</span>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <button type="button" (click)="view(f)">Ver</button>
+          <button type="button" class="edit" (click)="edit(f)">Editar</button>
+          <button type="button" class="delete" (click)="askDelete(f)">Eliminar</button>
+        </div>
+      </article>
+
+      <div class="empty-state" *ngIf="!facilities.length">
+        No se encontraron instalaciones con los filtros seleccionados.
+      </div>
+    </div>
+
+    <ng-template #loadingState>
+      <div class="loading-state">Cargando instalaciones desde la base de datos...</div>
+    </ng-template>
+  </section>
+
+  <!-- Modal Form (Crear / Editar) -->
+  <div class="modal-backdrop" *ngIf="modalOpen" (click)="closeModal()">
+    <form class="modal" [formGroup]="form" (ngSubmit)="save()" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">{{ editing ? 'Edición de Espacio' : 'Nuevo Registro' }}</p>
+          <h2>{{ editing ? 'Editar instalación' : 'Registrar nueva instalación' }}</h2>
+        </div>
+        <button type="button" class="close" (click)="closeModal()">×</button>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          Nombre de la instalación
+          <input formControlName="nombre" placeholder="Ej: Canchas de Tenis">
+          <small *ngIf="f['nombre'].touched && f['nombre'].invalid">El nombre es obligatorio.</small>
+        </label>
+
+        <label>
+          Tipo / Categoría
+          <select formControlName="tipo">
+            <option value="Deportiva">Deportiva</option>
+            <option value="Acuática">Acuática</option>
+            <option value="Fitness">Fitness</option>
+            <option value="Social">Social</option>
+          </select>
+        </label>
+
+        <label>
+          Capacidad (personas)
+          <input type="number" formControlName="capacidad" placeholder="Ej: 500">
+        </label>
+
+        <label>
+          Ícono FontAwesome
+          <input formControlName="icono" placeholder="fa-building">
+        </label>
+
+        <label class="wide">
+          Horarios de uso
+          <input formControlName="horario" placeholder="Ej: Lunes a Viernes 7:00 - 23:00 / Sábados 7:00 - 22:00">
+        </label>
+
+        <label class="wide">
+          Descripción breve
+          <textarea rows="2" formControlName="descripcion" placeholder="Resumen corto para tarjetas"></textarea>
+          <small *ngIf="f['descripcion'].touched && f['descripcion'].invalid">La descripción es obligatoria.</small>
+        </label>
+
+        <label class="wide">
+          Descripción detallada / Historia
+          <textarea rows="3" formControlName="descripcion_larga" placeholder="Historia, especificaciones y detalles completos del espacio"></textarea>
+        </label>
+
+        <label class="wide">
+          Características y beneficios (una por línea)
+          <textarea rows="3" formControlName="caracteristicas" placeholder="6 canchas en total (4 clay + 2 sintético)&#10;Iluminación nocturna LED&#10;Alquiler de raquetas"></textarea>
+        </label>
+
+        <label class="wide">
+          Especificaciones técnicas (Formato Clave: Valor, una por línea)
+          <textarea rows="3" formControlName="especificaciones_tecnicas" placeholder="Superficie: Césped natural y sintético&#10;Dimensiones: 105 x 68 m&#10;Iluminación: LED profesional 800 lux"></textarea>
+        </label>
+
+        <label class="wide">
+          Reglamento y normativas (una regla por línea)
+          <textarea rows="3" formControlName="normativas" placeholder="Obligatorio el uso de calzado adecuado&#10;Reservar con 24 horas de anticipación"></textarea>
+        </label>
+
+        <label class="wide">
+          Equipamiento disponible (uno por línea)
+          <textarea rows="3" formControlName="equipamiento" placeholder="Redes reglamentarias&#10;Marcador electrónico&#10;Pelotas para alquiler"></textarea>
+        </label>
+
+        <label class="wide">
+          Imagen de la instalación
+          <input type="file" accept="image/*" (change)="onImageSelected($event)">
+          <small>Formatos: PNG, JPG o WEBP. Máximo 5 MB.</small>
+        </label>
+
+        <label class="check wide">
+          <input type="checkbox" formControlName="activa"> Instalación activa y disponible para socios
+        </label>
+      </div>
+
+      <img class="preview" *ngIf="imagePreview" [src]="imagePreview" alt="Vista previa de instalación">
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" (click)="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="loading">
+          {{ loading ? 'Guardando en BD...' : (editing ? 'Guardar cambios' : 'Registrar espacio') }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-backdrop" *ngIf="detailOpen" (click)="closeDetail()">
+    <article class="modal detail-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <span class="type-badge">{{ selected?.label || selected?.tipo }}</span>
+          <h2>{{ selected?.name || selected?.nombre }}</h2>
+        </div>
+        <button type="button" class="close" (click)="closeDetail()">×</button>
+      </div>
+
+      <img class="detail-image" [src]="selected?.image || selected?.imagen_url || 'images/football_pitch.png'" [alt]="selected?.name || selected?.nombre">
+
+      <div class="detail-content">
+        <p class="lead-text">{{ selected?.longDescription || selected?.descripcion_larga || selected?.description }}</p>
+
+        <div class="detail-section" *ngIf="selected?.technicalSpecs?.length">
+          <h3><i class="fa-solid fa-ruler-combined"></i> Especificaciones Técnicas</h3>
+          <ul class="specs-chips">
+            <li *ngFor="let s of selected?.technicalSpecs">
+              <strong>{{ s.key }}:</strong> {{ s.value }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="detail-section" *ngIf="selected?.features?.length">
+          <h3><i class="fa-solid fa-star"></i> Características</h3>
+          <ul class="bullet-list">
+            <li *ngFor="let feat of selected?.features"><i class="fa-solid fa-check text-blue"></i> {{ feat }}</li>
+          </ul>
+        </div>
+
+        <div class="detail-section" *ngIf="selected?.equipment?.length">
+          <h3><i class="fa-solid fa-toolbox"></i> Equipamiento</h3>
+          <ul class="bullet-list">
+            <li *ngFor="let eq of selected?.equipment"><i class="fa-solid fa-cube text-blue"></i> {{ eq }}</li>
+          </ul>
+        </div>
+
+        <div class="detail-section" *ngIf="selected?.regulations?.length">
+          <h3><i class="fa-solid fa-clipboard-list"></i> Reglamento</h3>
+          <ul class="bullet-list">
+            <li *ngFor="let reg of selected?.regulations"><i class="fa-solid fa-circle-exclamation text-blue"></i> {{ reg }}</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" (click)="closeDetail()">Cerrar</button>
+      </div>
+    </article>
+  </div>
+
+  <!-- Delete Confirm Modal -->
+  <div class="modal-backdrop" *ngIf="confirmOpen" (click)="cancelDelete()">
+    <article class="modal confirm-modal" (click)="$event.stopPropagation()">
+      <p class="eyebrow">Confirmar desactivación</p>
+      <h2>¿Seguro que querés desactivar "{{ deleting?.name || deleting?.nombre }}"?</h2>
+      <p>La instalación dejará de aparecer en las vistas públicas de los socios.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" (click)="cancelDelete()">Cancelar</button>
+        <button type="button" class="btn btn-danger" (click)="confirmDelete()">Sí, desactivar</button>
+      </div>
+    </article>
+  </div>
+</section>

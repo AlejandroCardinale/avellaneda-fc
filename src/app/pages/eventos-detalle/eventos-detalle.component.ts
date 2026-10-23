@@ -27,13 +27,21 @@ export class EventosDetalleComponent implements OnInit {
       if (!idParam) { this.notFound = true; return; }
 
       const id = parseInt(idParam, 10);
-      this.event = this.eventsService.getById(id);
-
-      if (!this.event) { this.notFound = true; return; }
-
-      this.relatedEvents = this.eventsService.getAll()
-        .filter(e => e.id !== id)
-        .slice(0, 3);
+      this.eventsService.getById(id).subscribe({
+        next: (ev) => {
+          this.event = ev;
+          this.notFound = false;
+          this.eventsService.getAll().subscribe({
+            next: (all) => {
+              this.relatedEvents = all.filter(e => e.id !== id).slice(0, 3);
+            }
+          });
+        },
+        error: (err) => {
+          console.error('Error cargando detalle de evento:', err);
+          this.notFound = true;
+        }
+      });
     });
   }
 

@@ -42,6 +42,12 @@ export const adminRoutes: Routes = [
     path: 'reportes',
     loadComponent: () => import('./dashboard/reportes/reportes.component').then(m => m.ReportesAdminComponent)
   },
-  { path: 'eventos',       redirectTo: 'home', pathMatch: 'full' },
-  { path: 'instalaciones', redirectTo: 'home', pathMatch: 'full' }
+  {
+    path: 'instalaciones',
+    loadComponent: () => import('./dashboard/instalaciones/instalaciones.component').then(m => m.GestionInstalacionesComponent)
+  },
+  {
+    path: 'eventos',
+    loadComponent: () => import('./dashboard/eventos/eventos.component').then(m => m.GestionEventosComponent)
+  }
 ];
