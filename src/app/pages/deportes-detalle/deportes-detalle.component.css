@@ -201,6 +201,126 @@
   flex-shrink: 0;
 }
 
+/* Tech specs */
+.tech-specs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.spec-item {
+  background: var(--light-gray);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--border-gray);
+  transition: var(--transition);
+}
+
+.spec-item:hover {
+  border-color: var(--accent-blue);
+  background: var(--blue-pale);
+}
+
+.spec-key {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.spec-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+/* Equipment list */
+.equipment-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.equipment-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-gray);
+  transition: var(--transition);
+  font-size: 13px;
+  color: var(--text-body);
+  line-height: 1.4;
+}
+
+.equipment-item:hover {
+  border-color: var(--accent-blue);
+  background: var(--blue-pale);
+}
+
+.equip-check {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-size: 11px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Regulations */
+.regulations-card {
+  border-left: 4px solid var(--accent-blue);
+}
+
+.regulations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.regulation-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--off-white, #f8fafc);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-gray);
+  font-size: 14px;
+  color: var(--text-body);
+  line-height: 1.5;
+  transition: var(--transition);
+}
+
+.regulation-item:hover {
+  background: #fff8e1;
+  border-color: #f59e0b;
+}
+
+.reg-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary-dark);
+  color: var(--white);
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 /* Sidebar */
 .detail-sidebar {
   position: sticky;

@@ -6,13 +6,36 @@ import { environment } from '../../../../environments/environment';
 export interface Deporte {
   id: number;
   nombre: string;
+  name?: string;
   descripcion: string;
+  description?: string;
+  descripcion_larga?: string;
+  longDescription?: string;
   categoria: string | null;
+  tipo?: string;
+  label?: string;
+  capacidad?: number;
   icono: string;
+  icon?: string;
   imagen_url: string | null;
+  image?: string;
   activo: boolean;
   atletas: number;
+  atletas_count?: number;
   entrenadores: number;
+  entrenadores_count?: number;
+  horario?: string;
+  schedule?: string;
+  caracteristicas?: string[];
+  features?: string[];
+  categorias?: string[];
+  categories?: string[];
+  especificaciones_tecnicas?: { key: string; value: string }[];
+  technicalSpecs?: { key: string; value: string }[];
+  equipamiento?: string[];
+  equipment?: string[];
+  normativas?: string[];
+  regulations?: string[];
 }
 
 export interface DeportesResponse {

@@ -72,7 +72,9 @@ app.use('/atletas',         require('./routes/atletas'));     // Alias sin /api
 app.use('/api/atleta',      require('./routes/atleta'));      // Portal del atleta (self-service)
 app.use('/api/entrenadores', require('./routes/entrenadores')); // Alta y gestión de entrenadores
 app.use('/api/entrenador',  require('./routes/entrenador'));    // Portal del entrenador
-app.use('/api/deportes',     require('./routes/deportes'));     // Gestión administrativa de deportes
+app.use('/api/deportes',     require('./routes/deportes'));     // Gestión de deportes
+app.use('/api/instalaciones',  require('./routes/instalaciones'));  // Espacios e instalaciones del club
+app.use('/api/eventos',        require('./routes/eventos'));        // Agenda de eventos del club
 app.use('/api/noticias',     require('./routes/noticias'));     // CRUD de noticias del panel administrativo
 app.use('/api/recursos',     require('./routes/recursos'));     // Inventario de recursos deportivos
 app.use('/api/reportes',     require('./routes/reportes'));     // Reportes y exportaciones administrativas

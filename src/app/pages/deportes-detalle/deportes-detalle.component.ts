@@ -13,8 +13,7 @@ import { SportsService, Sport } from '../../services/sports.service';
 export class DeportesDetalleComponent implements OnInit {
   sport: Sport | undefined;
   notFound = false;
-
-  // Deportes relacionados (los otros 3 más cercanos)
+  loading = false;
   relatedSports: Sport[] = [];
 
   constructor(
@@ -31,18 +30,37 @@ export class DeportesDetalleComponent implements OnInit {
         return;
       }
       const id = parseInt(idParam, 10);
-      this.sport = this.sportsService.getById(id);
-
-      if (!this.sport) {
+      if (isNaN(id)) {
         this.notFound = true;
         return;
       }
 
-      // Obtener 3 deportes relacionados (excluyendo el actual)
-      const allSports = this.sportsService.getAll();
-      this.relatedSports = allSports
-        .filter(s => s.id !== id)
-        .slice(0, 3);
+      this.loading = true;
+      this.notFound = false;
+
+      this.sportsService.getById(id).subscribe({
+        next: (sport) => {
+          this.sport = sport;
+          this.notFound = !sport;
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Error al cargar detalle de deporte:', err);
+          this.notFound = true;
+          this.loading = false;
+        }
+      });
+
+      this.sportsService.getAll().subscribe({
+        next: (allSports) => {
+          this.relatedSports = allSports
+            .filter(s => s.id !== id)
+            .slice(0, 3);
+        },
+        error: (err) => {
+          console.error('Error al cargar deportes relacionados:', err);
+        }
+      });
     });
   }
 

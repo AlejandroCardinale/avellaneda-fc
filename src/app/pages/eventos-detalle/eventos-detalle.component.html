@@ -19,7 +19,7 @@
 
   <!-- HERO -->
   <section class="page-hero ev-detail-hero">
-    <img [src]="event.image" [alt]="event.title" class="page-hero-bg">
+    <img [src]="event.image || event.imagen_url || 'images/football_pitch.png'" [alt]="event.title || event.titulo" class="page-hero-bg">
     <div class="ev-detail-overlay"></div>
     <div class="container page-hero-content">
 
@@ -29,7 +29,7 @@
           <i class="fa-solid fa-arrow-left"></i> Eventos
         </a>
         <span class="breadcrumb-sep">/</span>
-        <span class="breadcrumb-current">{{ event.title }}</span>
+        <span class="breadcrumb-current">{{ event.title || event.titulo }}</span>
       </nav>
 
       <div class="ev-hero-body">
@@ -40,13 +40,13 @@
         </div>
         <div>
           <div class="ev-hero-badges">
-            <span class="badge badge-blue">{{ event.category }}</span>
-            <span class="badge badge-dark">{{ event.discipline }}</span>
+            <span class="badge badge-blue">{{ event.category || event.categoria }}</span>
+            <span class="badge badge-dark">{{ event.discipline || event.disciplina }}</span>
           </div>
-          <h1 class="page-hero-title">{{ event.title }}</h1>
+          <h1 class="page-hero-title">{{ event.title || event.titulo }}</h1>
           <div class="ev-hero-meta">
-            <span><i class="fa-regular fa-clock"></i> {{ event.time }} — {{ event.endTime }}</span>
-            <span><i class="fa-solid fa-location-dot"></i> {{ event.location }}</span>
+            <span><i class="fa-regular fa-clock"></i> {{ event.time }} — {{ event.endTime || event.hora_fin }}</span>
+            <span><i class="fa-solid fa-location-dot"></i> {{ event.location || event.lugar }}</span>
           </div>
         </div>
       </div>
@@ -65,19 +65,19 @@
           <div class="ev-card">
             <div class="ev-card-header">
               <div class="icon-circle icon-circle-lg">
-                <i class="fa-solid" [ngClass]="getCategoryIcon(event.category)"></i>
+                <i class="fa-solid" [ngClass]="getCategoryIcon(event.category || event.categoria || '')"></i>
               </div>
               <div>
                 <h2 class="ev-section-title">Sobre el evento</h2>
                 <p class="text-muted" style="font-size:14px">Todo lo que necesitás saber</p>
               </div>
             </div>
-            <p class="ev-long-desc">{{ event.longDescription }}</p>
+            <p class="ev-long-desc">{{ event.longDescription || event.descripcion_larga || event.description || event.descripcion }}</p>
             <div class="ev-location-box">
               <i class="fa-solid fa-map-location-dot"></i>
               <div>
-                <strong>Lugar:</strong> {{ event.location }}
-                <p>{{ event.locationDetail }}</p>
+                <strong>Lugar:</strong> {{ event.location || event.lugar }}
+                <p>{{ event.locationDetail || event.lugar_detalle }}</p>
               </div>
             </div>
           </div>
@@ -89,7 +89,7 @@
               Cronograma del Evento
             </h2>
             <div class="schedule-timeline">
-              <div *ngFor="let item of event.schedule; let last = last" class="timeline-item">
+              <div *ngFor="let item of (event.schedule || event.cronograma); let last = last" class="timeline-item">
                 <div class="timeline-time">{{ item.time }}</div>
                 <div class="timeline-dot" [class.last]="last"></div>
                 <div class="timeline-activity">{{ item.activity }}</div>
@@ -104,7 +104,7 @@
               Categorías y Participantes
             </h2>
             <div class="ev-categories-list">
-              <div *ngFor="let cat of event.categories; let i = index" class="ev-category-chip">
+              <div *ngFor="let cat of (event.categories || event.categorias_participantes); let i = index" class="ev-category-chip">
                 <div class="ev-cat-number">{{ i + 1 }}</div>
                 <span>{{ cat }}</span>
               </div>
@@ -118,7 +118,7 @@
               Reglas y Consideraciones
             </h2>
             <ul class="ev-rules-list">
-              <li *ngFor="let rule of event.rules; let i = index" class="ev-rule-item">
+              <li *ngFor="let rule of (event.rules || event.reglas); let i = index" class="ev-rule-item">
                 <div class="rule-number">{{ i + 1 }}</div>
                 <span>{{ rule }}</span>
               </li>
@@ -132,7 +132,7 @@
               Premios y Reconocimientos
             </h2>
             <ul class="ev-prizes-list">
-              <li *ngFor="let prize of event.prizes" class="ev-prize-item">
+              <li *ngFor="let prize of (event.prizes || event.premios)" class="ev-prize-item">
                 {{ prize }}
               </li>
             </ul>
@@ -148,43 +148,43 @@
             <div class="ev-big-date">
               <span class="ev-big-day">{{ event.day }}</span>
               <div>
-                <span class="ev-big-month">{{ event.month }} 2026</span>
+                <span class="ev-big-month">{{ event.month }} {{ event.year || '2026' }}</span>
                 <span class="ev-big-time">{{ event.time }}</span>
               </div>
             </div>
             <div class="divider"></div>
             <div class="ev-sidebar-info-item">
               <i class="fa-solid fa-clock"></i>
-              <span>Duración aprox. hasta las {{ event.endTime }}</span>
+              <span>Duración aprox. hasta las {{ event.endTime || event.hora_fin }}</span>
             </div>
             <div class="ev-sidebar-info-item">
               <i class="fa-solid fa-location-dot"></i>
-              <span>{{ event.location }}</span>
+              <span>{{ event.location || event.lugar }}</span>
             </div>
             <div class="ev-sidebar-info-item">
               <i class="fa-solid fa-tag"></i>
-              <span>{{ event.discipline }} — {{ event.category }}</span>
+              <span>{{ event.discipline || event.disciplina }} — {{ event.category || event.categoria }}</span>
             </div>
           </div>
 
           <!-- Inscripción -->
           <div class="sidebar-card ev-inscription-card">
-            <div class="inscription-status" [class.open]="event.inscription.open" [class.closed]="!event.inscription.open">
-              <i class="fa-solid" [class]="event.inscription.open ? 'fa-circle-check' : 'fa-circle-xmark'"></i>
-              {{ event.inscription.open ? 'Inscripción abierta' : 'Inscripción cerrada' }}
+            <div class="inscription-status" [class.open]="event.inscription.open || event.inscripcion_abierta" [class.closed]="!(event.inscription.open || event.inscripcion_abierta)">
+              <i class="fa-solid" [class]="(event.inscription.open || event.inscripcion_abierta) ? 'fa-circle-check' : 'fa-circle-xmark'"></i>
+              {{ (event.inscription.open || event.inscripcion_abierta) ? 'Inscripción abierta' : 'Inscripción cerrada' }}
             </div>
             <h3>Inscripción</h3>
             <div class="inscription-details">
               <div class="inscription-row">
                 <span class="inscription-label">Cierre</span>
-                <span class="inscription-value">{{ event.inscription.deadline }}</span>
+                <span class="inscription-value">{{ event.inscription.deadline || event.inscripcion_limite || 'A coordinar' }}</span>
               </div>
               <div class="inscription-row">
                 <span class="inscription-label">Contacto</span>
-                <span class="inscription-value" style="font-size:12px">{{ event.inscription.contact }}</span>
+                <span class="inscription-value" style="font-size:12px">{{ event.inscription.contact || event.inscripcion_contacto || 'eventos@avellanedafc.com' }}</span>
               </div>
             </div>
-            <a *ngIf="event.inscription.open" routerLink="/contacto" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:16px;">
+            <a *ngIf="event.inscription.open || event.inscripcion_abierta" routerLink="/contacto" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:16px;">
               <i class="fa-solid fa-pen-to-square"></i> Inscribirme ahora
             </a>
           </div>
@@ -215,8 +215,8 @@
       <div class="related-ev-grid">
         <div *ngFor="let rel of relatedEvents" class="related-ev-card card">
           <div class="related-ev-img">
-            <img [src]="rel.image" [alt]="rel.title">
-            <span class="badge badge-blue rel-badge">{{ rel.category }}</span>
+            <img [src]="rel.image || rel.imagen_url || 'images/football_pitch.png'" [alt]="rel.title || rel.titulo">
+            <span class="badge badge-blue rel-badge">{{ rel.category || rel.categoria }}</span>
           </div>
           <div class="related-ev-body">
             <div class="related-ev-date">
@@ -224,8 +224,8 @@
               <span class="rel-month">{{ rel.month }}</span>
             </div>
             <div>
-              <h3>{{ rel.title }}</h3>
-              <p>{{ rel.description }}</p>
+              <h3>{{ rel.title || rel.titulo }}</h3>
+              <p>{{ rel.description || rel.descripcion }}</p>
               <a [routerLink]="['/eventos', rel.id]" class="btn btn-outline-blue btn-sm">
                 Ver detalles <i class="fa-solid fa-arrow-right"></i>
               </a>

@@ -18,6 +18,7 @@ export class DeportesComponent implements OnInit {
   events: Event[] = [];
   stats: any;
   searchQuery = '';
+  loading = false;
 
   statItems = [
     { value: '8', label: 'Disciplinas', icon: 'fa-medal' },
@@ -32,17 +33,48 @@ export class DeportesComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.sports = this.sportsService.getAll();
-    this.filteredSports = [...this.sports];
-    this.events = this.eventsService.getUpcoming(3);
+    this.loading = true;
+    this.sportsService.getAll().subscribe({
+      next: (data) => {
+        this.sports = data;
+        this.filteredSports = [...data];
+        this.updateStats(data);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar deportes:', err);
+        this.loading = false;
+      }
+    });
+
+    this.eventsService.getUpcoming(3).subscribe({
+      next: (events) => this.events = events,
+      error: (err) => console.error('Error cargando eventos en deportes:', err)
+    });
     this.stats = this.sportsService.getStats();
   }
 
+  private updateStats(sports: Sport[]) {
+    const totalAthletes = sports.reduce((sum, s) => sum + (s.athletes || 0), 0);
+    const totalCoaches = sports.reduce((sum, s) => sum + (s.coaches || 0), 0);
+
+    this.statItems = [
+      { value: String(sports.length || 8), label: 'Disciplinas', icon: 'fa-medal' },
+      { value: `+${totalAthletes || 300}`, label: 'Atletas', icon: 'fa-users' },
+      { value: String(totalCoaches || 45), label: 'Entrenadores', icon: 'fa-whistle' },
+      { value: '+1500', label: 'Socios', icon: 'fa-id-card' }
+    ];
+  }
+
   onSearch() {
-    if (!this.searchQuery.trim()) {
+    const query = this.searchQuery.trim().toLowerCase();
+    if (!query) {
       this.filteredSports = [...this.sports];
     } else {
-      this.filteredSports = this.sportsService.search(this.searchQuery);
+      this.filteredSports = this.sports.filter(s =>
+        s.name.toLowerCase().includes(query) ||
+        s.description.toLowerCase().includes(query)
+      );
     }
   }
 }
